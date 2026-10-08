@@ -34,7 +34,8 @@ export const App: React.FC = () => {
   useEffect(() => {
     const handleHash = () => {
       const hash = window.location.hash.toLowerCase();
-      if (hash.startsWith('#epk')) {
+      const epkHashes = ['#epk', '#bio', '#discografia', '#media-kit', '#comunicati', '#live', '#contatti'];
+      if (epkHashes.some((h) => hash.startsWith(h))) {
         setCurrentView('epk');
       } else if (hash.startsWith('#admin') || hash.startsWith('#backoffice')) {
         setCurrentView('admin');

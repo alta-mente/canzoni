@@ -179,10 +179,16 @@ export const EPK_DATA: EPKData = {
         "L'opera è corredata da video canvas d'autore sincronizzati per ciascun brano, creando un'esperienza multimediale completa per il vinile e per lo schermo."
       ],
       trackByTrack: [
-        { title: "01. Rosso Marte", notes: "L'inizio del viaggio: chitarre riverberate e primo contatto con la desolazione." },
-        { title: "04. Stanze Vuote", notes: "Ballata intima sull'eco dei ricordi nelle stanze disabitate." },
-        { title: "07. Odissea Sonora", notes: "Traccia cardine del disco, un crescendo tra alternative rock e sinfonie sintetiche." },
-        { title: "10. Balla la polvere", notes: "Il finale epico: la polvere rossa che danza sulla desolazione con dignità liberatoria." }
+        { title: "01. Rosso Marte", notes: "«Guardiamo verso il cielo cercando un pianeta abitabile, mentre dimentichiamo di camminare sulla nostra terra.»" },
+        { title: "02. Perché sei andata via", notes: "«Le domande senza risposta pesano più del piombo gravitazionale. Un addio che continua a risuonare nel vuoto.»" },
+        { title: "03. Silenzio assordante", notes: "«C'è un tipo di silenzio che fa più baccano di cento amplificatori accesi al massimo volume.»" },
+        { title: "04. Stanze Vuote", notes: "«Toccare il punto zero è la sola condizione necessaria per ricominciare da capo senza maschere.»" },
+        { title: "05. La Tempesta", notes: "«Quando passa la tempesta solare, rimangono solo le cose a cui valeva davvero la pena credere.»" },
+        { title: "06. Pace", notes: "«Basta una parola detta al volume giusto per disinnescare l'esplosione e tornare a respirare.»" },
+        { title: "07. Odissea Sonora", notes: "«A volte la tragedia è così assurda che l'unica risposta sensata è un sorriso amaro sotto le stelle.»" },
+        { title: "08. Manca l'aria", notes: "«Manca l'ossigeno in orbita, ma fa ancora più male non riuscire a respirare nella propria camera.»" },
+        { title: "09. Allucinazione", notes: "«I confini tra sogno e veglia si sciolgono quando le luci della città si spengono tutte insieme.»" },
+        { title: "10. Balla la polvere", notes: "«E se anche non c'è vita su Marte, lasciamo che la polvere balli con noi per un'ultima volta.»" }
       ]
     },
     {
@@ -197,9 +203,18 @@ export const EPK_DATA: EPKData = {
         "Ancora una volta, i versi nati dalla penna di Rocchi trovano compimento in una scrittura intimista e cinematografica, dove ogni parola, rima e silenzio è dosato per restituire un racconto autentico e coinvolgente."
       ],
       trackByTrack: [
-        { title: "01. Quel salto nel vuoto", notes: "La decisione vertiginosa di cambiare vita e mollare le ancore." },
-        { title: "02. Fette Biscottate e Marmellata", notes: "La title track: dolcezza mattutina e malinconia urbana a contrasto." },
-        { title: "03. C'è posto qui con me", notes: "Apertura acustica verso l'altro, invito alla condivisione nel freddo." }
+        { title: "01. Quel salto nel vuoto", notes: "«Non è la caduta che fa paura, ma il momento esatto in cui decidi di staccare i piedi da terra.»" },
+        { title: "02. Fette Biscottate e Marmellata", notes: "«La colazione sul tavolo della cucina, mentre fuori il mondo corre senza voltarsi mai.»" },
+        { title: "03. C'è posto qui con me", notes: "«Una sedia tirata vicino al termosifone. Qui non serve spiegare nulla, basta restare.»" },
+        { title: "04. Prima delle dodici", notes: "«I minuti prima di mezzanotte valgono il doppio quando sai che domani non ci sarai.»" },
+        { title: "05. Tienimi giù", notes: "«Tienimi giù quando il vento prova a sollevare anche i ricordi che volevo seppellire.»" },
+        { title: "06. Da questa finestra", notes: "«I palazzi di fronte accendono le finestre uno a uno. Noi guardiamo senza parlare.»" },
+        { title: "07. Pavimento di cristallo", notes: "«Attento a dove cammini a piedi nudi in salotto: a volte le parole si rompono sul pavimento.»" },
+        { title: "08. Tutto o niente", notes: "«Chiedere tutto è l'unico modo per non accontentarsi di quello che lasciano gli altri.»" },
+        { title: "09. Il gelo", notes: "«L'inverno non arriva con la neve, ma quando gli occhi di chi ami non ti riconoscono più.»" },
+        { title: "10. Come le madri", notes: "«Quella sul comodino, sul libro aperto, come fanno le madri quando il cuore è incerto.»" },
+        { title: "11. Valigie provvisorie", notes: "«Non lasciare valigie disfare qui: siamo ospiti provvisori della nostra stessa nostalgia.»" },
+        { title: "12. La curva e l'ora", notes: "«Un lampo d'argento, una curva, un rumore: la vita che inciampa nel giro d'un'ora.»" }
       ]
     }
   ],

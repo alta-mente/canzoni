@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { EPK_DATA, PressPhoto, PressRelease } from '../data/epkData';
 import { DISCOGRAPHY, AlbumData, Track } from '../data/albumData';
 import { useTheme } from '../context/ThemeContext';
+import { useAudio } from '../context/NativeAudioContext';
 import {
   ArrowLeft,
   Download,
@@ -24,7 +25,9 @@ import {
   Quote,
   Layers,
   ChevronDown,
-  X
+  X,
+  Play,
+  Pause
 } from 'lucide-react';
 
 interface EPKViewProps {
@@ -36,6 +39,7 @@ interface EPKViewProps {
 export const EPKView: React.FC<EPKViewProps> = ({ onBackToPlayer, onSelectAlbumAndPlay, albums }) => {
   const discography = albums && albums.length > 0 ? albums : DISCOGRAPHY;
   const { isDark, toggleTheme } = useTheme();
+  const { currentTrack: audioTrack, isPlaying, playTrack, togglePlay } = useAudio();
   const [copiedBio, setCopiedBio] = useState(false);
   const [copiedPrId, setCopiedPrId] = useState<string | null>(null);
   const [activeAlbumTab, setActiveAlbumTab] = useState<string>(discography[0].id);
@@ -583,6 +587,37 @@ export const EPKView: React.FC<EPKViewProps> = ({ onBackToPlayer, onSelectAlbumA
                         {/* Quick actions for active track */}
                         <div className="flex flex-wrap items-center justify-between gap-3 mt-4 pt-3 border-t border-amber-400/20 text-xs font-mono">
                           <div className="flex flex-wrap items-center gap-2">
+                            {/* In-place Audio Preview Button */}
+                            {activeTrack.audioSrc && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (isPlaying && audioTrack?.id === activeTrack.id) {
+                                    togglePlay();
+                                  } else {
+                                    playTrack(activeTrack);
+                                  }
+                                }}
+                                className={`px-3 py-1.5 rounded-xl font-bold font-mono text-xs flex items-center gap-1.5 transition-all shadow-sm ${
+                                  isPlaying && audioTrack?.id === activeTrack.id
+                                    ? 'bg-amber-400 text-black shadow-amber-500/25 ring-2 ring-amber-400/50'
+                                    : 'bg-amber-500 hover:bg-amber-400 text-black'
+                                }`}
+                              >
+                                {isPlaying && audioTrack?.id === activeTrack.id ? (
+                                  <>
+                                    <Pause className="w-3.5 h-3.5 fill-current" />
+                                    <span>PAUSA ANTEPRIMA</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Play className="w-3.5 h-3.5 fill-current" />
+                                    <span>ASCOLTA BRANO</span>
+                                  </>
+                                )}
+                              </button>
+                            )}
+
                             {activeTrack.lyrics && (
                               <button
                                 onClick={() => setSelectedLyricsTrack({ track: activeTrack, albumTitle: album.title })}
@@ -635,11 +670,13 @@ export const EPKView: React.FC<EPKViewProps> = ({ onBackToPlayer, onSelectAlbumA
                       <div className="space-y-1.5 max-h-80 overflow-y-auto pr-1">
                         {album.tracks.map((track) => {
                           const isSelected = track.id === activeTrack?.id;
+                          const isThisTrackPlaying = isPlaying && audioTrack?.id === track.id;
                           return (
                             <div
                               key={track.id}
                               onClick={() => {
                                 setSelectedTrackId(track.id);
+                                setVisualMode('track');
                               }}
                               className={`p-2.5 rounded-xl border flex items-center justify-between text-xs cursor-pointer transition-all duration-200 ${
                                 isSelected
@@ -655,19 +692,58 @@ export const EPKView: React.FC<EPKViewProps> = ({ onBackToPlayer, onSelectAlbumA
                               title={`Clicca per vedere il pitch di "${track.title}"`}
                             >
                               <div className="flex items-center gap-3 min-w-0">
-                                <span
-                                  className={`font-mono text-[10px] w-6 shrink-0 font-bold ${
-                                    isSelected ? 'text-amber-500' : 'opacity-50'
-                                  }`}
-                                >
-                                  {String(track.number).padStart(2, '0')}
-                                </span>
+                                {/* Play icon or Track Number */}
+                                {track.audioSrc ? (
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setSelectedTrackId(track.id);
+                                      setVisualMode('track');
+                                      if (isThisTrackPlaying) {
+                                        togglePlay();
+                                      } else {
+                                        playTrack(track);
+                                      }
+                                    }}
+                                    className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-all ${
+                                      isThisTrackPlaying
+                                        ? 'bg-amber-400 text-black shadow-md shadow-amber-500/25 ring-2 ring-amber-400'
+                                        : isSelected
+                                        ? 'bg-amber-400/20 text-amber-400 hover:bg-amber-400 hover:text-black'
+                                        : isLightMode
+                                        ? 'bg-black/5 hover:bg-black/10 text-gray-700'
+                                        : 'bg-white/10 hover:bg-white/20 text-white'
+                                    }`}
+                                    title={isThisTrackPlaying ? 'Pausa' : `Ascolta "${track.title}"`}
+                                  >
+                                    {isThisTrackPlaying ? (
+                                      <Pause className="w-3 h-3 fill-current" />
+                                    ) : (
+                                      <Play className="w-3 h-3 fill-current ml-0.5" />
+                                    )}
+                                  </button>
+                                ) : (
+                                  <span
+                                    className={`font-mono text-[10px] w-6 shrink-0 font-bold ${
+                                      isSelected ? 'text-amber-500' : 'opacity-50'
+                                    }`}
+                                  >
+                                    {String(track.number).padStart(2, '0')}
+                                  </span>
+                                )}
+
                                 <div className="truncate">
                                   <div className="flex items-center gap-2 truncate">
                                     <span className="font-bold truncate">{track.title}</span>
                                     {isSelected && (
                                       <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-black uppercase bg-amber-400 text-black shrink-0">
                                         PITCH ATTIVO
+                                      </span>
+                                    )}
+                                    {isThisTrackPlaying && (
+                                      <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-black uppercase bg-green-500 text-black shrink-0 animate-pulse">
+                                        AUDIO ON
                                       </span>
                                     )}
                                   </div>
@@ -845,19 +921,40 @@ export const EPKView: React.FC<EPKViewProps> = ({ onBackToPlayer, onSelectAlbumA
                 {/* Track by track breakdown */}
                 {pr.trackByTrack && pr.trackByTrack.length > 0 && (
                   <div className="pt-6 border-t border-white/10 space-y-3">
-                    <h4 className="text-xs font-mono uppercase tracking-widest text-amber-400 font-bold">
-                      GUIDA ALL'ASCOLTO (TRACK BY TRACK)
+                    <h4 className="text-xs font-mono uppercase tracking-widest text-amber-400 font-bold flex items-center justify-between">
+                      <span>GUIDA ALL'ASCOLTO & PITCH DEI BRANI</span>
+                      <span className="text-[10px] opacity-60 font-normal">CLICCA UN BRANO PER VEDERNE L'ARTWORK & PITCH</span>
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {pr.trackByTrack.map((item, i) => (
                         <div
                           key={i}
-                          className={`p-3 rounded-xl border text-xs font-sans ${
-                            isLightMode ? 'bg-black/[0.02] border-black/5' : 'bg-white/[0.02] border-white/5'
+                          onClick={() => {
+                            const album = discography.find((a) => a.id === pr.albumId) || discography[0];
+                            setActiveAlbumTab(album.id);
+                            const track = album.tracks[i] || album.tracks[0];
+                            setSelectedTrackId(track.id);
+                            setVisualMode('track');
+                            document.getElementById('discografia')?.scrollIntoView({ behavior: 'smooth' });
+                          }}
+                          className={`p-3.5 rounded-xl border text-xs font-sans cursor-pointer transition-all duration-200 group ${
+                            isLightMode
+                              ? 'bg-black/[0.02] hover:bg-amber-500/[0.08] hover:border-amber-400 border-black/5 shadow-sm'
+                              : 'bg-white/[0.02] hover:bg-amber-400/[0.08] hover:border-amber-400/50 border-white/5'
                           }`}
+                          role="button"
+                          tabIndex={0}
+                          title="Clicca per aprire la scheda e l'artwork di questo brano"
                         >
-                          <span className="font-bold block font-mono text-[11px] mb-0.5">{item.title}</span>
-                          <span className="opacity-75">{item.notes}</span>
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="font-bold font-mono text-[11px] group-hover:text-amber-400 transition-colors">
+                              {item.title}
+                            </span>
+                            <span className="text-[9px] font-mono uppercase opacity-50 group-hover:opacity-100 group-hover:text-amber-400 flex items-center gap-0.5">
+                              Vedi Pitch & Artwork →
+                            </span>
+                          </div>
+                          <span className="opacity-75 leading-relaxed block italic">{item.notes}</span>
                         </div>
                       ))}
                     </div>
