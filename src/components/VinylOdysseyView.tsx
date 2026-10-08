@@ -260,7 +260,7 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
 
   return (
     <div
-      className="relative w-screen h-screen overflow-hidden flex flex-col justify-between px-6 sm:px-12 md:px-16 py-3.5 sm:py-5 select-none"
+      className="relative w-screen h-screen overflow-hidden flex flex-col justify-between px-4 sm:px-12 md:px-16 py-2.5 sm:py-5 select-none"
       style={{
         color: isLightMode ? '#111827' : '#ffffff',
       }}
@@ -297,147 +297,163 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
       {/* ─────────────────────────────────────────────────────────────
           1. TOP NAVIGATION & IDENTITY BAR (Full-width, perfectly aligned)
           ───────────────────────────────────────────────────────────── */}
-      <header className="relative z-50 w-full flex items-end justify-between gap-4 border-b border-white/10 sm:border-white/15">
-        
-        {/* Left: Canzoni Tag + Simple Transparent Tabs resting on the fullwidth line */}
-        <div className="flex items-end gap-3 sm:gap-5 shrink-0">
-          {/* Subtle Canzoni Tag */}
-          <div className="hidden lg:flex flex-col pr-1 pb-2 sm:pb-2.5">
-            <span className="text-[9px] font-mono tracking-[0.25em] uppercase opacity-50 font-semibold leading-none">
-              CANZONI
-            </span>
-            <span className="text-[11px] font-mono font-bold tracking-wider uppercase opacity-90 leading-tight mt-0.5">
-              ALESSANDRO ROCCHI
-            </span>
+      <header className="relative z-50 w-full border-b border-white/10 sm:border-white/15 pb-2 md:pb-0">
+        <div className="w-full flex items-center md:items-end justify-between gap-3 sm:gap-4">
+          {/* Left: Artist Identity + Album Tabs (Desktop) */}
+          <div className="flex items-center md:items-end gap-3 sm:gap-5 shrink-0 min-w-0">
+            {/* Artist Brand Tag - ALWAYS VISIBLE on mobile & desktop */}
+            <div className="flex flex-col pr-1 pb-0.5 md:pb-2.5 select-none shrink-0">
+              <span className="text-[8px] sm:text-[9px] font-mono tracking-[0.22em] uppercase text-amber-400 font-bold leading-none">
+                CANZONI
+              </span>
+              <span className="text-xs sm:text-sm font-mono font-black tracking-wider uppercase opacity-95 leading-tight mt-0.5 whitespace-nowrap">
+                ALESSANDRO ROCCHI
+              </span>
+            </div>
+
+            {/* Desktop vertical divider */}
+            <div className="hidden md:block h-6 w-px bg-white/15 mb-2 sm:mb-2.5 shrink-0" />
+
+            {/* Desktop Navigation Tabs (Hidden on mobile, replaced by row 2) */}
+            <nav
+              aria-label="Selezione Album"
+              className="hidden md:flex items-end gap-1.5 sm:gap-2 mb-[-1px]"
+            >
+              {discography.map((album, idx) => {
+                const isSelected = album.id === currentAlbum.id;
+                const spotifyUrl = album.spotifyAlbumUrl;
+                return (
+                  <div
+                    key={album.id}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => {
+                      if (!isSelected) handleSelectAlbum(album);
+                    }}
+                    onKeyDown={(e) => {
+                      if ((e.key === 'Enter' || e.key === ' ') && !isSelected) {
+                        e.preventDefault();
+                        handleSelectAlbum(album);
+                      }
+                    }}
+                    className={`group relative flex items-center gap-2 sm:gap-2.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-t-lg sm:rounded-t-xl transition-all duration-200 text-left border-t border-x cursor-pointer select-none ${
+                      isSelected
+                        ? isLightMode
+                          ? 'bg-white/85 backdrop-blur-xl text-gray-950 border-black/15 border-b-transparent shadow-sm z-10'
+                          : 'bg-white/15 backdrop-blur-xl text-white border-white/25 border-b-transparent shadow-md z-10'
+                        : isLightMode
+                        ? 'bg-black/[0.02] hover:bg-black/[0.06] text-gray-600 hover:text-gray-900 border-black/10 border-b-black/10'
+                        : 'bg-white/[0.03] hover:bg-white/[0.08] text-white/50 hover:text-white/80 border-white/10 border-b-white/15'
+                    }`}
+                    title={`Ascolta ${album.title}`}
+                  >
+                    {/* Numero Album: 1 e 2 */}
+                    <span className={`font-mono text-[10px] sm:text-xs font-black shrink-0 ${
+                      isSelected ? 'text-amber-400' : 'opacity-40 group-hover:opacity-75'
+                    }`}>
+                      {idx + 1}
+                    </span>
+
+                    {/* Miniature Cover Art */}
+                    <div className="relative w-4 h-4 sm:w-5 sm:h-5 rounded-[2px] overflow-hidden shrink-0 opacity-85 group-hover:opacity-100 transition-opacity border border-white/20 shadow-sm">
+                      <img
+                        src={album.coverUrl}
+                        alt={album.title}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+
+                    {/* Album Title + Meta */}
+                    <div className="flex flex-col min-w-0 leading-tight">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[10px] sm:text-xs font-mono font-bold tracking-tight uppercase whitespace-nowrap">
+                          {album.title}
+                        </span>
+                        {isSelected && (
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.9)] animate-pulse shrink-0" />
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1.5 text-[9px] sm:text-[10px] font-mono tracking-wider mt-0.5">
+                        <span className="opacity-50">{album.year}</span>
+                        <span className="opacity-40">•</span>
+                        <span className="opacity-50">{album.tracks.length} tracce</span>
+                        {spotifyUrl && (
+                          <>
+                            <span className="opacity-40">•</span>
+                            <a
+                              href={spotifyUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              className="inline-flex items-center gap-1 text-[#1DB954] hover:text-[#1ed760] font-semibold transition-colors cursor-pointer group/spot shrink-0"
+                              title={`Apri ${album.title} su Spotify`}
+                            >
+                              <svg className="w-2.5 h-2.5 fill-[#1DB954] group-hover/spot:fill-[#1ed760] shrink-0" viewBox="0 0 24 24">
+                                <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z" />
+                              </svg>
+                              <span className="underline underline-offset-2 decoration-[#1DB954]/40 group-hover/spot:decoration-[#1ed760]">Spotify</span>
+                              <ExternalLink className="w-2 h-2 opacity-70 group-hover/spot:opacity-100" />
+                            </a>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </nav>
           </div>
 
-          <div className="hidden lg:block h-6 w-px bg-white/15 mb-2 sm:mb-2.5" />
+          {/* Right: Actions (Spotify mobile, EPK & Settings Menu) */}
+          <div className="relative flex items-center gap-1.5 sm:gap-2.5 shrink-0 pb-0.5 md:pb-2">
+            {/* Spotify Pill on Mobile if available */}
+            {currentAlbum.spotifyAlbumUrl && (
+              <a
+                href={currentAlbum.spotifyAlbumUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="md:hidden h-7 sm:h-8 px-2.5 rounded-full flex items-center gap-1 text-[10px] font-mono font-bold bg-[#1DB954]/15 hover:bg-[#1DB954]/25 text-[#1ed760] border border-[#1DB954]/30 transition-all shadow-sm"
+                title="Apri su Spotify"
+              >
+                <svg className="w-3 h-3 fill-current" viewBox="0 0 24 24">
+                  <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z" />
+                </svg>
+                <span className="hidden xs:inline">SPOTIFY</span>
+              </a>
+            )}
 
-          {/* Semplici Linguette Trasparenti appoggiate sulla linea fullwidth */}
-          <nav
-            aria-label="Selezione Album"
-            className="flex items-end gap-1.5 sm:gap-2 mb-[-1px]"
-          >
-            {discography.map((album, idx) => {
-              const isSelected = album.id === currentAlbum.id;
-              const spotifyUrl = album.spotifyAlbumUrl;
-              return (
-                <div
-                  key={album.id}
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => {
-                    if (!isSelected) handleSelectAlbum(album);
-                  }}
-                  onKeyDown={(e) => {
-                    if ((e.key === 'Enter' || e.key === ' ') && !isSelected) {
-                      e.preventDefault();
-                      handleSelectAlbum(album);
-                    }
-                  }}
-                  className={`group relative flex items-center gap-2 sm:gap-2.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-t-lg sm:rounded-t-xl transition-all duration-200 text-left border-t border-x cursor-pointer select-none ${
-                    isSelected
-                      ? isLightMode
-                        ? 'bg-white/85 backdrop-blur-xl text-gray-950 border-black/15 border-b-transparent shadow-sm z-10'
-                        : 'bg-white/15 backdrop-blur-xl text-white border-white/25 border-b-transparent shadow-md z-10'
-                      : isLightMode
-                      ? 'bg-black/[0.02] hover:bg-black/[0.06] text-gray-600 hover:text-gray-900 border-black/10 border-b-black/10'
-                      : 'bg-white/[0.03] hover:bg-white/[0.08] text-white/50 hover:text-white/80 border-white/10 border-b-white/15'
-                  }`}
-                  title={`Ascolta ${album.title}`}
-                >
-                  {/* Numero Album: 1 e 2 */}
-                  <span className={`font-mono text-[10px] sm:text-xs font-black shrink-0 ${
-                    isSelected ? 'text-amber-400' : 'opacity-40 group-hover:opacity-75'
-                  }`}>
-                    {idx + 1}
-                  </span>
+            {/* EPK / Electronic Press Kit Button */}
+            <button
+              onClick={onOpenEPK}
+              className={`h-7 sm:h-9 px-2.5 sm:px-3.5 rounded-full transition-all duration-200 flex items-center gap-1.5 text-xs font-mono font-bold tracking-wider backdrop-blur-xl border ${
+                isLightMode
+                  ? 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-950 border-amber-600/30 shadow-sm'
+                  : 'bg-amber-400/10 hover:bg-amber-400/20 text-amber-300 border-amber-400/30 hover:border-amber-400/60 shadow-[0_0_15px_rgba(245,158,11,0.15)]'
+              }`}
+              title="Cartella Stampa / Electronic Press Kit (EPK)"
+            >
+              <FileText className="w-3.5 h-3.5 text-amber-400" />
+              <span className="text-[10px] sm:text-xs">EPK</span>
+            </button>
 
-                  {/* Miniature Cover Art */}
-                  <div className="relative w-4 h-4 sm:w-5 sm:h-5 rounded-[2px] overflow-hidden shrink-0 opacity-85 group-hover:opacity-100 transition-opacity border border-white/20 shadow-sm">
-                    <img
-                      src={album.coverUrl}
-                      alt={album.title}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-
-                  {/* Album Title + Meta (Anno, Numero Tracce, Spotify) */}
-                  <div className="flex flex-col min-w-0 leading-tight">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-[10px] sm:text-xs font-mono font-bold tracking-tight uppercase whitespace-nowrap">
-                        <span className="hidden md:inline">{album.title}</span>
-                        <span className="md:hidden">{idx === 0 ? "MARTE" : "FETTE BISCOTTATE"}</span>
-                      </span>
-                      {isSelected && (
-                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.9)] animate-pulse shrink-0" />
-                      )}
-                    </div>
-                    <div className="flex items-center gap-1.5 text-[9px] sm:text-[10px] font-mono tracking-wider mt-0.5">
-                      <span className="opacity-50">{album.year}</span>
-                      <span className="opacity-40">•</span>
-                      <span className="opacity-50">{album.tracks.length} tracce</span>
-                      {spotifyUrl && (
-                        <>
-                          <span className="opacity-40">•</span>
-                          <a
-                            href={spotifyUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={(e) => e.stopPropagation()}
-                            className="inline-flex items-center gap-1 text-[#1DB954] hover:text-[#1ed760] font-semibold transition-colors cursor-pointer group/spot shrink-0"
-                            title={`Apri ${album.title} su Spotify`}
-                          >
-                            <svg className="w-2.5 h-2.5 fill-[#1DB954] group-hover/spot:fill-[#1ed760] shrink-0" viewBox="0 0 24 24">
-                              <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z" />
-                            </svg>
-                            <span className="underline underline-offset-2 decoration-[#1DB954]/40 group-hover/spot:decoration-[#1ed760]">Spotify</span>
-                            <ExternalLink className="w-2 h-2 opacity-70 group-hover/spot:opacity-100" />
-                          </a>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </nav>
-        </div>
-
-        {/* Right: Actions & Settings Gear Menu */}
-        <div className="relative flex items-center gap-2 sm:gap-2.5 shrink-0 pb-1.5 sm:pb-2">
-          {/* EPK / Electronic Press Kit Button */}
-          <button
-            onClick={onOpenEPK}
-            className={`h-8 sm:h-9 px-3 sm:px-3.5 rounded-full transition-all duration-200 flex items-center gap-1.5 text-xs font-mono font-bold tracking-wider backdrop-blur-xl border ${
-              isLightMode
-                ? 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-950 border-amber-600/30 shadow-sm'
-                : 'bg-amber-400/10 hover:bg-amber-400/20 text-amber-300 border-amber-400/30 hover:border-amber-400/60 shadow-[0_0_15px_rgba(245,158,11,0.15)]'
-            }`}
-            title="Cartella Stampa / Electronic Press Kit (EPK)"
-          >
-            <FileText className="w-3.5 h-3.5 text-amber-400" />
-            <span className="text-[10px]">EPK</span>
-          </button>
-
-          {/* Settings & Tools Toggle (Menu Ingranaggio) */}
-          <button
-            onClick={() => setShowSettingsMenu((prev) => !prev)}
-            aria-expanded={showSettingsMenu}
-            aria-label="Opzioni visualizzazione e strumenti"
-            className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center transition-all duration-200 backdrop-blur-xl border ${
-              showSettingsMenu
-                ? isLightMode
-                  ? 'bg-black text-white border-black shadow-md'
-                  : 'bg-white text-black border-white shadow-[0_0_15px_rgba(255,255,255,0.4)]'
-                : isLightMode
-                ? 'bg-black/5 hover:bg-black/10 border-black/10 text-gray-800'
-                : 'bg-white/5 hover:bg-white/15 border-white/10 text-white/80'
-            }`}
-            title="Personalizza interfaccia e strumenti"
-          >
-            <Settings className={`w-4 h-4 transition-transform duration-300 ${showSettingsMenu ? 'rotate-90' : ''}`} />
-          </button>
+            {/* Settings & Tools Toggle (Menu Ingranaggio) */}
+            <button
+              onClick={() => setShowSettingsMenu((prev) => !prev)}
+              aria-expanded={showSettingsMenu}
+              aria-label="Opzioni visualizzazione e strumenti"
+              className={`w-7 h-7 sm:w-9 sm:h-9 rounded-full flex items-center justify-center transition-all duration-200 backdrop-blur-xl border ${
+                showSettingsMenu
+                  ? isLightMode
+                    ? 'bg-black text-white border-black shadow-md'
+                    : 'bg-white text-black border-white shadow-[0_0_15px_rgba(255,255,255,0.4)]'
+                  : isLightMode
+                  ? 'bg-black/5 hover:bg-black/10 border-black/10 text-gray-800'
+                  : 'bg-white/5 hover:bg-white/15 border-white/10 text-white/80'
+              }`}
+              title="Personalizza interfaccia e strumenti"
+            >
+              <Settings className={`w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform duration-300 ${showSettingsMenu ? 'rotate-90' : ''}`} />
+            </button>
 
           {/* Dropdown Popover Menu (Interface Customization & Share) */}
           {showSettingsMenu && (
@@ -614,26 +630,58 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
           )}
 
         </div>
+      </div>
 
+        {/* Mobile-Only Dedicated Album Switcher Segmented Control */}
+        <div className="flex md:hidden items-center p-1 rounded-xl bg-black/40 dark:bg-black/60 border border-white/10 backdrop-blur-xl w-full mt-2">
+          {discography.map((album, idx) => {
+            const isSelected = album.id === currentAlbum.id;
+            return (
+              <button
+                key={album.id}
+                type="button"
+                onClick={() => {
+                  if (!isSelected) handleSelectAlbum(album);
+                }}
+                className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-[10px] font-mono font-bold uppercase tracking-wider transition-all duration-200 min-w-0 ${
+                  isSelected
+                    ? 'bg-amber-400 text-black shadow-md font-black'
+                    : isLightMode
+                    ? 'text-gray-700 hover:text-black hover:bg-black/5'
+                    : 'text-white/60 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <div className="w-3.5 h-3.5 rounded-[2px] overflow-hidden shrink-0 border border-black/20">
+                  <img src={album.coverUrl} alt="" className="w-full h-full object-cover" />
+                </div>
+                <span className="truncate">{idx === 0 ? "Non C'è Vita su Marte" : "Fette Biscottate"}</span>
+              </button>
+            );
+          })}
+        </div>
       </header>
 
       {/* ─────────────────────────────────────────────────────────────
           2. TRACK HERO & EDITORIAL LINER ROW (Spacious, balanced)
           ───────────────────────────────────────────────────────────── */}
-      <div className="relative z-10 flex flex-col items-start gap-2.5 pt-3 sm:pt-4 max-w-3xl">
+      <div className="relative z-10 flex flex-col items-start gap-2 pt-2.5 sm:pt-4 max-w-3xl">
         
         {/* Track Counter & Title */}
         <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <span className="font-mono text-[10px] sm:text-[11px] font-bold uppercase tracking-widest opacity-70">
-              TRACCIA {String(activeTrack.number).padStart(2, '0')} DI {currentAlbum.tracks.length}
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 text-[10px] sm:text-[11px] font-mono">
+            <span className="font-black tracking-wider uppercase text-amber-400">
+              ALESSANDRO ROCCHI
             </span>
-            <span className="opacity-40 font-mono text-[11px]">•</span>
-            <span className="font-mono text-[10px] sm:text-[11px] opacity-70">
+            <span className="opacity-40">•</span>
+            <span className="font-bold uppercase tracking-widest opacity-80">
+              TRK {String(activeTrack.number).padStart(2, '0')}/{currentAlbum.tracks.length}
+            </span>
+            <span className="opacity-40">•</span>
+            <span className="opacity-70">
               {activeTrack.duration}
             </span>
-            <span className="opacity-40 font-mono text-[11px]">•</span>
-            <span className="font-mono text-[10px] sm:text-[11px] uppercase tracking-wider opacity-60">
+            <span className="opacity-40">•</span>
+            <span className="uppercase tracking-wider opacity-60">
               {currentAlbum.title}
             </span>
           </div>

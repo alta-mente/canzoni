@@ -184,29 +184,29 @@ export const EditorialSwissView: React.FC<EditorialSwissViewProps> = ({
       {/* ─────────────────────────────────────────────────────────────
           3. TOP NAVIGATION & IDENTITY BAR (Identical to other headers)
           ───────────────────────────────────────────────────────────── */}
-      <header className={`relative z-50 w-full flex items-end justify-between gap-4 border-b ${
+      <header className={`relative z-50 w-full border-b pb-2 md:pb-0 ${
         isLightMode ? 'border-black/15' : 'border-white/15'
       }`}>
-        
-        {/* Left: Canzoni Tag + Simple Transparent Tabs resting on the fullwidth line */}
-        <div className="flex items-end gap-3 sm:gap-5 shrink-0">
-          {/* Subtle Canzoni Tag */}
-          <div className="hidden lg:flex flex-col pr-1 pb-2 sm:pb-2.5">
-            <span className="text-[9px] font-mono tracking-[0.25em] uppercase opacity-50 font-semibold leading-none">
-              CANZONI
-            </span>
-            <span className="text-[11px] font-mono font-bold tracking-wider uppercase opacity-90 leading-tight mt-0.5">
-              ALESSANDRO ROCCHI
-            </span>
-          </div>
+        <div className="w-full flex items-center md:items-end justify-between gap-3 sm:gap-4">
+          {/* Left: Canzoni Tag + Simple Transparent Tabs */}
+          <div className="flex items-center md:items-end gap-3 sm:gap-5 shrink-0 min-w-0">
+            {/* Subtle Canzoni Tag - ALWAYS VISIBLE */}
+            <div className="flex flex-col pr-1 pb-0.5 md:pb-2.5 select-none shrink-0">
+              <span className="text-[8px] sm:text-[9px] font-mono tracking-[0.22em] uppercase text-amber-400 font-bold leading-none">
+                CANZONI
+              </span>
+              <span className="text-xs sm:text-sm font-mono font-black tracking-wider uppercase opacity-95 leading-tight mt-0.5 whitespace-nowrap">
+                ALESSANDRO ROCCHI
+              </span>
+            </div>
 
-          <div className={`hidden lg:block h-6 w-px mb-2 sm:mb-2.5 ${isLightMode ? 'bg-black/15' : 'bg-white/15'}`} />
+            <div className={`hidden md:block h-6 w-px mb-2 sm:mb-2.5 shrink-0 ${isLightMode ? 'bg-black/15' : 'bg-white/15'}`} />
 
-          {/* Semplici Linguette Trasparenti appoggiate sulla linea fullwidth */}
-          <nav
-            aria-label="Selezione Album"
-            className="flex items-end gap-1.5 sm:gap-2 mb-[-1px]"
-          >
+            {/* Semplici Linguette Trasparenti appoggiate sulla linea fullwidth */}
+            <nav
+              aria-label="Selezione Album"
+              className="hidden md:flex items-end gap-1.5 sm:gap-2 mb-[-1px]"
+            >
             {albums.map((album, idx) => {
               const isSelected = album.id === currentAlbum.id;
               const spotifyUrl = album.spotifyAlbumUrl;
@@ -490,7 +490,35 @@ export const EditorialSwissView: React.FC<EditorialSwissViewProps> = ({
           )}
 
         </div>
+      </div>
 
+        {/* Mobile-Only Dedicated Album Switcher Segmented Control */}
+        <div className="flex md:hidden items-center p-1 rounded-xl bg-black/40 dark:bg-black/60 border border-white/10 backdrop-blur-xl w-full mt-2">
+          {albums.map((album, idx) => {
+            const isSelected = album.id === currentAlbum.id;
+            return (
+              <button
+                key={album.id}
+                type="button"
+                onClick={() => {
+                  if (!isSelected) onSelectAlbum(album);
+                }}
+                className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-[10px] font-mono font-bold uppercase tracking-wider transition-all duration-200 min-w-0 ${
+                  isSelected
+                    ? 'bg-amber-400 text-black shadow-md font-black'
+                    : isLightMode
+                    ? 'text-gray-700 hover:text-black hover:bg-black/5'
+                    : 'text-white/60 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <div className="w-3.5 h-3.5 rounded-[2px] overflow-hidden shrink-0 border border-black/20">
+                  <img src={album.coverUrl} alt="" className="w-full h-full object-cover" />
+                </div>
+                <span className="truncate">{idx === 0 ? "Non C'è Vita su Marte" : "Fette Biscottate"}</span>
+              </button>
+            );
+          })}
+        </div>
       </header>
 
       {/* ─────────────────────────────────────────────────────────────
