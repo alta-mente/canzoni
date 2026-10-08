@@ -184,7 +184,7 @@ export const EPKView: React.FC<EPKViewProps> = ({ onBackToPlayer, onSelectAlbumA
                   {EPK_DATA.artist.influences.join(' • ')}
                 </span>
                 <span className="opacity-40">•</span>
-                <span className="opacity-70 italic text-[11px]">Poesia d'autore & Liuteria AI</span>
+                <span className="opacity-70 italic text-[11px]">Poesia d'autore & Scrittura dei Testi</span>
               </div>
 
               {/* Quick Actions */}
