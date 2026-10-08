@@ -42,6 +42,8 @@ export const EPKView: React.FC<EPKViewProps> = ({ onBackToPlayer, onSelectAlbumA
   const [activePrTab, setActivePrTab] = useState<string>(EPK_DATA.pressReleases[0].id);
   const [selectedLyricsTrack, setSelectedLyricsTrack] = useState<{ track: Track; albumTitle: string } | null>(null);
   const [copiedLyrics, setCopiedLyrics] = useState(false);
+  const [selectedTrackId, setSelectedTrackId] = useState<string | null>(null);
+  const [visualMode, setVisualMode] = useState<'track' | 'album'>('track');
 
   const isLightMode = !isDark;
 
@@ -348,7 +350,10 @@ export const EPKView: React.FC<EPKViewProps> = ({ onBackToPlayer, onSelectAlbumA
               {discography.map((alb) => (
                 <button
                   key={alb.id}
-                  onClick={() => setActiveAlbumTab(alb.id)}
+                  onClick={() => {
+                    setActiveAlbumTab(alb.id);
+                    setSelectedTrackId(null);
+                  }}
                   className={`px-4 py-2 rounded-xl text-xs font-mono uppercase tracking-wider font-bold transition-all ${
                     activeAlbumTab === alb.id
                       ? 'bg-amber-400 text-black shadow-md'
@@ -366,6 +371,10 @@ export const EPKView: React.FC<EPKViewProps> = ({ onBackToPlayer, onSelectAlbumA
           {/* Active Album Detail Card */}
           {(() => {
             const album = discography.find((a) => a.id === activeAlbumTab) || discography[0];
+            const activeTrack = album.tracks.find((t) => t.id === selectedTrackId) || album.tracks[0];
+            const currentArtwork = visualMode === 'track' && activeTrack?.artworkUrl ? activeTrack.artworkUrl : album.coverUrl;
+            const currentTitle = visualMode === 'track' && activeTrack ? `${activeTrack.title} (Artwork)` : album.title;
+
             return (
               <div
                 className={`p-6 sm:p-10 rounded-3xl border transition-all duration-300 ${
@@ -376,15 +385,62 @@ export const EPKView: React.FC<EPKViewProps> = ({ onBackToPlayer, onSelectAlbumA
               >
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
                   {/* Left: Packshot & Vinyl Visual */}
-                  <div className="lg:col-span-5 space-y-6">
+                  <div className="lg:col-span-5 space-y-5">
+                    {/* Visual Mode Selector (Artwork vs Cover) */}
+                    <div
+                      className={`flex items-center justify-center p-1 rounded-2xl border backdrop-blur-md max-w-sm mx-auto text-[11px] font-mono font-bold uppercase ${
+                        isLightMode ? 'bg-black/5 border-black/10' : 'bg-black/40 border-white/10'
+                      }`}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => setVisualMode('track')}
+                        className={`flex-1 py-1.5 px-3 rounded-xl transition-all flex items-center justify-center gap-1.5 ${
+                          visualMode === 'track'
+                            ? 'bg-amber-400 text-black shadow-md font-black'
+                            : isLightMode
+                            ? 'text-gray-600 hover:text-black'
+                            : 'text-white/60 hover:text-white'
+                        }`}
+                        title="Visualizza l'artwork del brano selezionato"
+                      >
+                        <Sparkles className="w-3.5 h-3.5" />
+                        <span className="truncate">
+                          Artwork {activeTrack ? `#${String(activeTrack.number).padStart(2, '0')}` : 'Brano'}
+                        </span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setVisualMode('album')}
+                        className={`flex-1 py-1.5 px-3 rounded-xl transition-all flex items-center justify-center gap-1.5 ${
+                          visualMode === 'album'
+                            ? 'bg-amber-400 text-black shadow-md font-black'
+                            : isLightMode
+                            ? 'text-gray-600 hover:text-black'
+                            : 'text-white/60 hover:text-white'
+                        }`}
+                        title="Visualizza la cover ufficiale dell'album"
+                      >
+                        <Disc className="w-3.5 h-3.5" />
+                        <span>Cover Album</span>
+                      </button>
+                    </div>
+
                     <div className="relative group max-w-sm mx-auto">
                       <div className="relative aspect-square rounded-2xl overflow-hidden shadow-2xl border border-white/20">
                         <img
-                          src={album.coverUrl}
-                          alt={album.title}
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          src={currentArtwork}
+                          alt={currentTitle}
+                          key={currentArtwork}
+                          className="w-full h-full object-cover transition-all duration-500 group-hover:scale-105"
                         />
                         <div className="absolute inset-0 bg-gradient-to-tr from-black/40 via-transparent to-white/15 pointer-events-none" />
+                        {visualMode === 'track' && activeTrack && (
+                          <div className="absolute bottom-3 left-3 right-3 px-3 py-1.5 rounded-lg bg-black/75 backdrop-blur-md border border-white/20 text-white text-[11px] font-mono flex items-center justify-between">
+                            <span className="font-bold truncate">Traccia {String(activeTrack.number).padStart(2, '0')} • {activeTrack.title}</span>
+                            <span className="text-[10px] text-amber-400 shrink-0 uppercase ml-2">Artwork</span>
+                          </div>
+                        )}
                       </div>
                       {/* Vinyl Peek */}
                       <div className="absolute -top-3 -right-3 -z-10 w-28 h-28 rounded-full bg-neutral-900 border-2 border-white/20 shadow-xl flex items-center justify-center animate-spin-slow">
@@ -421,8 +477,8 @@ export const EPKView: React.FC<EPKViewProps> = ({ onBackToPlayer, onSelectAlbumA
                           </a>
                         )}
                         <a
-                          href={album.coverUrl}
-                          download={`${album.id}-cover.jpg`}
+                          href={currentArtwork}
+                          download={`${album.id}-${visualMode === 'track' && activeTrack ? `track-${activeTrack.number}` : 'cover'}.jpg`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl font-mono text-[11px] font-bold border transition-all ${
@@ -432,13 +488,13 @@ export const EPKView: React.FC<EPKViewProps> = ({ onBackToPlayer, onSelectAlbumA
                           }`}
                         >
                           <Download className="w-3.5 h-3.5" />
-                          <span>COVER HD</span>
+                          <span>{visualMode === 'track' ? 'ARTWORK HD' : 'COVER HD'}</span>
                         </a>
                       </div>
                     </div>
                   </div>
 
-                  {/* Right: Album Details & Tracklist */}
+                  {/* Right: Album Details, Pitch Focus & Tracklist */}
                   <div className="lg:col-span-7 space-y-6">
                     <div>
                       <div className="flex items-center justify-between text-xs font-mono opacity-60 mb-1">
@@ -485,57 +541,169 @@ export const EPKView: React.FC<EPKViewProps> = ({ onBackToPlayer, onSelectAlbumA
                       </div>
                     </div>
 
-                    {/* Official Tracklist */}
-                    <div>
-                      <h4 className="text-xs font-mono uppercase tracking-[0.2em] opacity-60 mb-3 flex items-center justify-between">
-                        <span>TRACKLIST UFFICIALE</span>
-                        <span>DURATA COMPLESSIVA</span>
-                      </h4>
+                    {/* INTERACTIVE PITCH DEL BRANO SELEZIONATO */}
+                    {activeTrack && (
+                      <div
+                        className={`p-5 rounded-2xl border transition-all duration-300 relative overflow-hidden ${
+                          isLightMode
+                            ? 'bg-amber-500/[0.08] border-amber-400/50 shadow-sm'
+                            : 'bg-amber-400/[0.06] border-amber-400/40 shadow-xl shadow-amber-500/5'
+                        }`}
+                      >
+                        <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+                          <div className="flex items-center gap-2">
+                            <span className="px-2 py-0.5 rounded-md text-[10px] font-mono font-black bg-amber-400 text-black uppercase tracking-wider">
+                              PITCH BRANO #{String(activeTrack.number).padStart(2, '0')}
+                            </span>
+                            <h4 className="font-black text-base sm:text-lg font-mono uppercase tracking-tight">
+                              {activeTrack.title}
+                            </h4>
+                          </div>
+                          {activeTrack.mood && (
+                            <span
+                              className={`text-[11px] font-mono px-2.5 py-0.5 rounded-full border ${
+                                isLightMode
+                                  ? 'bg-white border-amber-300 text-amber-900 font-semibold'
+                                  : 'bg-black/40 border-amber-400/30 text-amber-300'
+                              }`}
+                            >
+                              {activeTrack.mood}
+                            </span>
+                          )}
+                        </div>
 
-                      <div className="space-y-1.5 max-h-72 overflow-y-auto pr-1">
-                        {album.tracks.map((track) => (
-                          <div
-                            key={track.id}
-                            className={`p-2.5 rounded-xl border flex items-center justify-between text-xs transition-all ${
-                              isLightMode
-                                ? 'bg-white hover:bg-black/5 border-black/5'
-                                : 'bg-white/[0.02] hover:bg-white/[0.06] border-white/5'
-                            }`}
-                          >
-                            <div className="flex items-center gap-3 min-w-0">
-                              <span className="font-mono text-[10px] opacity-50 w-5 shrink-0">
-                                {String(track.number).padStart(2, '0')}
-                              </span>
-                              <div className="truncate">
-                                <span className="font-bold truncate">{track.title}</span>
-                                {track.mood && (
-                                  <span className="text-[10px] font-mono opacity-50 block truncate">
-                                    {track.mood}
-                                  </span>
+                        {/* Pitch quote / concept text */}
+                        <div className="relative pl-4 border-l-2 border-amber-400 py-1 my-3">
+                          <Quote className="w-4 h-4 text-amber-400/70 mb-1" />
+                          <p className="font-serif italic text-sm sm:text-base leading-relaxed opacity-95">
+                            {activeTrack.storyQuote || `«Un brano intimo e narrativo tratto dall'album ${album.title}.»`}
+                          </p>
+                        </div>
+
+                        {/* Quick actions for active track */}
+                        <div className="flex flex-wrap items-center justify-between gap-3 mt-4 pt-3 border-t border-amber-400/20 text-xs font-mono">
+                          <div className="flex flex-wrap items-center gap-2">
+                            {activeTrack.lyrics && (
+                              <button
+                                onClick={() => setSelectedLyricsTrack({ track: activeTrack, albumTitle: album.title })}
+                                className={`px-3 py-1.5 rounded-xl font-bold flex items-center gap-1.5 transition-all ${
+                                  isLightMode
+                                    ? 'bg-purple-600 text-white hover:bg-purple-700 shadow-sm'
+                                    : 'bg-purple-500/25 hover:bg-purple-500/40 text-purple-200 border border-purple-400/40'
+                                }`}
+                              >
+                                <FileText className="w-3.5 h-3.5" />
+                                <span>LEGGI TESTO COMPLETO</span>
+                              </button>
+                            )}
+
+                            {activeTrack.artworkUrl && (
+                              <button
+                                onClick={() => setVisualMode('track')}
+                                className={`px-3 py-1.5 rounded-xl font-bold flex items-center gap-1.5 transition-all ${
+                                  visualMode === 'track'
+                                    ? 'bg-amber-400 text-black'
+                                    : isLightMode
+                                    ? 'bg-black/5 hover:bg-black/10 text-gray-800'
+                                    : 'bg-white/10 hover:bg-white/20 text-white'
+                                }`}
+                              >
+                                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                                <span>VEDI ARTWORK BRANO</span>
+                              </button>
+                            )}
+                          </div>
+
+                          <span className="opacity-60 text-[11px] font-mono">
+                            Durata: {activeTrack.duration}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Official Tracklist (Interactive Pitch Switcher) */}
+                    <div>
+                      <div className="flex items-center justify-between mb-3">
+                        <h4 className="text-xs font-mono uppercase tracking-[0.2em] opacity-80 flex items-center gap-2">
+                          <span>TRACKLIST • SELEZIONA PER VEDERE IL PITCH</span>
+                        </h4>
+                        <span className="text-[11px] font-mono opacity-50">
+                          {album.tracks.length} BRANI
+                        </span>
+                      </div>
+
+                      <div className="space-y-1.5 max-h-80 overflow-y-auto pr-1">
+                        {album.tracks.map((track) => {
+                          const isSelected = track.id === activeTrack?.id;
+                          return (
+                            <div
+                              key={track.id}
+                              onClick={() => {
+                                setSelectedTrackId(track.id);
+                              }}
+                              className={`p-2.5 rounded-xl border flex items-center justify-between text-xs cursor-pointer transition-all duration-200 ${
+                                isSelected
+                                  ? isLightMode
+                                    ? 'bg-amber-100/90 border-amber-400 ring-2 ring-amber-400/30 shadow-md font-semibold text-gray-950'
+                                    : 'bg-amber-400/15 border-amber-400 ring-1 ring-amber-400/60 shadow-lg shadow-amber-500/10 text-white font-medium'
+                                  : isLightMode
+                                  ? 'bg-white hover:bg-amber-50/50 border-black/5 hover:border-amber-300/50 text-gray-800'
+                                  : 'bg-white/[0.02] hover:bg-white/[0.06] border-white/5 hover:border-amber-400/30 text-white/80'
+                              }`}
+                              role="button"
+                              tabIndex={0}
+                              title={`Clicca per vedere il pitch di "${track.title}"`}
+                            >
+                              <div className="flex items-center gap-3 min-w-0">
+                                <span
+                                  className={`font-mono text-[10px] w-6 shrink-0 font-bold ${
+                                    isSelected ? 'text-amber-500' : 'opacity-50'
+                                  }`}
+                                >
+                                  {String(track.number).padStart(2, '0')}
+                                </span>
+                                <div className="truncate">
+                                  <div className="flex items-center gap-2 truncate">
+                                    <span className="font-bold truncate">{track.title}</span>
+                                    {isSelected && (
+                                      <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-black uppercase bg-amber-400 text-black shrink-0">
+                                        PITCH ATTIVO
+                                      </span>
+                                    )}
+                                  </div>
+                                  {track.mood && (
+                                    <span className="text-[10px] font-mono opacity-60 block truncate">
+                                      {track.mood}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+
+                              <div className="flex items-center gap-2 shrink-0 ml-3">
+                                {track.lyrics && (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setSelectedLyricsTrack({ track, albumTitle: album.title });
+                                    }}
+                                    className={`px-2 py-0.5 rounded-md font-mono text-[10px] font-bold flex items-center gap-1 transition-all ${
+                                      isLightMode
+                                        ? 'bg-purple-500/10 hover:bg-purple-500/20 text-purple-900 border border-purple-500/20'
+                                        : 'bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 border border-purple-400/30'
+                                    }`}
+                                    title="Leggi testo del brano"
+                                  >
+                                    <FileText className="w-2.5 h-2.5" />
+                                    <span>TESTO</span>
+                                  </button>
                                 )}
+                                <span className="font-mono text-[11px] opacity-60">
+                                  {track.duration}
+                                </span>
                               </div>
                             </div>
-                            <div className="flex items-center gap-2 shrink-0 ml-3">
-                              {track.lyrics && (
-                                <button
-                                  onClick={() => setSelectedLyricsTrack({ track, albumTitle: album.title })}
-                                  className={`px-2 py-0.5 rounded-md font-mono text-[10px] font-bold flex items-center gap-1 transition-all ${
-                                    isLightMode
-                                      ? 'bg-purple-500/10 hover:bg-purple-500/20 text-purple-900 border border-purple-500/20'
-                                      : 'bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 border border-purple-400/30'
-                                  }`}
-                                  title="Leggi testo del brano"
-                                >
-                                  <FileText className="w-2.5 h-2.5" />
-                                  <span>TESTO</span>
-                                </button>
-                              )}
-                              <span className="font-mono text-[11px] opacity-60">
-                                {track.duration}
-                              </span>
-                            </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
                   </div>
