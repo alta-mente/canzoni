@@ -24,11 +24,13 @@ import {
   Palette,
   Eye,
   CheckCircle2,
-  Download
+  Download,
+  Lock
 } from 'lucide-react';
 
 interface BackofficeViewProps {
   onBackToPlayer: () => void;
+  onLogout?: () => void;
   albums?: AlbumData[];
   onAlbumsUpdated?: (albums: AlbumData[]) => void;
 }
@@ -44,6 +46,7 @@ interface MediaFile {
 
 export const BackofficeView: React.FC<BackofficeViewProps> = ({ 
   onBackToPlayer,
+  onLogout,
   albums: initialAlbums,
   onAlbumsUpdated
 }) => {
@@ -381,6 +384,17 @@ export const BackofficeView: React.FC<BackofficeViewProps> = ({
             {isSaving ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
             <span>Salva su Disco</span>
           </button>
+
+          {onLogout && (
+            <button
+              onClick={onLogout}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/5 hover:bg-red-500/20 text-white/70 hover:text-red-300 border border-white/10 hover:border-red-500/30 font-mono text-xs font-medium transition-all"
+              title="Blocca e disconnetti dal Backoffice"
+            >
+              <Lock className="w-3.5 h-3.5 text-white/60" />
+              <span className="hidden sm:inline">Disconnetti</span>
+            </button>
+          )}
         </div>
       </header>
 

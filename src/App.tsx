@@ -4,6 +4,7 @@ import { NativeAudioProvider } from './context/NativeAudioContext';
 import { VinylOdysseyView } from './components/VinylOdysseyView';
 import { EPKView } from './components/EPKView';
 import { BackofficeView } from './components/BackofficeView';
+import { BackofficeAuthGate } from './components/BackofficeAuthGate';
 import { ShareModal } from './components/ShareModal';
 import { AlbumData, DISCOGRAPHY } from './data/albumData';
 
@@ -76,11 +77,16 @@ export const App: React.FC = () => {
             }}
           />
         ) : currentView === 'admin' ? (
-          <BackofficeView
-            albums={albums}
-            onAlbumsUpdated={(updated) => setAlbums(updated)}
-            onBackToPlayer={() => navigateTo('player')}
-          />
+          <BackofficeAuthGate onBackToPlayer={() => navigateTo('player')}>
+            {(handleLogout) => (
+              <BackofficeView
+                albums={albums}
+                onAlbumsUpdated={(updated) => setAlbums(updated)}
+                onBackToPlayer={() => navigateTo('player')}
+                onLogout={handleLogout}
+              />
+            )}
+          </BackofficeAuthGate>
         ) : (
           <VinylOdysseyView
             albums={albums}
