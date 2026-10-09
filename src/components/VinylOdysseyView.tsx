@@ -761,15 +761,15 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
             {activeTrack.lyrics && (
               <button
                 onClick={() => setShowLyricsModal(true)}
-                className={`group inline-flex items-center gap-1 text-[10px] sm:text-xs font-mono tracking-wider uppercase transition-colors underline underline-offset-2 decoration-current/35 hover:decoration-current shrink-0 ${
+                className={`group inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-mono tracking-wider uppercase transition-all shrink-0 border backdrop-blur-md ${
                   isLightMode
-                    ? 'text-neutral-700 hover:text-black'
-                    : 'text-white/70 hover:text-white'
+                    ? 'bg-black/5 hover:bg-black/10 text-neutral-800 border-black/15 shadow-sm'
+                    : 'bg-white/10 hover:bg-white/20 text-white/90 border-white/20 shadow-sm'
                 }`}
-                title="Apri il testo completo del brano"
+                title="Visualizza i testi del brano (Lyrics)"
               >
-                <span>Testo</span>
-                <span className="inline-block transition-transform duration-200 group-hover:translate-x-0.5">→</span>
+                <span>Lyrics</span>
+                <span className="inline-block transition-transform duration-200 group-hover:translate-x-0.5 opacity-60">→</span>
               </button>
             )}
           </div>
@@ -972,71 +972,98 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
         </div>
       </div>
 
-      {/* Full Lyrics Modal (Libretto del Disco) */}
+      {/* ─────────────────────────────────────────────────────────────
+          LYRICS SLIDE-OVER DRAWER (Desktop) & BOTTOM SHEET (Mobile)
+          Non-blocking, glassmorphic, Apple Music style
+          ───────────────────────────────────────────────────────────── */}
       {showLyricsModal && activeTrack.lyrics && (
-        <div 
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200"
-          onClick={() => setShowLyricsModal(false)}
-        >
+        <div className="fixed inset-0 z-50 flex justify-end items-end md:items-stretch pointer-events-none">
+          {/* Subtle click-outside backdrop */}
           <div
+            className="absolute inset-0 bg-black/35 backdrop-blur-[2px] pointer-events-auto transition-opacity duration-300 animate-in fade-in"
+            onClick={() => setShowLyricsModal(false)}
+          />
+
+          {/* Glass Slide-over Drawer / Bottom Sheet Container */}
+          <aside
+            role="dialog"
+            aria-label={`Testi di ${activeTrack.title}`}
             onClick={(e) => e.stopPropagation()}
-            className={`relative w-full max-w-lg max-h-[85vh] flex flex-col rounded-3xl p-6 sm:p-8 shadow-2xl border backdrop-blur-2xl animate-in zoom-in-95 duration-200 ${
-              isLightMode ? 'bg-white/95 text-gray-900 border-black/10' : 'bg-[#12131b]/95 text-white border-white/15'
+            className={`relative pointer-events-auto w-full md:w-[440px] lg:w-[480px] max-h-[80dvh] md:max-h-full h-auto md:h-full flex flex-col rounded-t-[28px] md:rounded-t-none md:rounded-l-3xl shadow-2xl backdrop-blur-3xl border-t md:border-t-0 md:border-l transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] animate-in slide-in-from-bottom md:slide-in-from-right ${
+              isLightMode
+                ? 'bg-white/90 border-black/15 text-gray-900 shadow-black/20'
+                : 'bg-[#0b0c13]/85 border-white/15 text-white shadow-black/80'
             }`}
           >
-            <div className="flex items-center justify-between pb-4 border-b border-white/10 mb-4">
-              <div>
+            {/* Mobile Drag Handle Indicator */}
+            <div className="md:hidden pt-2.5 pb-1 flex justify-center shrink-0">
+              <div className="w-12 h-1 rounded-full bg-white/25" />
+            </div>
+
+            {/* Header: Track info + Actions */}
+            <div className="flex items-center justify-between px-5 sm:px-6 pt-3 sm:pt-6 pb-3 border-b border-white/10 shrink-0">
+              <div className="min-w-0 pr-3">
                 <span className="text-[10px] font-mono uppercase tracking-widest text-amber-400 font-bold block">
-                  Libretto del Disco • Traccia {String(activeTrack.number).padStart(2, '0')}
+                  LYRICS • TRK {String(activeTrack.number).padStart(2, '0')}/{currentAlbum.tracks.length}
                 </span>
-                <h3 className="text-xl font-bold font-mono mt-0.5">
+                <h3 className="text-lg sm:text-xl font-bold font-sans tracking-tight truncate mt-0.5">
                   {activeTrack.title}
                 </h3>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 shrink-0">
+                {/* Copy Button */}
                 <button
                   onClick={handleCopyLyrics}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-mono text-[11px] font-bold transition-all shadow-sm ${
+                  className={`flex items-center gap-1 px-2.5 py-1.5 rounded-full font-mono text-[10px] font-bold transition-all border ${
                     copiedLyrics
-                      ? 'bg-emerald-500 text-black'
+                      ? 'bg-emerald-500 text-black border-emerald-400 shadow-sm'
                       : isLightMode
-                      ? 'bg-black/5 hover:bg-black/10 text-gray-800'
-                      : 'bg-white/10 hover:bg-white/20 text-white border border-white/10'
+                      ? 'bg-black/5 hover:bg-black/10 text-gray-800 border-black/10'
+                      : 'bg-white/10 hover:bg-white/20 text-white border-white/15'
                   }`}
                   title="Copia testo negli appunti"
                 >
                   {copiedLyrics ? (
                     <>
-                      <Check className="w-3.5 h-3.5" />
-                      <span>COPIATO!</span>
+                      <Check className="w-3 h-3" />
+                      <span>COPIATO</span>
                     </>
                   ) : (
                     <>
-                      <Copy className="w-3.5 h-3.5" />
-                      <span className="hidden sm:inline">COPIA TESTO</span>
+                      <Copy className="w-3 h-3" />
+                      <span className="hidden xs:inline">COPIA</span>
                     </>
                   )}
                 </button>
+
+                {/* Close Button */}
                 <button
                   onClick={() => setShowLyricsModal(false)}
-                  className="p-2 rounded-xl hover:bg-white/10 opacity-70 hover:opacity-100 transition-opacity"
-                  title="Chiudi (ESC)"
+                  className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
+                    isLightMode
+                      ? 'hover:bg-black/10 text-gray-700'
+                      : 'hover:bg-white/15 text-white/80'
+                  }`}
+                  title="Chiudi pannello (ESC)"
+                  aria-label="Chiudi testi"
                 >
-                  <X className="w-5 h-5" />
+                  <X className="w-4 h-4" />
                 </button>
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto pr-3 space-y-4 font-serif text-sm sm:text-base leading-relaxed whitespace-pre-line opacity-90 select-text">
+            {/* Lyric Content Body (Scrollable, elegant typography) */}
+            <div className="flex-1 overflow-y-auto px-5 sm:px-7 py-4 sm:py-6 space-y-4 font-sans text-sm sm:text-base leading-relaxed tracking-wide select-text opacity-95">
               {activeTrack.lyrics}
             </div>
 
-            <div className="pt-3 mt-3 border-t border-white/10 flex items-center justify-between text-[10px] font-mono opacity-60">
+            {/* Footer Meta */}
+            <div className="px-5 sm:px-6 py-2.5 border-t border-white/10 flex items-center justify-between text-[10px] font-mono opacity-50 shrink-0">
               <span>{activeTrack.lyrics.split('\n').filter(Boolean).length} VERSI</span>
-              <span>TESTO & MUSICA: {currentAlbum.artist}</span>
+              <span className="uppercase">TESTO & MUSICA: {currentAlbum.artist}</span>
             </div>
-          </div>
+          </aside>
         </div>
       )}
     </div>
