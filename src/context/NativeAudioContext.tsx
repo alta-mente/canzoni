@@ -20,7 +20,12 @@ interface AudioContextType {
 const AudioContext = createContext<AudioContextType | undefined>(undefined);
 
 export const NativeAudioProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [currentTrack, setCurrentTrack] = useState<Track>(ALBUM_DATA.tracks[0]);
+  const [currentTrack, setCurrentTrack] = useState<Track>(() => {
+    const tracks = ALBUM_DATA.tracks;
+    if (!tracks || tracks.length === 0) return ALBUM_DATA.tracks[0];
+    const randomIndex = Math.floor(Math.random() * tracks.length);
+    return tracks[randomIndex];
+  });
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [currentTime, setCurrentTime] = useState<number>(0);
   const [duration, setDuration] = useState<number>(15); // default preview length

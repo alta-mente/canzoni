@@ -48,16 +48,27 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
   const [currentAlbumId, setCurrentAlbumId] = useState<string>(discography[0].id);
   const currentAlbum = discography.find((a) => a.id === currentAlbumId) || discography[0];
 
-  const [currentIndex, setCurrentIndex] = useState<number>(0);
+  const { currentTrack, isPlaying, playTrack, togglePlay, currentTime, duration, seek, isMuted, toggleMute } = useAudio();
+  const { isDark, toggleTheme } = useTheme();
+
+  // Start with the random track chosen by NativeAudioContext on first load
+  const [currentIndex, setCurrentIndex] = useState<number>(() => {
+    if (currentTrack) {
+      const idx = currentAlbum.tracks.findIndex((t) => t.id === currentTrack.id);
+      if (idx !== -1) return idx;
+    }
+    const count = currentAlbum.tracks.length;
+    return count > 0 ? Math.floor(Math.random() * count) : 0;
+  });
+
   const [displayMode, setDisplayMode] = useState<'carousel' | 'sleeve' | 'editorial'>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('canzoni_display_mode');
       if (saved === 'carousel' || saved === 'sleeve' || saved === 'editorial') {
         return saved as 'carousel' | 'sleeve' | 'editorial';
       }
-      // On mobile screens (< 768px), default to 3D Carousel
-      return window.innerWidth < 768 ? 'carousel' : 'sleeve';
     }
+    // Default to 3D Carousel everywhere for an immersive, visual experience
     return 'carousel';
   });
 
@@ -75,9 +86,6 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
   const [showLyricsModal, setShowLyricsModal] = useState<boolean>(false);
   const [copiedLyrics, setCopiedLyrics] = useState<boolean>(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
-
-  const { currentTrack, isPlaying, playTrack, togglePlay, currentTime, duration, seek, isMuted, toggleMute } = useAudio();
-  const { isDark, toggleTheme } = useTheme();
 
   const activeTrack = currentAlbum.tracks[currentIndex] || currentAlbum.tracks[0];
   // Track-specific video canvas takes precedence over album-level fallback video
@@ -111,6 +119,30 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
       setTimeout(() => setCopiedLyrics(false), 2000);
     }
   };
+
+  // Attempt autoplay of the chosen random track, with fallback on very first user interaction
+  useEffect(() => {
+    const initialTrack = currentAlbum.tracks[currentIndex] || currentAlbum.tracks[0];
+    if (!initialTrack) return;
+
+    // 1. Try immediate playback
+    playTrack(initialTrack);
+
+    // 2. Fallback listener if browser autoplay policy stopped immediate playback
+    const handleFirstUserGesture = () => {
+      playTrack(initialTrack);
+    };
+
+    window.addEventListener('pointerdown', handleFirstUserGesture, { once: true });
+    window.addEventListener('keydown', handleFirstUserGesture, { once: true });
+    window.addEventListener('touchstart', handleFirstUserGesture, { once: true });
+
+    return () => {
+      window.removeEventListener('pointerdown', handleFirstUserGesture);
+      window.removeEventListener('keydown', handleFirstUserGesture);
+      window.removeEventListener('touchstart', handleFirstUserGesture);
+    };
+  }, []);
 
   // Synchronize visual state whenever audio track changes (e.g. auto-play next track on ended)
   useEffect(() => {
@@ -284,13 +316,25 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
         color: isLightMode ? '#111827' : '#ffffff',
       }}
     >
-      {/* 1. Underlying Solid Color Layer (Transitions smoothly) */}
+      {/* 1. Underlying Base Background Layer with Atmospheric Gradient */}
       <div
-        className="absolute inset-0 transition-colors duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] -z-20"
-        style={{ backgroundColor: currentBgColor }}
+        className="absolute inset-0 transition-all duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] -z-30"
+        style={{
+          background: isLightMode
+            ? `radial-gradient(ellipse at 50% 45%, ${activeTrack.colorLight} 0%, #e2e8f0 70%, #cbd5e1 100%)`
+            : `radial-gradient(ellipse at 50% 45%, ${activeTrack.colorDark}cc 0%, #11131c 60%, #08090d 100%)`,
+        }}
       />
 
-      {/* 2. Background Canvas Video Loop (On top of color, under UI) */}
+      {/* 2. Luminous Ambient Stage Glow (Centered behind the Vinyl carousel) */}
+      <div
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[75vw] max-w-[1000px] h-[70vh] max-h-[700px] rounded-full blur-[120px] pointer-events-none -z-20 transition-all duration-1000 opacity-60"
+        style={{
+          backgroundColor: isLightMode ? activeTrack.colorLight : activeTrack.colorDark,
+        }}
+      />
+
+      {/* 3. Background Canvas Video Loop (Crisp, atmospheric, non-crushed) */}
       {showCanvasBackground && activeVideoSrc && (
         <div className="absolute inset-0 pointer-events-none -z-10 overflow-hidden">
           <video
@@ -301,17 +345,15 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
             loop
             muted
             playsInline
-            className={`w-full h-full object-cover transition-opacity duration-700 ${
-              isLightMode ? 'opacity-30 mix-blend-multiply' : 'opacity-55 mix-blend-screen'
+            className={`w-full h-full object-cover transition-opacity duration-1000 ${
+              isLightMode ? 'opacity-30 mix-blend-multiply' : 'opacity-65 mix-blend-normal'
             }`}
           />
-          {/* Contrast scrim for readability */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-black/50" />
+          {/* Subtle contrast scrim for header & footer UI legibility, keeping center stage open */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/45" />
+          <div className="absolute inset-0 bg-radial from-transparent via-transparent to-black/40" />
         </div>
       )}
-
-      {/* 3. Subtle Vignette */}
-      <div className="absolute inset-0 bg-radial-gradient from-transparent via-black/5 to-black/30 pointer-events-none -z-10" />
 
       {/* ─────────────────────────────────────────────────────────────
           1. TOP NAVIGATION & IDENTITY BAR (Full-width, perfectly aligned)
