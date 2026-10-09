@@ -208,7 +208,7 @@ export const VinylCarousel: React.FC<VinylCarouselProps> = ({
           />
 
           {/* Center Spindle Label (Solid Black Circle) */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 sm:w-40 md:w-48 h-32 sm:h-40 md:h-48 rounded-full bg-[#0a0a0f] border-2 border-white/25 shadow-[0_0_30px_rgba(0,0,0,0.85)] z-10 overflow-hidden select-none">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 sm:w-36 md:w-44 h-24 sm:h-36 md:h-44 rounded-full bg-[#0a0a0f] border-2 border-white/25 shadow-[0_0_30px_rgba(0,0,0,0.85)] z-10 overflow-hidden select-none">
             {/* Top Section: Artist & Title (above center hole) */}
             <div className="absolute top-0 inset-x-0 bottom-1/2 flex flex-col items-center justify-end pb-2 sm:pb-2.5 px-2 text-center pointer-events-none">
               <span className="text-[7px] sm:text-[8px] md:text-[9px] font-mono tracking-widest text-white/50 uppercase leading-tight">
@@ -373,7 +373,7 @@ export const VinylCarousel: React.FC<VinylCarouselProps> = ({
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
       onTouchCancel={handleTouchCancel}
-      className="relative w-full h-[290px] sm:h-[360px] md:h-[420px] lg:h-[460px] flex items-center justify-center overflow-visible select-none touch-pan-y"
+      className="relative w-full h-[230px] sm:h-[320px] md:h-[380px] lg:h-[420px] flex items-center justify-center overflow-visible select-none touch-pan-y"
     >
       {/* Previous Track Arrow */}
       <button
@@ -409,19 +409,19 @@ export const VinylCarousel: React.FC<VinylCarouselProps> = ({
           opacityVal = 1;
           zIndexVal = 30;
         } else if (offset === -1) {
-          transformStr = `translateX(calc(clamp(-420px, -48vw, -165px) + ${currentDrag * 0.75}px)) scale(0.68)`;
+          transformStr = `translateX(calc(clamp(-400px, -44vw, -135px) + ${currentDrag * 0.75}px)) scale(0.68)`;
           opacityVal = 0.65;
           zIndexVal = 15;
         } else if (offset === 1) {
-          transformStr = `translateX(calc(clamp(165px, 48vw, 420px) + ${currentDrag * 0.75}px)) scale(0.68)`;
+          transformStr = `translateX(calc(clamp(135px, 44vw, 400px) + ${currentDrag * 0.75}px)) scale(0.68)`;
           opacityVal = 0.65;
           zIndexVal = 15;
         } else if (offset === -2) {
-          transformStr = `translateX(calc(clamp(-720px, -80vw, -360px) + ${currentDrag * 0.4}px)) scale(0.45)`;
+          transformStr = `translateX(calc(clamp(-700px, -78vw, -320px) + ${currentDrag * 0.4}px)) scale(0.45)`;
           opacityVal = 0;
           zIndexVal = 5;
         } else if (offset === 2) {
-          transformStr = `translateX(calc(clamp(360px, 80vw, 720px) + ${currentDrag * 0.4}px)) scale(0.45)`;
+          transformStr = `translateX(calc(clamp(320px, 78vw, 700px) + ${currentDrag * 0.4}px)) scale(0.45)`;
           opacityVal = 0;
           zIndexVal = 5;
         }
@@ -444,8 +444,8 @@ export const VinylCarousel: React.FC<VinylCarouselProps> = ({
               transform: transformStr,
               opacity: opacityVal,
               zIndex: zIndexVal,
-              width: 'clamp(220px, min(65vw, 42vh), 420px)',
-              height: 'clamp(220px, min(65vw, 42vh), 420px)',
+              width: 'clamp(175px, min(56vw, 30vh), 400px)',
+              height: 'clamp(175px, min(56vw, 30vh), 400px)',
             }}
           >
             {renderDisc(track, isCenter)}

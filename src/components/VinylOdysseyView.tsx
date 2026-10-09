@@ -311,7 +311,7 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
 
   return (
     <div
-      className="relative w-screen h-screen overflow-hidden flex flex-col justify-between px-4 sm:px-12 md:px-16 py-2.5 sm:py-5 select-none"
+      className="relative w-full h-[100dvh] max-h-[100dvh] overflow-hidden flex flex-col justify-between px-3 sm:px-12 md:px-16 pt-2 pb-1 sm:py-5 select-none"
       style={{
         color: isLightMode ? '#111827' : '#ffffff',
       }}
@@ -725,11 +725,12 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
       {/* ─────────────────────────────────────────────────────────────
           2. TRACK HERO & EDITORIAL LINER ROW (Spacious, balanced)
           ───────────────────────────────────────────────────────────── */}
-      <div className="relative z-10 flex flex-col items-start gap-2 pt-2.5 sm:pt-4 max-w-3xl">
+      <div className="relative z-10 flex flex-col items-start gap-1 sm:gap-2 pt-1 sm:pt-4 max-w-3xl shrink-0">
         
         {/* Track Counter & Title */}
-        <div className="space-y-1">
-          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 text-[10px] sm:text-[11px] font-mono">
+        <div className="space-y-0.5 sm:space-y-1">
+          {/* Metadata info: Hidden on mobile per request, visible on sm+ */}
+          <div className="hidden sm:flex flex-wrap items-center gap-1.5 sm:gap-2 text-[10px] sm:text-[11px] font-mono">
             <span className="font-bold uppercase tracking-widest text-amber-400">
               TRK {String(activeTrack.number).padStart(2, '0')}/{currentAlbum.tracks.length}
             </span>
@@ -743,7 +744,7 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
             </span>
           </div>
 
-          <h1 className="font-sans font-black text-3xl sm:text-4xl md:text-5xl lg:text-6xl uppercase tracking-tight leading-[0.95] drop-shadow-md">
+          <h1 className="font-sans font-black text-2xl sm:text-4xl md:text-5xl lg:text-6xl uppercase tracking-tight leading-[0.95] drop-shadow-md">
             {activeTrack.title.includes(' ') ? (
               <>
                 <span>{activeTrack.title.split(' ')[0]}</span>
@@ -758,9 +759,9 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
 
         {/* Poetic Quote & Lyrics textual link - Free floating under the title */}
         {(activeTrack.storyQuote || activeTrack.lyrics) && (
-          <div className="space-y-2 pt-0.5">
+          <div className="space-y-1 sm:space-y-2 pt-0.5">
             {activeTrack.storyQuote && (
-              <p className="text-xs sm:text-sm font-sans italic leading-relaxed opacity-85 drop-shadow-sm max-w-xl">
+              <p className="text-xs sm:text-sm font-sans italic leading-relaxed opacity-85 drop-shadow-sm max-w-xl line-clamp-2 sm:line-clamp-none">
                 {activeTrack.storyQuote}
               </p>
             )}
@@ -787,7 +788,7 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
       </div>
 
       {/* CENTER STAGE: The 3D Vinyl Carousel */}
-      <div className="relative z-10 flex-1 flex items-center justify-center my-auto w-full">
+      <div className="relative z-10 flex-1 min-h-0 flex items-center justify-center my-auto w-full">
         <VinylCarousel
           currentIndex={currentIndex}
           onSelectTrack={handleSelectTrack}
@@ -799,7 +800,7 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
       </div>
 
       {/* BOTTOM CONTROLS: Unified Hi-Fi Capsule */}
-      <div className="relative z-20 flex flex-col items-center pb-2 sm:pb-3 px-4 w-full">
+      <div className="relative z-20 flex flex-col items-center pb-[max(0.35rem,env(safe-area-inset-bottom))] px-2 sm:px-4 w-full shrink-0">
         <div className="relative w-full max-w-2xl flex flex-col items-center">
           {/* Quick Tracklist Popover Drawer (Floats strictly ABOVE the capsule) */}
           {showTracklist && (
@@ -856,19 +857,19 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
 
           {/* Unified Capsule */}
           <div
-            className={`w-full px-3 sm:px-6 py-2.5 sm:py-3 rounded-full backdrop-blur-2xl transition-all shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex items-center gap-2.5 sm:gap-4 relative z-40 ${
+            className={`w-full px-2.5 sm:px-6 py-2 sm:py-3 rounded-full backdrop-blur-2xl transition-all shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex items-center gap-1.5 sm:gap-4 relative z-40 ${
             isLightMode
               ? 'bg-white/85 border border-black/10 text-gray-900 shadow-black/10'
               : 'bg-[#0d0e14]/85 border border-white/15 text-white'
           }`}
         >
           {/* Playback Controls: Prev | Play/Pause | Next */}
-          <div className="flex items-center space-x-1 shrink-0">
+          <div className="flex items-center space-x-0.5 sm:space-x-1 shrink-0">
             <button
               onClick={handlePrev}
               title="Traccia precedente"
               aria-label="Traccia precedente"
-              className={`p-2 rounded-full transition-all duration-200 hover:scale-110 active:scale-90 ${
+              className={`p-1.5 sm:p-2 rounded-full transition-all duration-200 hover:scale-110 active:scale-90 ${
                 isLightMode ? 'hover:bg-black/10 text-gray-800' : 'hover:bg-white/15 text-white/80'
               }`}
             >
@@ -879,16 +880,16 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
               onClick={togglePlay}
               title={isPlaying ? 'Pausa' : 'Riproduci'}
               aria-label={isPlaying ? 'Pausa' : 'Riproduci'}
-              className={`w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center shrink-0 hover:scale-105 active:scale-95 transition-all shadow-lg ${
+              className={`w-9 h-9 sm:w-11 sm:h-11 rounded-full flex items-center justify-center shrink-0 hover:scale-105 active:scale-95 transition-all shadow-lg ${
                 isLightMode
                   ? 'bg-gray-900 text-white hover:bg-black'
                   : 'bg-white text-black hover:bg-white/90'
               }`}
             >
               {isPlaying ? (
-                <Pause className="w-5 h-5 fill-current" />
+                <Pause className="w-4 h-4 sm:w-5 sm:h-5 fill-current" />
               ) : (
-                <Play className="w-5 h-5 fill-current translate-x-0.5" />
+                <Play className="w-4 h-4 sm:w-5 sm:h-5 fill-current translate-x-0.5" />
               )}
             </button>
 
@@ -896,7 +897,7 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
               onClick={handleNext}
               title="Traccia successiva"
               aria-label="Traccia successiva"
-              className={`p-2 rounded-full transition-all duration-200 hover:scale-110 active:scale-90 ${
+              className={`p-1.5 sm:p-2 rounded-full transition-all duration-200 hover:scale-110 active:scale-90 ${
                 isLightMode ? 'hover:bg-black/10 text-gray-800' : 'hover:bg-white/15 text-white/80'
               }`}
             >
@@ -905,8 +906,8 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
           </div>
 
           {/* Time Scrubber (Continuous, wide seekbar) */}
-          <div className="flex-1 flex items-center space-x-2 sm:space-x-3 min-w-0">
-            <span className="text-[11px] font-mono opacity-70 w-8 sm:w-9 text-right tabular-nums shrink-0">
+          <div className="flex-1 flex items-center space-x-1.5 sm:space-x-3 min-w-0">
+            <span className="text-[10px] sm:text-[11px] font-mono opacity-70 w-7 sm:w-9 text-right tabular-nums shrink-0">
               {formatTime(currentTime)}
             </span>
 
@@ -929,7 +930,7 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
               </div>
             </div>
 
-            <span className="text-[11px] font-mono opacity-70 w-8 sm:w-9 text-left tabular-nums shrink-0">
+            <span className="text-[10px] sm:text-[11px] font-mono opacity-70 w-7 sm:w-9 text-left tabular-nums shrink-0">
               {activeTrack.duration}
             </span>
           </div>
@@ -938,12 +939,12 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
           <div className={`h-5 w-px shrink-0 hidden xs:block ${isLightMode ? 'bg-black/15' : 'bg-white/15'}`} />
 
           {/* Right Section: Track Badge & Mute */}
-          <div className="flex items-center space-x-1.5 sm:space-x-2 shrink-0">
+          <div className="flex items-center space-x-1 sm:space-x-2 shrink-0">
             {/* Track indicator badge + toggle list */}
             <button
               onClick={() => setShowTracklist((prev) => !prev)}
               title="Apri lista tracce"
-              className={`font-mono text-[10px] sm:text-[11px] px-2.5 py-1.5 rounded-full font-bold tracking-wider flex items-center space-x-1.5 transition-all ${
+              className={`font-mono text-[9px] sm:text-[11px] px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-full font-bold tracking-wider flex items-center space-x-1 sm:space-x-1.5 transition-all ${
                 showTracklist
                   ? 'bg-white text-black shadow-md'
                   : isLightMode
@@ -951,7 +952,7 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
                   : 'bg-white/10 hover:bg-white/20 text-white/90 border border-white/10'
               }`}
             >
-              <ListMusic className="w-3.5 h-3.5" />
+              <ListMusic className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
               <span>{String(activeTrack.number).padStart(2, '0')}&thinsp;/&thinsp;{String(currentAlbum.tracks.length).padStart(2, '0')}</span>
             </button>
 
@@ -959,7 +960,7 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
             <button
               onClick={toggleMute}
               title={isMuted ? 'Riattiva audio' : 'Disattiva audio'}
-              className={`p-2 rounded-full transition-all ${
+              className={`p-1.5 sm:p-2 rounded-full transition-all ${
                 isLightMode ? 'text-gray-800 hover:bg-black/10' : 'text-white/80 hover:bg-white/15'
               }`}
             >
@@ -969,7 +970,7 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
         </div>
 
         {/* Footer Credit */}
-        <div className="pt-1.5 text-center text-[10px] sm:text-[11px] font-mono opacity-50 hover:opacity-90 transition-opacity">
+        <div className="pt-1 pb-0.5 text-center text-[9px] sm:text-[11px] font-mono opacity-50 hover:opacity-90 transition-opacity shrink-0">
           <span>© {new Date().getFullYear()} Alessandro Rocchi • weagency </span>
           <a
             href="https://altamente.it"
