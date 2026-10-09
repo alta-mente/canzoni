@@ -49,7 +49,26 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
   const currentAlbum = discography.find((a) => a.id === currentAlbumId) || discography[0];
 
   const [currentIndex, setCurrentIndex] = useState<number>(0);
-  const [displayMode, setDisplayMode] = useState<'carousel' | 'sleeve' | 'editorial'>('sleeve');
+  const [displayMode, setDisplayMode] = useState<'carousel' | 'sleeve' | 'editorial'>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('canzoni_display_mode');
+      if (saved === 'carousel' || saved === 'sleeve' || saved === 'editorial') {
+        return saved as 'carousel' | 'sleeve' | 'editorial';
+      }
+      // On mobile screens (< 768px), default to 3D Carousel
+      return window.innerWidth < 768 ? 'carousel' : 'sleeve';
+    }
+    return 'carousel';
+  });
+
+  const handleSetDisplayMode = (mode: 'carousel' | 'sleeve' | 'editorial') => {
+    setDisplayMode(mode);
+    try {
+      localStorage.setItem('canzoni_display_mode', mode);
+    } catch {
+      // ignore
+    }
+  };
   const [showCanvasBackground, setShowCanvasBackground] = useState<boolean>(true);
   const [showTracklist, setShowTracklist] = useState<boolean>(false);
   const [showSettingsMenu, setShowSettingsMenu] = useState<boolean>(false);
@@ -186,7 +205,7 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
           onOpenEPK={onOpenEPK}
           onOpenShare={onOpenShare}
           onOpenBackoffice={onOpenBackoffice}
-          onSwitchDisplayMode={(mode) => setDisplayMode(mode)}
+          onSwitchDisplayMode={(mode) => handleSetDisplayMode(mode)}
           displayMode={displayMode}
           formatTime={formatTime}
         />
@@ -493,7 +512,7 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
                     <div className="grid grid-cols-2 gap-1">
                       <button
                         onClick={() => {
-                          setDisplayMode('sleeve');
+                          handleSetDisplayMode('sleeve');
                           setShowSettingsMenu(false);
                         }}
                         className={`py-1.5 px-2 rounded-lg text-[10px] font-mono font-bold transition-all text-center ${
@@ -506,7 +525,7 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
                       </button>
                       <button
                         onClick={() => {
-                          setDisplayMode('carousel');
+                          handleSetDisplayMode('carousel');
                           setShowSettingsMenu(false);
                         }}
                         className={`py-1.5 px-2 rounded-lg text-[10px] font-mono font-bold transition-all text-center ${

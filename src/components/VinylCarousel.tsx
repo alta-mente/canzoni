@@ -32,6 +32,89 @@ export const VinylCarousel: React.FC<VinylCarouselProps> = ({
   const [sleevePhase, setSleevePhase] = useState<'idle' | 'retracting' | 'extracting'>('idle');
   const prevTrackIdRef = useRef<string>(activeTrack.id);
 
+  // Touch & Swipe Gesture Navigation State
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
+  const touchStartTime = useRef<number>(0);
+  const [dragOffset, setDragOffset] = useState<number>(0);
+  const [isDragging, setIsDragging] = useState<boolean>(false);
+  const wasSwipeRef = useRef<boolean>(false);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+    touchStartTime.current = Date.now();
+    setIsDragging(true);
+    setDragOffset(0);
+    wasSwipeRef.current = false;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (touchStartX.current === null || touchStartY.current === null) return;
+    const diffX = e.touches[0].clientX - touchStartX.current;
+    const diffY = e.touches[0].clientY - touchStartY.current;
+
+    // If gesture is predominantly vertical, don't hijack vertical scrolling
+    if (Math.abs(diffY) > Math.abs(diffX) * 1.3 && Math.abs(diffX) < 15) {
+      return;
+    }
+
+    // Dampen drag resistance
+    const damped = Math.sign(diffX) * Math.min(Math.abs(diffX), 140);
+    setDragOffset(damped);
+
+    if (Math.abs(diffX) > 12) {
+      wasSwipeRef.current = true;
+    }
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null) {
+      setIsDragging(false);
+      setDragOffset(0);
+      return;
+    }
+
+    const diffX = e.changedTouches[0].clientX - touchStartX.current;
+    const diffY = e.changedTouches[0].clientY - (touchStartY.current ?? 0);
+    const elapsed = Date.now() - touchStartTime.current;
+
+    setIsDragging(false);
+    setDragOffset(0);
+
+    const isHorizontal = Math.abs(diffX) > Math.abs(diffY) * 0.9;
+    const isFlick = elapsed < 350 && Math.abs(diffX) > 30;
+    const isLongSwipe = Math.abs(diffX) > 50;
+
+    if (isHorizontal && (isFlick || isLongSwipe)) {
+      wasSwipeRef.current = true;
+      if (diffX < 0) {
+        // Swiped Left -> Next Track
+        handleNext();
+      } else {
+        // Swiped Right -> Previous Track
+        handlePrev();
+      }
+    }
+
+    touchStartX.current = null;
+    touchStartY.current = null;
+
+    setTimeout(() => {
+      wasSwipeRef.current = false;
+    }, 150);
+  };
+
+  const handleTouchCancel = () => {
+    setIsDragging(false);
+    setDragOffset(0);
+    touchStartX.current = null;
+    touchStartY.current = null;
+    setTimeout(() => {
+      wasSwipeRef.current = false;
+    }, 150);
+  };
+
   useEffect(() => {
     // If not in sleeve mode, keep track immediately in sync
     if (displayMode !== 'sleeve') {
@@ -169,7 +252,13 @@ export const VinylCarousel: React.FC<VinylCarouselProps> = ({
   // MODE 2: Realistic Paper Cardboard Sleeve + Vinyl Slide-Out
   if (displayMode === 'sleeve') {
     return (
-      <div className="relative w-full max-w-6xl mx-auto flex items-center justify-center py-4 select-none px-4 sm:px-8 md:px-12">
+      <div
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onTouchCancel={handleTouchCancel}
+        className="relative w-full max-w-6xl mx-auto flex items-center justify-center py-4 select-none px-4 sm:px-8 md:px-12 touch-pan-y"
+      >
         {/* Previous Track Arrow */}
         <button
           onClick={handlePrev}
@@ -183,15 +272,22 @@ export const VinylCarousel: React.FC<VinylCarouselProps> = ({
           />
         </button>
 
-        {/* Center Sleeve + Vinyl Stage (smoothly rebalances when vinyl rolls out to maintain perfect visual symmetry) */}
+        {/* Center Sleeve + Vinyl Stage */}
         <div
           className={`relative flex items-center justify-center transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
             isPlaying ? '-translate-x-10 sm:-translate-x-16 md:-translate-x-20' : ''
           }`}
+          style={{
+            transform: isDragging ? `translateX(${dragOffset}px)` : undefined,
+            transition: isDragging ? 'none' : undefined,
+          }}
         >
           {/* Realistic Cardboard Album Sleeve (Left) */}
           <div
-            onClick={togglePlay}
+            onClick={() => {
+              if (wasSwipeRef.current) return;
+              togglePlay();
+            }}
             className={`relative w-64 sm:w-80 md:w-[400px] aspect-square rounded-[3px] overflow-hidden shadow-[0_35px_80px_-15px_rgba(0,0,0,0.85),0_0_40px_rgba(0,0,0,0.35)] z-20 border border-white/20 cursor-pointer group transition-transform duration-500 ${
               sleevePhase === 'retracting'
                 ? 'scale-[0.985] -rotate-[0.5deg]'
@@ -238,7 +334,10 @@ export const VinylCarousel: React.FC<VinylCarouselProps> = ({
 
           {/* Vinyl Sliding Out (Right) with physical retract & roll-out transition */}
           <div
-            onClick={togglePlay}
+            onClick={() => {
+              if (wasSwipeRef.current) return;
+              togglePlay();
+            }}
             className={`w-[250px] sm:w-[340px] md:w-[390px] aspect-square cursor-pointer transition-all -ml-28 sm:-ml-40 md:-ml-48 z-10 ${
               sleevePhase === 'retracting'
                 ? '-translate-x-32 sm:-translate-x-44 md:-translate-x-52 -rotate-45 scale-95 opacity-60 duration-300 ease-in'
@@ -267,42 +366,62 @@ export const VinylCarousel: React.FC<VinylCarouselProps> = ({
     );
   }
 
-  // MODE 1: 5 Discs Carousel (3 visible + 2 pre-rendered off-screen for pure sliding without popping)
+  // MODE 1: 5 Discs 3D Carousel with Touch & Swipe Gestures
   return (
-    <div className="relative w-full h-[280px] sm:h-[360px] md:h-[420px] lg:h-[460px] flex items-center justify-center overflow-visible select-none">
+    <div
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      onTouchCancel={handleTouchCancel}
+      className="relative w-full h-[290px] sm:h-[360px] md:h-[420px] lg:h-[460px] flex items-center justify-center overflow-visible select-none touch-pan-y"
+    >
+      {/* Previous Track Arrow */}
+      <button
+        onClick={handlePrev}
+        title={`Traccia precedente: ${prevTrack.title}`}
+        aria-label="Traccia precedente"
+        className="absolute left-1 sm:left-3 md:left-6 z-40 p-2 sm:p-3 text-white/40 hover:text-white transition-all duration-300 hover:scale-110 active:scale-95 group focus:outline-none drop-shadow-[0_4px_16px_rgba(0,0,0,0.8)]"
+      >
+        <ChevronLeft
+          strokeWidth={1.4}
+          className="w-7 h-7 sm:w-9 sm:h-9 md:w-11 md:h-11 transition-transform duration-300 group-hover:-translate-x-1"
+        />
+      </button>
+
+      {/* Discs Render */}
       {album.tracks.map((track, idx) => {
         let offset = idx - currentIndex;
         if (offset > total / 2) offset -= total;
         if (offset < -total / 2) offset += total;
 
-        // Render offsets -2, -1, 0, 1, 2
-        // -2 and 2 are off-screen pre-rendered buffers so when transitioning, discs smoothly slide from/to the edges
+        // Render offsets -2, -1, 0, 1, 2 for smooth slide from edges
         if (Math.abs(offset) > 2) return null;
 
         const isCenter = offset === 0;
+        const currentDrag = isDragging ? dragOffset : 0;
 
-        let transformStr = 'translateX(0px) scale(1)';
+        let transformStr = `translateX(${currentDrag}px) scale(1)`;
         let opacityVal = 1;
         let zIndexVal = 30;
 
         if (offset === 0) {
-          transformStr = 'translateX(0px) scale(1)';
+          transformStr = `translateX(${currentDrag}px) scale(1)`;
           opacityVal = 1;
           zIndexVal = 30;
         } else if (offset === -1) {
-          transformStr = 'translateX(clamp(-440px, -32vw, -220px)) scale(0.68)';
+          transformStr = `translateX(calc(clamp(-420px, -48vw, -165px) + ${currentDrag * 0.75}px)) scale(0.68)`;
           opacityVal = 0.65;
           zIndexVal = 15;
         } else if (offset === 1) {
-          transformStr = 'translateX(clamp(220px, 32vw, 440px)) scale(0.68)';
+          transformStr = `translateX(calc(clamp(165px, 48vw, 420px) + ${currentDrag * 0.75}px)) scale(0.68)`;
           opacityVal = 0.65;
           zIndexVal = 15;
         } else if (offset === -2) {
-          transformStr = 'translateX(clamp(-720px, -54vw, -450px)) scale(0.45)';
+          transformStr = `translateX(calc(clamp(-720px, -80vw, -360px) + ${currentDrag * 0.4}px)) scale(0.45)`;
           opacityVal = 0;
           zIndexVal = 5;
         } else if (offset === 2) {
-          transformStr = 'translateX(clamp(450px, 54vw, 720px)) scale(0.45)';
+          transformStr = `translateX(calc(clamp(360px, 80vw, 720px) + ${currentDrag * 0.4}px)) scale(0.45)`;
           opacityVal = 0;
           zIndexVal = 5;
         }
@@ -310,22 +429,42 @@ export const VinylCarousel: React.FC<VinylCarouselProps> = ({
         return (
           <div
             key={track.id}
-            onClick={() => (isCenter ? togglePlay() : onSelectTrack(idx))}
-            className={`absolute cursor-pointer transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-              Math.abs(offset) > 1 ? 'pointer-events-none' : ''
-            }`}
+            onClick={() => {
+              if (wasSwipeRef.current) return;
+              if (isCenter) {
+                togglePlay();
+              } else {
+                onSelectTrack(idx);
+              }
+            }}
+            className={`absolute cursor-pointer ease-[cubic-bezier(0.16,1,0.3,1)] ${
+              isDragging ? 'transition-none' : 'transition-all duration-700'
+            } ${Math.abs(offset) > 1 ? 'pointer-events-none' : ''}`}
             style={{
               transform: transformStr,
               opacity: opacityVal,
               zIndex: zIndexVal,
-              width: 'clamp(250px, min(35vw, 45vh), 450px)',
-              height: 'clamp(250px, min(35vw, 45vh), 450px)',
+              width: 'clamp(220px, min(65vw, 42vh), 420px)',
+              height: 'clamp(220px, min(65vw, 42vh), 420px)',
             }}
           >
             {renderDisc(track, isCenter)}
           </div>
         );
       })}
+
+      {/* Next Track Arrow */}
+      <button
+        onClick={handleNext}
+        title={`Traccia successiva: ${nextTrack.title}`}
+        aria-label="Traccia successiva"
+        className="absolute right-1 sm:right-3 md:right-6 z-40 p-2 sm:p-3 text-white/40 hover:text-white transition-all duration-300 hover:scale-110 active:scale-95 group focus:outline-none drop-shadow-[0_4px_16px_rgba(0,0,0,0.8)]"
+      >
+        <ChevronRight
+          strokeWidth={1.4}
+          className="w-7 h-7 sm:w-9 sm:h-9 md:w-11 md:h-11 transition-transform duration-300 group-hover:translate-x-1"
+        />
+      </button>
     </div>
   );
 };
