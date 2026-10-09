@@ -294,8 +294,16 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
                 </div>
               </div>
 
-              <div className="flex-1 overflow-y-auto pr-3 space-y-4 font-serif text-sm sm:text-base leading-relaxed whitespace-pre-line text-black/85 select-text">
-                {activeTrack.lyrics}
+              <div className="flex-1 overflow-y-auto pr-3 space-y-6 font-sans text-sm sm:text-base leading-relaxed text-black/85 select-text">
+                {activeTrack.lyrics.split(/\n\s*\n/).map((stanza, sIdx) => (
+                  <p key={sIdx} className="space-y-1.5 font-normal leading-relaxed">
+                    {stanza.split('\n').map((line, lIdx) => (
+                      <span key={lIdx} className="block">
+                        {line}
+                      </span>
+                    ))}
+                  </p>
+                ))}
               </div>
 
               <div className="pt-3 mt-3 border-t border-black/10 flex items-center justify-between text-[10px] font-mono opacity-60">
@@ -1053,9 +1061,17 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
               </div>
             </div>
 
-            {/* Lyric Content Body (Scrollable, elegant typography) */}
-            <div className="flex-1 overflow-y-auto px-5 sm:px-7 py-4 sm:py-6 space-y-4 font-sans text-sm sm:text-base leading-relaxed tracking-wide select-text opacity-95">
-              {activeTrack.lyrics}
+            {/* Lyric Content Body (Scrollable, elegant poetic typography with preserved stanzas & linebreaks) */}
+            <div className="flex-1 overflow-y-auto px-5 sm:px-7 py-4 sm:py-6 space-y-6 font-sans text-sm sm:text-base leading-relaxed tracking-wide select-text opacity-95">
+              {activeTrack.lyrics.split(/\n\s*\n/).map((stanza, sIdx) => (
+                <p key={sIdx} className="space-y-1.5 font-normal leading-relaxed">
+                  {stanza.split('\n').map((line, lIdx) => (
+                    <span key={lIdx} className="block">
+                      {line}
+                    </span>
+                  ))}
+                </p>
+              ))}
             </div>
 
             {/* Footer Meta */}
