@@ -179,16 +179,16 @@ export const EPK_DATA: EPKData = {
         "L'opera è corredata da video canvas d'autore sincronizzati per ciascun brano, creando un'esperienza multimediale completa per il vinile e per lo schermo."
       ],
       trackByTrack: [
-        { title: "01. Rosso Marte", notes: "«Guardiamo verso il cielo cercando un pianeta abitabile, mentre dimentichiamo di camminare sulla nostra terra.»" },
-        { title: "02. Perché sei andata via", notes: "«Le domande senza risposta pesano più del piombo gravitazionale. Un addio che continua a risuonare nel vuoto.»" },
-        { title: "03. Silenzio assordante", notes: "«C'è un tipo di silenzio che fa più baccano di cento amplificatori accesi al massimo volume.»" },
-        { title: "04. Stanze Vuote", notes: "«Toccare il punto zero è la sola condizione necessaria per ricominciare da capo senza maschere.»" },
-        { title: "05. La Tempesta", notes: "«Quando passa la tempesta solare, rimangono solo le cose a cui valeva davvero la pena credere.»" },
-        { title: "06. Pace", notes: "«Basta una parola detta al volume giusto per disinnescare l'esplosione e tornare a respirare.»" },
-        { title: "07. Odissea Sonora", notes: "«A volte la tragedia è così assurda che l'unica risposta sensata è un sorriso amaro sotto le stelle.»" },
-        { title: "08. Manca l'aria", notes: "«Manca l'ossigeno in orbita, ma fa ancora più male non riuscire a respirare nella propria camera.»" },
-        { title: "09. Allucinazione", notes: "«I confini tra sogno e veglia si sciolgono quando le luci della città si spengono tutte insieme.»" },
-        { title: "10. Balla la polvere", notes: "«E se anche non c'è vita su Marte, lasciamo che la polvere balli con noi per un'ultima volta.»" }
+        { title: "01. Non C'è Vita Su Marte", notes: "«Certe domeniche sembrano infinite: le persone si perdono proprio quando si sono capite.»" },
+        { title: "02. Perché Sei Dovuto Andare Via", notes: "«Ho questa strana sensazione di averti perso prima ancora di poterti salutare.»" },
+        { title: "03. Rumore", notes: "«Ma quanto costa il silenzio quando sai da che parte stare?»" },
+        { title: "04. Non Sono Più Niente.", notes: "«Ostento un rigore da asceta d’oriente, ma basta una tua sillaba e non sono più niente.»" },
+        { title: "05. Quello Che Resta", notes: "«Non tutto quello che resta è ancora amore: ci sono eccezioni alle regole.»" },
+        { title: "06. Tu Sai Come Si Consola", notes: "«So piegare da solo le lenzuola, ma ti chiamo: tu sai come si consola.»" },
+        { title: "07. Mi viene da ridere", notes: "«A consumare il pollice sulle mode, come un rosario quando hai perso la fede.»" },
+        { title: "08. Non Respiro Più", notes: "«Il mio nome è difficile da dire: non chiamarmi mentre mi vedi scomparire.»" },
+        { title: "09. Sognando di essere sveglio", notes: "«Se ogni confine è una riga tracciata da una mano che non l'ha mai attraversata.»" },
+        { title: "10. Balla la polvere", notes: "«Siamo soltanto figure di creta sotto un soffitto di cielo incrinato.»" }
       ]
     },
     {
@@ -203,18 +203,18 @@ export const EPK_DATA: EPKData = {
         "Ancora una volta, i versi nati dalla penna di Rocchi trovano compimento in una scrittura intimista e cinematografica, dove ogni parola, rima e silenzio è dosato per restituire un racconto autentico e coinvolgente."
       ],
       trackByTrack: [
-        { title: "01. Quel salto nel vuoto", notes: "«Non è la caduta che fa paura, ma il momento esatto in cui decidi di staccare i piedi da terra.»" },
-        { title: "02. Fette Biscottate e Marmellata", notes: "«La colazione sul tavolo della cucina, mentre fuori il mondo corre senza voltarsi mai.»" },
-        { title: "03. C'è posto qui con me", notes: "«Una sedia tirata vicino al termosifone. Qui non serve spiegare nulla, basta restare.»" },
-        { title: "04. Prima delle dodici", notes: "«I minuti prima di mezzanotte valgono il doppio quando sai che domani non ci sarai.»" },
-        { title: "05. Tienimi giù", notes: "«Tienimi giù quando il vento prova a sollevare anche i ricordi che volevo seppellire.»" },
-        { title: "06. Da questa finestra", notes: "«I palazzi di fronte accendono le finestre uno a uno. Noi guardiamo senza parlare.»" },
-        { title: "07. Pavimento di cristallo", notes: "«Attento a dove cammini a piedi nudi in salotto: a volte le parole si rompono sul pavimento.»" },
-        { title: "08. Tutto o niente", notes: "«Chiedere tutto è l'unico modo per non accontentarsi di quello che lasciano gli altri.»" },
-        { title: "09. Il gelo", notes: "«L'inverno non arriva con la neve, ma quando gli occhi di chi ami non ti riconoscono più.»" },
-        { title: "10. Come le madri", notes: "«Quella sul comodino, sul libro aperto, come fanno le madri quando il cuore è incerto.»" },
-        { title: "11. Valigie provvisorie", notes: "«Non lasciare valigie disfare qui: siamo ospiti provvisori della nostra stessa nostalgia.»" },
-        { title: "12. La curva e l'ora", notes: "«Un lampo d'argento, una curva, un rumore: la vita che inciampa nel giro d'un'ora.»" }
+        { title: "01. Quel salto nel vuoto", notes: "«Non c'è una meta, non serve una mappa: conta soltanto chi resta e chi scappa.»" },
+        { title: "02. Fette Biscottate e Marmellata", notes: "«Sorrido quando serve, poi mi dimentico di togliermelo dal viso.»" },
+        { title: "03. C'è posto qui con me", notes: "«Mi hai lasciato a metà tra una parola e un'emozione.»" },
+        { title: "04. Resta ancora un po'", notes: "«Mi racconti una cosa che non avevi mai detto, io rido nel punto sbagliato e tu fai lo stesso.»" },
+        { title: "05. Tienimi giù", notes: "«Ci feriamo con parole appena sotto la pelle, ma abbastanza a fondo per dover ricucire.»" },
+        { title: "06. Restiamo a guardare", notes: "«Lascia le scarpe vicino all’ingresso, dimmi che il mondo fa schifo lo stesso.»" },
+        { title: "07. Pezzi di vetro", notes: "«Attento a dove cammini a piedi nudi in salotto: a volte le parole si rompono sul pavimento.»" },
+        { title: "08. Tutto", notes: "«Chiedere tutto è l'unico modo per non accontentarsi di quello che lasciano gli altri.»" },
+        { title: "09. Sepolto nel tuo gelo", notes: "«L'inverno non arriva con la neve, ma quando gli occhi di chi ami non ti riconoscono più.»" },
+        { title: "10. Lasciami una luce accesa", notes: "«Quella sul comodino, sul libro aperto, come fanno le madri quando il cuore è incerto.»" },
+        { title: "11. Solo Di Passaggio", notes: "«Non lasciare valigie disfare qui: siamo ospiti provvisori della nostra stessa nostalgia.»" },
+        { title: "12. Lampo d'Otone", notes: "«Un lampo d'argento, una curva, un rumore: la vita che inciampa nel giro d'un'ora.»" }
       ]
     }
   ],

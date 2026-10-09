@@ -69,7 +69,7 @@ export const TrackScene: React.FC<TrackSceneProps> = ({
               {track.storyQuote}
             </p>
             <span className="block text-xs font-mono text-white/40 mt-2 uppercase tracking-wider">
-              — Dalla genesi del brano
+              — Dal testo del brano
             </span>
           </div>
         )}

@@ -669,11 +669,7 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
         {/* Track Counter & Title */}
         <div className="space-y-1">
           <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 text-[10px] sm:text-[11px] font-mono">
-            <span className="font-black tracking-wider uppercase text-amber-400">
-              ALESSANDRO ROCCHI
-            </span>
-            <span className="opacity-40">•</span>
-            <span className="font-bold uppercase tracking-widest opacity-80">
+            <span className="font-bold uppercase tracking-widest text-amber-400">
               TRK {String(activeTrack.number).padStart(2, '0')}/{currentAlbum.tracks.length}
             </span>
             <span className="opacity-40">•</span>
@@ -699,7 +695,7 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
           </h1>
         </div>
 
-        {/* Poetic Quote & Lyrics button - Free floating under the title, no dark background, no tags */}
+        {/* Poetic Quote & Lyrics textual link - Free floating under the title */}
         {(activeTrack.storyQuote || activeTrack.lyrics) && (
           <div className="space-y-2 pt-0.5">
             {activeTrack.storyQuote && (
@@ -709,18 +705,18 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
             )}
 
             {activeTrack.lyrics && (
-              <div>
+              <div className="pt-0.5">
                 <button
                   onClick={() => setShowLyricsModal(true)}
-                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full font-mono text-[10px] sm:text-[11px] font-bold tracking-wider transition-all hover:scale-105 active:scale-95 shadow-sm ${
+                  className={`group inline-flex items-center gap-1.5 text-[11px] sm:text-xs font-mono tracking-wider uppercase transition-colors underline underline-offset-4 decoration-current/35 hover:decoration-current ${
                     isLightMode
-                      ? 'bg-purple-600/10 hover:bg-purple-600/20 text-purple-950 border border-purple-600/25'
-                      : 'bg-purple-500/20 hover:bg-purple-500/35 text-purple-200 hover:text-white border border-purple-400/30'
+                      ? 'text-neutral-700 hover:text-black'
+                      : 'text-white/70 hover:text-white'
                   }`}
-                  title="Apri libretto con il testo completo"
+                  title="Apri il testo completo del brano"
                 >
-                  <FileText className="w-3.5 h-3.5 text-purple-400" />
-                  <span>TESTO CANZONE →</span>
+                  <span>Testo canzone</span>
+                  <span className="inline-block transition-transform duration-200 group-hover:translate-x-1">→</span>
                 </button>
               </div>
             )}
