@@ -694,7 +694,7 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
       </div>
 
         {/* Mobile-Only Dedicated Album Switcher Segmented Control */}
-        <div className="flex md:hidden items-center p-1 rounded-xl bg-black/40 dark:bg-black/60 border border-white/10 backdrop-blur-xl w-full mt-2">
+        <div className="flex md:hidden items-center p-0.5 rounded-lg bg-black/40 dark:bg-black/60 border border-white/10 backdrop-blur-xl w-full mt-1.5">
           {discography.map((album, idx) => {
             const isSelected = album.id === currentAlbum.id;
             return (
@@ -704,15 +704,15 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
                 onClick={() => {
                   if (!isSelected) handleSelectAlbum(album);
                 }}
-                className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-[10px] font-mono font-bold uppercase tracking-wider transition-all duration-200 min-w-0 ${
+                className={`flex-1 flex items-center justify-center gap-1.5 py-1 px-1.5 rounded-md text-[9px] font-mono font-bold uppercase tracking-wider transition-all duration-200 min-w-0 ${
                   isSelected
-                    ? 'bg-amber-400 text-black shadow-md font-black'
+                    ? 'bg-amber-400 text-black shadow-sm font-black'
                     : isLightMode
                     ? 'text-gray-700 hover:text-black hover:bg-black/5'
                     : 'text-white/60 hover:text-white hover:bg-white/5'
                 }`}
               >
-                <div className="w-3.5 h-3.5 rounded-[2px] overflow-hidden shrink-0 border border-black/20">
+                <div className="w-3 h-3 rounded-[2px] overflow-hidden shrink-0 border border-black/20">
                   <img src={album.coverUrl} alt="" className="w-full h-full object-cover" />
                 </div>
                 <span className="truncate">{idx === 0 ? "Non C'è Vita su Marte" : "Fette Biscottate"}</span>
@@ -725,10 +725,10 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
       {/* ─────────────────────────────────────────────────────────────
           2. TRACK HERO & EDITORIAL LINER ROW (Spacious, balanced)
           ───────────────────────────────────────────────────────────── */}
-      <div className="relative z-10 flex flex-col items-start gap-1 sm:gap-2 pt-1 sm:pt-4 max-w-3xl shrink-0">
+      <div className="relative z-10 flex flex-col items-start gap-1 pt-1 sm:pt-3 max-w-3xl shrink-0 w-full">
         
-        {/* Track Counter & Title */}
-        <div className="space-y-0.5 sm:space-y-1">
+        {/* Track Title */}
+        <div className="space-y-0.5 w-full">
           {/* Metadata info: Hidden on mobile per request, visible on sm+ */}
           <div className="hidden sm:flex flex-wrap items-center gap-1.5 sm:gap-2 text-[10px] sm:text-[11px] font-mono">
             <span className="font-bold uppercase tracking-widest text-amber-400">
@@ -744,47 +744,36 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
             </span>
           </div>
 
-          <h1 className="font-sans font-black text-2xl sm:text-4xl md:text-5xl lg:text-6xl uppercase tracking-tight leading-[0.95] drop-shadow-md">
-            {activeTrack.title.includes(' ') ? (
-              <>
-                <span>{activeTrack.title.split(' ')[0]}</span>
-                <br />
-                <span>{activeTrack.title.split(' ').slice(1).join(' ')}</span>
-              </>
-            ) : (
-              <span>{activeTrack.title}</span>
-            )}
+          <h1 className="font-sans font-black text-xl sm:text-3xl md:text-5xl lg:text-6xl uppercase tracking-tight leading-tight drop-shadow-md truncate max-w-full">
+            {activeTrack.title}
           </h1>
         </div>
 
         {/* Poetic Quote & Lyrics textual link - Free floating under the title */}
         {(activeTrack.storyQuote || activeTrack.lyrics) && (
-          <div className="space-y-1 sm:space-y-2 pt-0.5">
+          <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 pt-0.5 max-w-xl">
             {activeTrack.storyQuote && (
-              <p className="text-xs sm:text-sm font-sans italic leading-relaxed opacity-85 drop-shadow-sm max-w-xl line-clamp-2 sm:line-clamp-none">
+              <p className="text-[11px] sm:text-xs md:text-sm font-sans italic leading-snug opacity-80 drop-shadow-sm line-clamp-1 sm:line-clamp-2">
                 {activeTrack.storyQuote}
               </p>
             )}
 
             {activeTrack.lyrics && (
-              <div className="pt-0.5">
-                <button
-                  onClick={() => setShowLyricsModal(true)}
-                  className={`group inline-flex items-center gap-1.5 text-[11px] sm:text-xs font-mono tracking-wider uppercase transition-colors underline underline-offset-4 decoration-current/35 hover:decoration-current ${
-                    isLightMode
-                      ? 'text-neutral-700 hover:text-black'
-                      : 'text-white/70 hover:text-white'
-                  }`}
-                  title="Apri il testo completo del brano"
-                >
-                  <span>Testo canzone</span>
-                  <span className="inline-block transition-transform duration-200 group-hover:translate-x-1">→</span>
-                </button>
-              </div>
+              <button
+                onClick={() => setShowLyricsModal(true)}
+                className={`group inline-flex items-center gap-1 text-[10px] sm:text-xs font-mono tracking-wider uppercase transition-colors underline underline-offset-2 decoration-current/35 hover:decoration-current shrink-0 ${
+                  isLightMode
+                    ? 'text-neutral-700 hover:text-black'
+                    : 'text-white/70 hover:text-white'
+                }`}
+                title="Apri il testo completo del brano"
+              >
+                <span>Testo</span>
+                <span className="inline-block transition-transform duration-200 group-hover:translate-x-0.5">→</span>
+              </button>
             )}
           </div>
         )}
-
       </div>
 
       {/* CENTER STAGE: The 3D Vinyl Carousel */}

@@ -373,7 +373,7 @@ export const VinylCarousel: React.FC<VinylCarouselProps> = ({
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
       onTouchCancel={handleTouchCancel}
-      className="relative w-full h-[230px] sm:h-[320px] md:h-[380px] lg:h-[420px] flex items-center justify-center overflow-visible select-none touch-pan-y"
+      className="relative w-full h-[210px] sm:h-[300px] md:h-[380px] lg:h-[420px] flex items-center justify-center overflow-visible select-none touch-pan-y"
     >
       {/* Previous Track Arrow */}
       <button
@@ -409,19 +409,19 @@ export const VinylCarousel: React.FC<VinylCarouselProps> = ({
           opacityVal = 1;
           zIndexVal = 30;
         } else if (offset === -1) {
-          transformStr = `translateX(calc(clamp(-400px, -44vw, -135px) + ${currentDrag * 0.75}px)) scale(0.68)`;
+          transformStr = `translateX(calc(clamp(-380px, -42vw, -120px) + ${currentDrag * 0.75}px)) scale(0.68)`;
           opacityVal = 0.65;
           zIndexVal = 15;
         } else if (offset === 1) {
-          transformStr = `translateX(calc(clamp(135px, 44vw, 400px) + ${currentDrag * 0.75}px)) scale(0.68)`;
+          transformStr = `translateX(calc(clamp(120px, 42vw, 380px) + ${currentDrag * 0.75}px)) scale(0.68)`;
           opacityVal = 0.65;
           zIndexVal = 15;
         } else if (offset === -2) {
-          transformStr = `translateX(calc(clamp(-700px, -78vw, -320px) + ${currentDrag * 0.4}px)) scale(0.45)`;
+          transformStr = `translateX(calc(clamp(-700px, -78vw, -300px) + ${currentDrag * 0.4}px)) scale(0.45)`;
           opacityVal = 0;
           zIndexVal = 5;
         } else if (offset === 2) {
-          transformStr = `translateX(calc(clamp(320px, 78vw, 700px) + ${currentDrag * 0.4}px)) scale(0.45)`;
+          transformStr = `translateX(calc(clamp(300px, 78vw, 700px) + ${currentDrag * 0.4}px)) scale(0.45)`;
           opacityVal = 0;
           zIndexVal = 5;
         }
@@ -444,8 +444,8 @@ export const VinylCarousel: React.FC<VinylCarouselProps> = ({
               transform: transformStr,
               opacity: opacityVal,
               zIndex: zIndexVal,
-              width: 'clamp(175px, min(56vw, 30vh), 400px)',
-              height: 'clamp(175px, min(56vw, 30vh), 400px)',
+              width: 'clamp(150px, min(50vw, 24vh), 400px)',
+              height: 'clamp(150px, min(50vw, 24vh), 400px)',
             }}
           >
             {renderDisc(track, isCenter)}
