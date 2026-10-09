@@ -734,7 +734,13 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
       {/* ─────────────────────────────────────────────────────────────
           2. TRACK HERO & EDITORIAL LINER ROW (Spacious, balanced)
           ───────────────────────────────────────────────────────────── */}
-      <div className="relative z-10 flex flex-col items-start gap-1 pt-1 sm:pt-3 max-w-3xl shrink-0 w-full">
+      <div
+        className={`relative z-10 flex flex-col items-start gap-1 pt-1 sm:pt-3 max-w-3xl shrink-0 w-full transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+          showTracklist
+            ? '-translate-y-2 sm:-translate-y-4 scale-[0.96] origin-top-left opacity-90'
+            : 'translate-y-0 scale-100 opacity-100'
+        }`}
+      >
         
         {/* Track Title */}
         <div className="space-y-0.5 w-full">
@@ -785,8 +791,14 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
         )}
       </div>
 
-      {/* CENTER STAGE: The 3D Vinyl Carousel */}
-      <div className="relative z-10 flex-1 min-h-0 flex items-center justify-center my-auto w-full">
+      {/* CENTER STAGE: The 3D Vinyl Carousel (shifts up smoothly when orbit is open) */}
+      <div
+        className={`relative z-10 flex-1 min-h-0 flex items-center justify-center my-auto w-full transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+          showTracklist
+            ? '-translate-y-4 sm:-translate-y-8 scale-[0.72] sm:scale-[0.80]'
+            : 'translate-y-0 scale-100'
+        }`}
+      >
         <VinylCarousel
           currentIndex={currentIndex}
           onSelectTrack={handleSelectTrack}
@@ -795,6 +807,31 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
           displayMode={displayMode}
           album={currentAlbum}
         />
+      </div>
+
+      {/* ─────────────────────────────────────────────────────────────
+          EMERGING SEMICIRCLE TRACK ORBIT
+          Rises from below, shifting elements upward to make room!
+          ───────────────────────────────────────────────────────────── */}
+      <div
+        className={`relative z-30 w-full max-w-3xl mx-auto flex flex-col items-center justify-end transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] shrink-0 ${
+          showTracklist
+            ? 'h-[175px] sm:h-[220px] opacity-100 translate-y-0 pointer-events-auto my-1'
+            : 'h-0 opacity-0 translate-y-12 pointer-events-none my-0 overflow-hidden'
+        }`}
+      >
+        {showTracklist && (
+          <RadialTrackSelector
+            tracks={currentAlbum.tracks}
+            currentIndex={currentIndex}
+            isPlaying={isPlaying}
+            onSelectTrack={handleSelectTrack}
+            onClose={() => setShowTracklist(false)}
+            isLightMode={isLightMode}
+            albumCover={currentAlbum.coverUrl}
+            artistName={currentAlbum.artist}
+          />
+        )}
       </div>
 
       {/* BOTTOM CONTROLS: Unified Hi-Fi Capsule */}
@@ -885,13 +922,13 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
 
           {/* Right Section: Track Badge & Mute */}
           <div className="flex items-center space-x-1 sm:space-x-2 shrink-0">
-            {/* Track indicator badge + toggle list */}
+            {/* Track indicator badge + toggle orbit */}
             <button
               onClick={() => setShowTracklist((prev) => !prev)}
-              title="Apri lista tracce"
-              className={`font-mono text-[9px] sm:text-[11px] px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-full font-bold tracking-wider flex items-center space-x-1 sm:space-x-1.5 transition-all ${
+              title={showTracklist ? "Comprimi orbita tracce" : "Espandi orbita semicircolare delle tracce"}
+              className={`font-mono text-[9px] sm:text-[11px] px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-full font-bold tracking-wider flex items-center space-x-1 sm:space-x-1.5 transition-all duration-300 ${
                 showTracklist
-                  ? 'bg-white text-black shadow-md'
+                  ? 'bg-amber-400 text-black shadow-md shadow-amber-400/40 ring-2 ring-amber-400/60 scale-105 font-black'
                   : isLightMode
                   ? 'bg-black/10 hover:bg-black/15 text-gray-900'
                   : 'bg-white/10 hover:bg-white/20 text-white/90 border border-white/10'
@@ -1029,20 +1066,6 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
             </div>
           </aside>
         </div>
-      )}
-
-      {/* Full-Screen Celestial Semicircle Orbit Track Selector */}
-      {showTracklist && (
-        <RadialTrackSelector
-          tracks={currentAlbum.tracks}
-          currentIndex={currentIndex}
-          isPlaying={isPlaying}
-          onSelectTrack={handleSelectTrack}
-          onClose={() => setShowTracklist(false)}
-          isLightMode={isLightMode}
-          albumCover={currentAlbum.coverUrl}
-          artistName={currentAlbum.artist}
-        />
       )}
     </div>
     </div>
