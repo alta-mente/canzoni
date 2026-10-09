@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Track } from '../data/albumData';
-import { Play, Pause, X, List, Sparkles } from 'lucide-react';
+import { Play, Pause, X, Disc, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface RadialTrackSelectorProps {
   tracks: Track[];
@@ -23,363 +23,479 @@ export const RadialTrackSelector: React.FC<RadialTrackSelectorProps> = ({
   albumCover,
   artistName = 'Alessandro Rocchi',
 }) => {
+  const [selectedPreviewIndex, setSelectedPreviewIndex] = useState<number>(currentIndex);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
-  const [viewMode, setViewMode] = useState<'radial' | 'list'>('radial');
-  const [isMobile, setIsMobile] = useState<boolean>(() => {
-    if (typeof window !== 'undefined') {
-      return window.innerWidth < 640;
-    }
-    return false;
+  const [windowDimensions, setWindowDimensions] = useState<{ width: number; height: number }>({
+    width: typeof window !== 'undefined' ? window.innerWidth : 1200,
+    height: typeof window !== 'undefined' ? window.innerHeight : 800,
   });
 
+  // Track window resizing
   useEffect(() => {
     const handleResize = () => {
-      setIsMobile(window.innerWidth < 640);
+      setWindowDimensions({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
     };
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   const total = tracks.length;
-  const activePreviewIndex = hoveredIndex !== null ? hoveredIndex : currentIndex;
-  const previewTrack = tracks[activePreviewIndex] || tracks[0];
+  const isMobile = windowDimensions.width < 768;
+  const activeFocusIndex = hoveredIndex !== null ? hoveredIndex : selectedPreviewIndex;
+  const focusTrack = tracks[activeFocusIndex] || tracks[0];
 
-  // Arc Geometry parameters
-  // Start from left (168 deg) to right (12 deg)
-  const startDeg = 168;
-  const endDeg = 12;
-  const rx = isMobile ? 142 : 270;
-  const ry = isMobile ? 115 : 180;
+  // Navigate tracks
+  const handlePrev = useCallback(() => {
+    setSelectedPreviewIndex((prev) => (prev > 0 ? prev - 1 : total - 1));
+  }, [total]);
 
-  // SVG Orbit Arc coordinates
+  const handleNext = useCallback(() => {
+    setSelectedPreviewIndex((prev) => (prev < total - 1 ? prev + 1 : 0));
+  }, [total]);
+
+  const handleConfirmTrack = useCallback(
+    (indexToPlay: number) => {
+      onSelectTrack(indexToPlay);
+      onClose();
+    },
+    [onSelectTrack, onClose]
+  );
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onClose();
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        handlePrev();
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        handleNext();
+      } else if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        handleConfirmTrack(activeFocusIndex);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [activeFocusIndex, handleConfirmTrack, handleNext, handlePrev, onClose]);
+
+  // Touch Swipe for mobile navigation
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStartX(e.touches[0].clientX);
+  };
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX === null) return;
+    const diffX = e.changedTouches[0].clientX - touchStartX;
+    if (diffX > 45) {
+      handlePrev();
+    } else if (diffX < -45) {
+      handleNext();
+    }
+    setTouchStartX(null);
+  };
+
+  // ─────────────────────────────────────────────────────────────
+  // FULL-SCREEN CELESTIAL ARC GEOMETRY
+  // ─────────────────────────────────────────────────────────────
+  const { width, height } = windowDimensions;
+
+  // On desktop: arc spans across the screen with ample room for large vinyl discs
+  // On mobile: arc scales to mobile viewport
+  const rx = isMobile
+    ? Math.min(width * 0.44, 210)
+    : Math.min(width * 0.44, 640);
+
+  const ry = isMobile
+    ? Math.min(height * 0.28, 240)
+    : Math.min(height * 0.35, 360);
+
+  // Origin (focal center) of the semicircle
+  const cx = width / 2;
+  const cy = isMobile ? height * 0.48 : height * 0.58;
+
+  // Sweep from left to right: 170 deg down to 10 deg
+  const startDeg = isMobile ? 172 : 168;
+  const endDeg = isMobile ? 8 : 12;
+
+  // SVG guide path for the celestial orbit
   const startRad = (startDeg * Math.PI) / 180;
   const endRad = (endDeg * Math.PI) / 180;
-  const startX = rx * Math.cos(startRad);
-  const startY = ry * Math.sin(startRad);
-  const endX = rx * Math.cos(endRad);
-  const endY = ry * Math.sin(endRad);
+  const svgStartX = cx + rx * Math.cos(startRad);
+  const svgStartY = cy - ry * Math.sin(startRad);
+  const svgEndX = cx + rx * Math.cos(endRad);
+  const svgEndY = cy - ry * Math.sin(endRad);
 
-  // SVG path centered at origin (0, 0), Y goes upwards in our math so in SVG it is negative Y
-  const svgPath = `M ${startX} ${-startY} A ${rx} ${ry} 0 0 1 ${endX} ${-endY}`;
+  const svgArcPath = `M ${svgStartX} ${svgStartY} A ${rx} ${ry} 0 0 1 ${svgEndX} ${svgEndY}`;
 
   return (
-    <>
-      {/* Click-outside backdrop with subtle blur */}
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Selezione traccia a schermo intero"
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      className={`fixed inset-0 z-50 flex flex-col justify-between overflow-hidden select-none animate-in fade-in duration-300 ${
+        isLightMode
+          ? 'bg-slate-950/95 text-white'
+          : 'bg-[#05060b]/95 text-white'
+      } backdrop-blur-3xl`}
+    >
+      {/* Dynamic Cosmic Gradient Background Mesh */}
       <div
-        className="fixed inset-0 z-30 bg-black/45 backdrop-blur-[2px] transition-opacity duration-300 animate-in fade-in"
-        onClick={onClose}
+        className="absolute inset-0 pointer-events-none transition-all duration-700 opacity-60"
+        style={{
+          background: `radial-gradient(circle at 50% ${
+            isMobile ? '45%' : '55%'
+          }, ${focusTrack.colorDark || '#f59e0b'}30 0%, rgba(12, 14, 24, 0.75) 45%, rgba(5, 6, 11, 0.98) 85%)`,
+        }}
       />
 
-      {/* Semicircle Orbit Dock Container */}
-      <div
-        className={`absolute bottom-[calc(100%+14px)] left-1/2 -translate-x-1/2 w-[96vw] max-w-2xl rounded-3xl p-3 sm:p-5 shadow-2xl backdrop-blur-2xl border transition-all z-40 animate-in fade-in zoom-in-95 duration-300 select-none overflow-visible ${
-          isLightMode
-            ? 'bg-white/95 border-black/15 text-gray-900 shadow-black/20'
-            : 'bg-[#0b0c13]/90 border-white/15 text-white shadow-black/80'
-        }`}
-      >
-        {/* Top Mini Control Bar (Title, Mode Switch & Close) */}
-        <div className="flex items-center justify-between pb-2 border-b border-white/10 mb-2 sm:mb-3">
-          <div className="flex items-center gap-2">
-            <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full font-mono text-[9px] sm:text-[10px] font-bold uppercase tracking-widest bg-amber-400/15 text-amber-400 border border-amber-400/30">
-              <Sparkles className="w-3 h-3 text-amber-400 animate-pulse" />
-              <span>Semicircolare Orbitale</span>
-            </span>
-            <span className="text-[10px] font-mono opacity-50 hidden sm:inline">
-              {total} BRANI DISCOGRAFICI
-            </span>
+      {/* Atmospheric Vinyl Grooves Watermark in the background */}
+      <div className="absolute inset-0 pointer-events-none flex items-center justify-center opacity-[0.06] overflow-hidden">
+        <div className="w-[1200px] h-[1200px] rounded-full border-[12px] border-white/30 flex items-center justify-center animate-spin-slow">
+          <div className="w-[1000px] h-[1000px] rounded-full border border-white/20" />
+          <div className="w-[800px] h-[800px] rounded-full border border-white/20" />
+          <div className="w-[600px] h-[600px] rounded-full border border-white/20" />
+          <div className="w-[400px] h-[400px] rounded-full border border-white/20" />
+        </div>
+      </div>
+
+      {/* ─────────────────────────────────────────────────────────────
+          TOP CINEMATIC HEADER BAR
+          ───────────────────────────────────────────────────────────── */}
+      <header className="relative z-30 w-full px-4 sm:px-8 pt-4 sm:pt-6 pb-2 flex items-center justify-between shrink-0">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-400 font-mono text-[10px] sm:text-xs font-bold tracking-wider uppercase shadow-inner">
+            <Sparkles className="w-3.5 h-3.5 animate-pulse text-amber-400" />
+            <span>Orbita Discografica</span>
           </div>
 
-          <div className="flex items-center gap-1">
-            {/* View Mode Toggle (Radial vs Classic List) */}
-            <button
-              onClick={() => setViewMode((m) => (m === 'radial' ? 'list' : 'radial'))}
-              className={`flex items-center gap-1 px-2.5 py-1 rounded-xl text-[10px] font-mono tracking-wider transition-all border ${
-                isLightMode
-                  ? 'hover:bg-black/5 text-gray-700 border-black/10'
-                  : 'hover:bg-white/10 text-white/70 border-white/10'
-              }`}
-              title={viewMode === 'radial' ? 'Visualizza lista classica' : 'Visualizza semicerchio'}
-            >
-              <List className="w-3 h-3" />
-              <span className="hidden xs:inline">{viewMode === 'radial' ? 'Lista' : 'Orbita'}</span>
-            </button>
-
-            {/* Close Button */}
-            <button
-              onClick={onClose}
-              className={`w-7 h-7 rounded-full flex items-center justify-center transition-all ${
-                isLightMode ? 'hover:bg-black/10 text-gray-700' : 'hover:bg-white/15 text-white/80'
-              }`}
-              title="Chiudi (ESC)"
-              aria-label="Chiudi orbita brani"
-            >
-              <X className="w-4 h-4" />
-            </button>
+          <div className="hidden sm:block text-xs font-mono opacity-50 tracking-wider">
+            {artistName.toUpperCase()} • 10 TRACCE
           </div>
         </div>
 
+        {/* Close Button */}
+        <button
+          onClick={onClose}
+          type="button"
+          className="group flex items-center gap-2 px-4 py-2 rounded-full border border-white/20 bg-white/10 hover:bg-white/20 text-white font-mono text-xs font-bold tracking-wider transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg backdrop-blur-md"
+          title="Chiudi orbita brani (ESC)"
+          aria-label="Chiudi orbita brani"
+        >
+          <span>CHIUDI</span>
+          <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center group-hover:bg-white group-hover:text-black transition-colors">
+            <X className="w-3.5 h-3.5" />
+          </div>
+          <span className="hidden md:inline text-[10px] opacity-50 font-normal">ESC</span>
+        </button>
+      </header>
+
+      {/* ─────────────────────────────────────────────────────────────
+          MAIN STAGE: THE CELESTIAL SEMICIRCLE ARC & VINYL DISCS
+          ───────────────────────────────────────────────────────────── */}
+      <div className="relative flex-1 w-full h-full overflow-hidden">
+        {/* SVG Orbit Path Line with Glow */}
+        <svg
+          className="absolute inset-0 w-full h-full pointer-events-none overflow-visible"
+          style={{ width: '100%', height: '100%' }}
+        >
+          <defs>
+            <linearGradient id="orbitLineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.1" />
+              <stop offset="25%" stopColor="#f59e0b" stopOpacity="0.7" />
+              <stop offset="50%" stopColor="#fbbf24" stopOpacity="1" />
+              <stop offset="75%" stopColor="#f59e0b" stopOpacity="0.7" />
+              <stop offset="100%" stopColor="#f59e0b" stopOpacity="0.1" />
+            </linearGradient>
+            <filter id="orbitGlowFilter" x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur stdDeviation="4" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
+
+          {/* Halo Glow Underneath */}
+          <path
+            d={svgArcPath}
+            fill="none"
+            stroke="#f59e0b"
+            strokeWidth={isMobile ? '4' : '8'}
+            className="opacity-25 blur-sm"
+          />
+
+          {/* Primary Dashed Celestial Arc */}
+          <path
+            d={svgArcPath}
+            fill="none"
+            stroke="url(#orbitLineGrad)"
+            strokeWidth={isMobile ? '1.5' : '2'}
+            strokeDasharray={isMobile ? '4 4' : '6 6'}
+            filter="url(#orbitGlowFilter)"
+            className="opacity-80"
+          />
+        </svg>
+
         {/* ─────────────────────────────────────────────────────────────
-            MODE A: THE CELESTIAL RADIAL ORBIT (Semicircle Cover Arc)
+            VINYL COVER DISCS (Distributed along the full-screen semicircle)
             ───────────────────────────────────────────────────────────── */}
-        {viewMode === 'radial' ? (
-          <div className="relative w-full h-[220px] sm:h-[290px] flex items-center justify-center overflow-visible">
-            
-            {/* Center Origin Anchor point for all calculations */}
-            <div className="absolute left-1/2 bottom-2 sm:bottom-4 w-0 h-0 flex items-center justify-center">
+        {tracks.map((track, idx) => {
+          const isSelected = idx === currentIndex;
+          const isFocused = idx === activeFocusIndex;
+          const isHovered = idx === hoveredIndex;
 
-              {/* Glowing SVG Orbit Line Guide */}
-              <svg
-                className="overflow-visible pointer-events-none"
-                style={{
-                  position: 'absolute',
-                  width: '1px',
-                  height: '1px',
-                }}
-              >
-                <defs>
-                  <linearGradient id="orbitGlow" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.1" />
-                    <stop offset="50%" stopColor="#f59e0b" stopOpacity="0.8" />
-                    <stop offset="100%" stopColor="#f59e0b" stopOpacity="0.1" />
-                  </linearGradient>
-                </defs>
+          const tFrac = idx / Math.max(1, total - 1);
+          const angleDeg = startDeg - tFrac * (startDeg - endDeg);
+          const angleRad = (angleDeg * Math.PI) / 180;
 
-                {/* Primary Celestial Arc Line */}
-                <path
-                  d={svgPath}
-                  fill="none"
-                  stroke="url(#orbitGlow)"
-                  strokeWidth="2"
-                  strokeDasharray="6 6"
-                  className="opacity-70 animate-pulse"
-                />
+          const posX = cx + rx * Math.cos(angleRad);
+          const posY = cy - ry * Math.sin(angleRad);
 
-                {/* Ambient Soft Blur Arc */}
-                <path
-                  d={svgPath}
-                  fill="none"
-                  stroke="#f59e0b"
-                  strokeWidth="6"
-                  className="opacity-20 blur-[3px]"
-                />
-              </svg>
+          const discArtwork = track.artworkUrl || albumCover;
 
-              {/* ─────────────────────────────────────────────────────────
-                  Orbital Track Cover Nodes (Fanned out along the arc)
-                  ───────────────────────────────────────────────────────── */}
-              {tracks.map((track, idx) => {
-                const isSelected = idx === currentIndex;
-                const isHovered = idx === hoveredIndex;
-                const tFrac = idx / Math.max(1, total - 1);
-                const angleDeg = startDeg - tFrac * (startDeg - endDeg);
-                const angleRad = (angleDeg * Math.PI) / 180;
-
-                const posX = Math.round(rx * Math.cos(angleRad));
-                const posY = Math.round(ry * Math.sin(angleRad));
-
-                const discArtwork = track.artworkUrl || albumCover;
-
-                return (
-                  <button
-                    key={track.id}
-                    type="button"
-                    onClick={() => {
-                      onSelectTrack(idx);
-                      onClose();
-                    }}
-                    onMouseEnter={() => setHoveredIndex(idx)}
-                    onMouseLeave={() => setHoveredIndex(null)}
-                    style={{
-                      transform: `translate(${posX}px, ${-posY}px)`,
-                      transitionDelay: `${idx * 25}ms`,
-                    }}
-                    title={`Brano ${track.number}: ${track.title} (${track.duration})`}
-                    className={`group absolute -translate-x-1/2 -translate-y-1/2 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] focus:outline-none ${
-                      isSelected
-                        ? 'z-30 scale-110 sm:scale-125'
-                        : isHovered
-                        ? 'z-25 scale-110 sm:scale-120 opacity-100'
-                        : 'z-10 scale-95 sm:scale-100 opacity-80 hover:opacity-100'
-                    }`}
-                  >
-                    {/* The Mini-Vinyl Cover Disc */}
-                    <div
-                      className={`relative rounded-full aspect-square overflow-hidden shadow-lg transition-all duration-300 ${
-                        isMobile ? 'w-10 h-10' : 'w-12 h-12 sm:w-14 sm:h-14'
-                      } ${
-                        isSelected
-                          ? 'border-2 border-amber-400 ring-4 ring-amber-400/30 shadow-[0_0_25px_rgba(245,158,11,0.65)]'
-                          : isHovered
-                          ? 'border-2 border-white ring-2 ring-white/40 shadow-[0_0_15px_rgba(255,255,255,0.4)]'
-                          : 'border border-white/25 hover:border-white/60'
-                      }`}
-                    >
-                      {/* Artwork Image (Spins if active & playing) */}
-                      <img
-                        src={discArtwork}
-                        alt={track.title}
-                        className={`w-full h-full object-cover transition-transform duration-700 pointer-events-none ${
-                          isSelected && isPlaying ? 'animate-spin-slow' : 'group-hover:scale-110'
-                        }`}
-                      />
-
-                      {/* Vinyl Groove Rings Sheen */}
-                      <div className="absolute inset-0 bg-black/20 pointer-events-none" />
-                      <div className="absolute inset-1.5 rounded-full border border-white/10 pointer-events-none" />
-                      <div className="absolute inset-3 rounded-full border border-white/10 pointer-events-none" />
-
-                      {/* Center Spindle Hole */}
-                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-[#05060a] border border-white/70 shadow-sm pointer-events-none flex items-center justify-center">
-                        <div className="w-0.5 h-0.5 rounded-full bg-amber-400/80" />
-                      </div>
-
-                      {/* Specular Glint */}
-                      <div
-                        className="absolute inset-0 pointer-events-none"
-                        style={{
-                          background:
-                            'conic-gradient(from 45deg at 50% 50%, rgba(255,255,255,0.2) 0deg, transparent 60deg, rgba(255,255,255,0.15) 180deg, transparent 240deg, rgba(255,255,255,0.2) 360deg)',
-                        }}
-                      />
-                    </div>
-
-                    {/* Number Badge floating below/above the disc */}
-                    <div
-                      className={`absolute -bottom-2 left-1/2 -translate-x-1/2 px-1.5 py-0.2 rounded-full font-mono text-[8px] sm:text-[9px] font-bold tracking-tight shadow-md transition-colors pointer-events-none whitespace-nowrap ${
-                        isSelected
-                          ? 'bg-amber-400 text-black font-black'
-                          : isHovered
-                          ? 'bg-white text-black'
-                          : isLightMode
-                          ? 'bg-black/75 text-white'
-                          : 'bg-white/20 text-white backdrop-blur-sm'
-                      }`}
-                    >
-                      {String(track.number).padStart(2, '0')}
-                    </div>
-                  </button>
-                );
-              })}
-
-              {/* ─────────────────────────────────────────────────────────
-                  Central Floating Focal Preview Card (Inside the Arc)
-                  ───────────────────────────────────────────────────────── */}
-              <div
+          return (
+            <div
+              key={track.id}
+              style={{
+                position: 'absolute',
+                left: `${posX}px`,
+                top: `${posY}px`,
+                transform: 'translate(-50%, -50%)',
+              }}
+              className="z-30 select-none"
+            >
+              <button
+                type="button"
                 onClick={() => {
-                  onSelectTrack(activePreviewIndex);
-                  onClose();
+                  setSelectedPreviewIndex(idx);
+                  handleConfirmTrack(idx);
                 }}
-                className={`absolute left-1/2 -translate-x-1/2 bottom-3 sm:bottom-6 w-[240px] sm:w-[300px] p-2.5 sm:p-3 rounded-2xl backdrop-blur-2xl border transition-all duration-200 cursor-pointer group flex items-center gap-3 shadow-xl ${
-                  isLightMode
-                    ? 'bg-white/95 border-black/10 text-gray-900 shadow-black/10 hover:border-black/30'
-                    : 'bg-[#12131d]/95 border-white/15 text-white shadow-black/70 hover:border-amber-400/50'
+                onMouseEnter={() => {
+                  setHoveredIndex(idx);
+                  setSelectedPreviewIndex(idx);
+                }}
+                onMouseLeave={() => setHoveredIndex(null)}
+                aria-label={`Traccia ${track.number}: ${track.title}`}
+                className={`group relative flex flex-col items-center focus:outline-none transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                  isFocused
+                    ? 'scale-115 sm:scale-125 z-40'
+                    : 'scale-90 sm:scale-100 opacity-80 hover:opacity-100 z-20'
                 }`}
-                title="Clicca per ascoltare questo brano"
               >
-                {/* Artwork Thumbnail */}
-                <div className="relative w-11 h-11 sm:w-13 sm:h-13 rounded-xl overflow-hidden shrink-0 border border-white/20 shadow-md">
-                  <img
-                    src={previewTrack.artworkUrl || albumCover}
-                    alt={previewTrack.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                  <div className="absolute inset-0 bg-black/25 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    {activePreviewIndex === currentIndex && isPlaying ? (
-                      <Pause className="w-4 h-4 text-white fill-current" />
-                    ) : (
-                      <Play className="w-4 h-4 text-white fill-current translate-x-0.5" />
-                    )}
-                  </div>
-                </div>
-
-                {/* Track Details */}
-                <div className="flex-1 min-w-0 leading-tight">
-                  <div className="flex items-center gap-1.5 text-[9px] sm:text-[10px] font-mono text-amber-400 font-bold uppercase tracking-wider">
-                    <span>TRK {String(previewTrack.number).padStart(2, '0')}</span>
-                    <span>•</span>
-                    <span>{previewTrack.duration}</span>
-                  </div>
-
-                  <h4 className="text-xs sm:text-sm font-bold font-sans tracking-tight truncate mt-0.5 text-inherit">
-                    {previewTrack.title}
-                  </h4>
-
-                  <span className="text-[9px] font-mono opacity-50 block truncate mt-0.5">
-                    {previewTrack.mood || artistName}
-                  </span>
-                </div>
-
-                {/* Play Indicator / CTA Button */}
+                {/* Floating Track Title Tooltip (on hover or focus) */}
                 <div
-                  className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center shrink-0 transition-transform group-hover:scale-110 shadow-sm ${
-                    activePreviewIndex === currentIndex
-                      ? 'bg-amber-400 text-black'
-                      : isLightMode
-                      ? 'bg-black/10 text-gray-900 group-hover:bg-black group-hover:text-white'
-                      : 'bg-white/15 text-white group-hover:bg-white group-hover:text-black'
+                  className={`absolute -top-9 sm:-top-11 px-2.5 py-1 rounded-lg backdrop-blur-xl border border-white/20 bg-black/85 text-[10px] sm:text-xs font-mono font-bold whitespace-nowrap pointer-events-none transition-all duration-200 shadow-xl ${
+                    isFocused
+                      ? 'opacity-100 translate-y-0 scale-100'
+                      : 'opacity-0 translate-y-2 scale-95'
+                  } ${isFocused ? 'text-amber-400 border-amber-400/40' : 'text-white'}`}
+                >
+                  {track.number}. {track.title}
+                </div>
+
+                {/* The Vinyl Record Disc */}
+                <div
+                  className={`relative rounded-full aspect-square overflow-hidden cursor-pointer transition-all duration-300 ${
+                    isMobile
+                      ? 'w-[52px] h-[52px]'
+                      : 'w-24 h-24 lg:w-28 lg:h-28'
+                  } ${
+                    isFocused
+                      ? 'border-2 sm:border-3 border-amber-400 ring-4 sm:ring-8 ring-amber-400/35 shadow-[0_0_35px_rgba(245,158,11,0.7)]'
+                      : isSelected
+                      ? 'border-2 border-white ring-4 ring-white/30 shadow-[0_0_20px_rgba(255,255,255,0.4)]'
+                      : 'border border-white/30 hover:border-white/70 shadow-lg'
+                  }`}
+                  style={{
+                    backgroundColor: '#0a0b10',
+                  }}
+                >
+                  {/* Outer Vinyl Grooves Sheen */}
+                  <div className="absolute inset-0 bg-black/40 pointer-events-none z-10" />
+                  <div className="absolute inset-1 rounded-full border border-white/10 pointer-events-none z-10" />
+                  <div className="absolute inset-2 sm:inset-3 rounded-full border border-white/10 pointer-events-none z-10" />
+                  <div className="absolute inset-3 sm:inset-5 rounded-full border border-white/10 pointer-events-none z-10" />
+
+                  {/* High-Resolution Artwork in Center Label */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <img
+                      src={discArtwork}
+                      alt={track.title}
+                      className={`w-full h-full object-cover transition-transform duration-700 pointer-events-none ${
+                        isSelected && isPlaying
+                          ? 'animate-spin-slow'
+                          : isHovered
+                          ? 'scale-110'
+                          : 'scale-100'
+                      }`}
+                    />
+                  </div>
+
+                  {/* Center Vinyl Spindle Hole with Brass Ring */}
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3.5 h-3.5 sm:w-5 sm:h-5 rounded-full bg-[#05060a] border-2 border-amber-400/80 shadow-md pointer-events-none z-20 flex items-center justify-center">
+                    <div className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-white" />
+                  </div>
+
+                  {/* Conic Specular Sheen (Vinyl Reflection) */}
+                  <div
+                    className="absolute inset-0 pointer-events-none z-20 opacity-40 group-hover:opacity-70 transition-opacity"
+                    style={{
+                      background:
+                        'conic-gradient(from 45deg at 50% 50%, rgba(255,255,255,0.3) 0deg, transparent 60deg, rgba(255,255,255,0.2) 180deg, transparent 240deg, rgba(255,255,255,0.3) 360deg)',
+                    }}
+                  />
+                </div>
+
+                {/* Track Number Badge at bottom of disc */}
+                <div
+                  className={`mt-1.5 px-2 py-0.5 rounded-full font-mono text-[9px] sm:text-[11px] font-bold tracking-wider shadow-md transition-all pointer-events-none whitespace-nowrap ${
+                    isFocused
+                      ? 'bg-amber-400 text-black font-black scale-110 shadow-[0_0_12px_rgba(245,158,11,0.6)]'
+                      : isSelected
+                      ? 'bg-white text-black font-bold'
+                      : 'bg-black/80 text-white/80 border border-white/20'
                   }`}
                 >
-                  {activePreviewIndex === currentIndex && isPlaying ? (
-                    <Pause className="w-3.5 h-3.5 fill-current" />
-                  ) : (
-                    <Play className="w-3.5 h-3.5 fill-current translate-x-0.5" />
-                  )}
+                  {String(track.number).padStart(2, '0')}
+                </div>
+              </button>
+            </div>
+          );
+        })}
+
+        {/* ─────────────────────────────────────────────────────────────
+            THE SPOTLIGHT HERO CARD: FOCAL CENTER OF THE ENTIRE EXPERIENCE
+            ───────────────────────────────────────────────────────────── */}
+        <div
+          style={{
+            position: 'absolute',
+            left: `${cx}px`,
+            top: isMobile ? `${cy + 60}px` : `${cy + 10}px`,
+            transform: 'translate(-50%, -50%)',
+          }}
+          className="z-40 w-[92vw] max-w-xl transition-all duration-300"
+        >
+          <div
+            className={`p-4 sm:p-6 rounded-3xl backdrop-blur-3xl border shadow-2xl transition-all duration-300 ${
+              isLightMode
+                ? 'bg-slate-900/90 border-white/20 text-white shadow-black/80'
+                : 'bg-[#0f111d]/90 border-white/15 text-white shadow-black/90'
+            }`}
+          >
+            <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
+              {/* Artwork & Mini Vinyl Peek */}
+              <div className="relative shrink-0 group">
+                <div className="relative w-20 h-20 sm:w-28 sm:h-28 rounded-2xl overflow-hidden shadow-2xl border border-white/20 z-10">
+                  <img
+                    src={focusTrack.artworkUrl || albumCover}
+                    alt={focusTrack.title}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+
+                {/* Subtle Vinyl Disc Peeking out behind the jacket */}
+                <div
+                  className={`absolute -right-3 -top-2 w-20 h-20 sm:w-28 sm:h-28 rounded-full border border-white/20 bg-black/90 shadow-xl pointer-events-none transition-transform duration-500 ${
+                    focusTrack.number === activeFocusIndex + 1 ? 'translate-x-3 rotate-45' : ''
+                  }`}
+                >
+                  <div className="absolute inset-1.5 rounded-full border border-white/10" />
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-amber-400/80" />
                 </div>
               </div>
 
+              {/* Information & Lyric Quote */}
+              <div className="flex-1 min-w-0 text-center sm:text-left">
+                <div className="flex items-center justify-center sm:justify-start gap-2 font-mono text-[10px] sm:text-xs text-amber-400 font-bold uppercase tracking-widest">
+                  <span>TRACCIA {String(focusTrack.number).padStart(2, '0')} / {total}</span>
+                  <span>•</span>
+                  <span>{focusTrack.duration}</span>
+                </div>
+
+                <h3 className="text-xl sm:text-2xl font-bold font-sans tracking-tight text-white mt-1 truncate">
+                  {focusTrack.title}
+                </h3>
+
+                {/* Poetic quote or mood */}
+                <p className="text-xs sm:text-sm font-serif italic text-white/70 mt-1 line-clamp-2 leading-relaxed">
+                  {focusTrack.storyQuote ? `"${focusTrack.storyQuote}"` : focusTrack.mood || artistName}
+                </p>
+
+                {/* Control Action Buttons */}
+                <div className="flex items-center justify-center sm:justify-start gap-3 mt-4">
+                  {/* Prev Track in Spotlight */}
+                  <button
+                    onClick={handlePrev}
+                    type="button"
+                    title="Traccia precedente (Freccia Sinistra)"
+                    className="p-2 sm:p-2.5 rounded-full border border-white/20 bg-white/5 hover:bg-white/20 text-white transition-all active:scale-95"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+
+                  {/* Play CTA Button */}
+                  <button
+                    onClick={() => handleConfirmTrack(activeFocusIndex)}
+                    type="button"
+                    className="flex-1 sm:flex-initial flex items-center justify-center gap-2.5 px-6 py-2.5 sm:py-3 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-black font-bold font-sans text-xs sm:text-sm tracking-wide transition-all duration-200 hover:scale-105 active:scale-95 shadow-[0_0_25px_rgba(245,158,11,0.5)]"
+                  >
+                    {activeFocusIndex === currentIndex && isPlaying ? (
+                      <>
+                        <Pause className="w-4 h-4 fill-current" />
+                        <span>IN RIPRODUZIONE</span>
+                      </>
+                    ) : (
+                      <>
+                        <Play className="w-4 h-4 fill-current translate-x-0.5" />
+                        <span>ASCOLTA QUESTO BRANO</span>
+                      </>
+                    )}
+                  </button>
+
+                  {/* Next Track in Spotlight */}
+                  <button
+                    onClick={handleNext}
+                    type="button"
+                    title="Traccia successiva (Freccia Destra)"
+                    className="p-2 sm:p-2.5 rounded-full border border-white/20 bg-white/5 hover:bg-white/20 text-white transition-all active:scale-95"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
-        ) : (
-          /* ─────────────────────────────────────────────────────────────
-              MODE B: CLASSIC COMPACT VERTICAL LIST (Optional view)
-              ───────────────────────────────────────────────────────────── */
-          <div className="space-y-1 max-h-64 sm:max-h-72 overflow-y-auto pr-1">
-            {tracks.map((t, idx) => {
-              const isSelected = idx === currentIndex;
-              return (
-                <button
-                  key={t.id}
-                  onClick={() => {
-                    onSelectTrack(idx);
-                    onClose();
-                  }}
-                  className={`w-full px-3 py-2 rounded-xl text-left flex items-center justify-between text-xs transition-all ${
-                    isSelected
-                      ? 'bg-white text-black font-bold shadow-md'
-                      : isLightMode
-                      ? 'hover:bg-black/5 text-gray-800'
-                      : 'hover:bg-white/10 text-white/80'
-                  }`}
-                >
-                  <div className="flex items-center space-x-2.5 truncate">
-                    <span className="font-mono text-[10px] opacity-60 w-4 shrink-0">
-                      {String(idx + 1).padStart(2, '0')}
-                    </span>
-                    <div className="w-6 h-6 rounded-md overflow-hidden shrink-0 border border-white/20">
-                      <img
-                        src={t.artworkUrl || albumCover}
-                        alt=""
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <span className="truncate">{t.title}</span>
-                  </div>
-                  <span className="font-mono text-[10px] opacity-50 shrink-0 ml-2">
-                    {t.duration}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        )}
-
-        {/* Footer instruction tip */}
-        <div className="mt-2 pt-2 border-t border-white/10 flex items-center justify-between text-[9px] font-mono opacity-40 px-1">
-          <span>Tocca o passa sopra a un vinile per selezionarlo</span>
-          <span>ESC per chiudere</span>
         </div>
       </div>
-    </>
+
+      {/* ─────────────────────────────────────────────────────────────
+          BOTTOM FOOTER: SHORTCUTS & HINTS
+          ───────────────────────────────────────────────────────────── */}
+      <footer className="relative z-30 w-full px-4 py-3 border-t border-white/10 flex items-center justify-between text-[10px] sm:text-xs font-mono text-white/50 shrink-0">
+        <div className="flex items-center gap-2 sm:gap-4">
+          <span className="flex items-center gap-1.5">
+            <Disc className="w-3.5 h-3.5 text-amber-400" />
+            <span>Tocca un vinile per ascoltarlo</span>
+          </span>
+          <span className="hidden md:inline">•</span>
+          <span className="hidden md:inline">Usa le frecce della tastiera ← →</span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span className="hidden xs:inline">INVIO per riprodurre</span>
+          <span className="px-2 py-0.5 rounded bg-white/10 text-white/80 font-bold">ESC per uscire</span>
+        </div>
+      </footer>
+    </div>
   );
 };

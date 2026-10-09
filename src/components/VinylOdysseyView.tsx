@@ -800,20 +800,6 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
       {/* BOTTOM CONTROLS: Unified Hi-Fi Capsule */}
       <div className="relative z-20 flex flex-col items-center pb-[max(0.35rem,env(safe-area-inset-bottom))] px-2 sm:px-4 w-full shrink-0">
         <div className="relative w-full max-w-2xl flex flex-col items-center">
-          {/* Semicircolare Orbitale / Celestial Arc Track Selector with Covers */}
-          {showTracklist && (
-            <RadialTrackSelector
-              tracks={currentAlbum.tracks}
-              currentIndex={currentIndex}
-              isPlaying={isPlaying}
-              onSelectTrack={handleSelectTrack}
-              onClose={() => setShowTracklist(false)}
-              isLightMode={isLightMode}
-              albumCover={currentAlbum.coverUrl}
-              artistName={currentAlbum.artist}
-            />
-          )}
-
           {/* Unified Capsule */}
           <div
             className={`w-full px-2.5 sm:px-6 py-2 sm:py-3 rounded-full backdrop-blur-2xl transition-all shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex items-center gap-1.5 sm:gap-4 relative z-40 ${
@@ -1043,6 +1029,20 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
             </div>
           </aside>
         </div>
+      )}
+
+      {/* Full-Screen Celestial Semicircle Orbit Track Selector */}
+      {showTracklist && (
+        <RadialTrackSelector
+          tracks={currentAlbum.tracks}
+          currentIndex={currentIndex}
+          isPlaying={isPlaying}
+          onSelectTrack={handleSelectTrack}
+          onClose={() => setShowTracklist(false)}
+          isLightMode={isLightMode}
+          albumCover={currentAlbum.coverUrl}
+          artistName={currentAlbum.artist}
+        />
       )}
     </div>
     </div>
