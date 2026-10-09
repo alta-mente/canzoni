@@ -4,6 +4,7 @@ import { useAudio } from '../context/NativeAudioContext';
 import { useTheme } from '../context/ThemeContext';
 import { VinylCarousel } from './VinylCarousel';
 import { EditorialSwissView } from './EditorialSwissView';
+import { RadialTrackSelector } from './RadialTrackSelector';
 import { 
   ChevronLeft, 
   ChevronRight, 
@@ -799,57 +800,18 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
       {/* BOTTOM CONTROLS: Unified Hi-Fi Capsule */}
       <div className="relative z-20 flex flex-col items-center pb-[max(0.35rem,env(safe-area-inset-bottom))] px-2 sm:px-4 w-full shrink-0">
         <div className="relative w-full max-w-2xl flex flex-col items-center">
-          {/* Quick Tracklist Popover Drawer (Floats strictly ABOVE the capsule) */}
+          {/* Semicircolare Orbitale / Celestial Arc Track Selector with Covers */}
           {showTracklist && (
-            <>
-              {/* Click-outside backdrop */}
-              <div
-                className="fixed inset-0 z-30"
-                onClick={() => setShowTracklist(false)}
-              />
-
-              <div
-                className={`absolute bottom-[calc(100%+14px)] left-1/2 -translate-x-1/2 w-[92vw] max-w-md sm:max-w-lg rounded-2xl p-2.5 shadow-2xl backdrop-blur-2xl border transition-all z-40 animate-in fade-in slide-in-from-bottom-2 duration-200 ${
-                  isLightMode
-                    ? 'bg-white/95 border-black/10 text-gray-900 shadow-black/20'
-                    : 'bg-[#0f1017]/95 border-white/15 text-white shadow-black/70'
-                }`}
-              >
-                <div className="px-3 py-2 flex items-center justify-between border-b border-white/10 mb-1.5">
-                  <span className="text-[11px] font-mono uppercase tracking-widest opacity-60">Seleziona Brano</span>
-                  <span className="text-[10px] font-mono opacity-50">{currentAlbum.tracks.length} TRACCE</span>
-                </div>
-
-                <div className="space-y-0.5 max-h-64 overflow-y-auto pr-1">
-                  {currentAlbum.tracks.map((t, idx) => (
-                    <button
-                      key={t.id}
-                      onClick={() => {
-                        handleSelectTrack(idx);
-                        setShowTracklist(false);
-                      }}
-                      className={`w-full px-3 py-2 rounded-xl text-left flex items-center justify-between text-xs transition-all ${
-                        currentIndex === idx
-                          ? 'bg-white text-black font-bold shadow-md'
-                          : isLightMode
-                          ? 'hover:bg-black/5 text-gray-800'
-                          : 'hover:bg-white/10 text-white/80'
-                      }`}
-                    >
-                      <div className="flex items-center space-x-2 truncate">
-                        <span className="font-mono text-[10px] opacity-60 w-4 shrink-0">
-                          {String(idx + 1).padStart(2, '0')}
-                        </span>
-                        <span className="truncate">{t.title}</span>
-                      </div>
-                      <span className="font-mono text-[10px] opacity-50 shrink-0 ml-2">
-                        {t.duration}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </>
+            <RadialTrackSelector
+              tracks={currentAlbum.tracks}
+              currentIndex={currentIndex}
+              isPlaying={isPlaying}
+              onSelectTrack={handleSelectTrack}
+              onClose={() => setShowTracklist(false)}
+              isLightMode={isLightMode}
+              albumCover={currentAlbum.coverUrl}
+              artistName={currentAlbum.artist}
+            />
           )}
 
           {/* Unified Capsule */}
