@@ -93,19 +93,19 @@ export const EPK_DATA: EPKData = {
     ],
     genres: ["Canzone d'Autore", "Indie Rock", "Italian Noir", "Psichedelia Elettronica", "Lo-Fi"],
     shortBio:
-      "Nato e cresciuto a Pesaro, Alessandro Rocchi si forma fin dall'infanzia ascoltando i grandi maestri del cantautorato italiano — Fabrizio De André, Lucio Dalla, Rino Gaetano e Franco Battiato. Da sempre autore attento di pensieri, taccuini intimi e poesie, ha dedicato decenni alla scrittura e alla metrica della parola. I suoi concept album, «Non C'è Vita Su Marte» e «Fette Biscottate e Marmellata», nascono da questo archivio letterario personale: un connubio in cui la forza espressiva del testo, l'introspezione e la cura della parola guidano sonorità avvolgenti e cinematiche.",
+      "Nato e cresciuto a Pesaro, Alessandro Rocchi si forma fin dall'infanzia ascoltando i grandi maestri del cantautorato italiano — Fabrizio De André, Lucio Dalla, Rino Gaetano e Franco Battiato. Da sempre autore attento di pensieri, taccuini intimi e poesie, ha dedicato decenni alla scrittura e alla metrica della parola. I suoi concept album, «Non C'è Vita Su Marte» e «Quel Salto Nel Vuoto», nascono da questo archivio letterario personale: un connubio in cui la forza espressiva del testo, l'introspezione e la cura della parola guidano sonorità avvolgenti e cinematiche.",
     fullBio: [
       "La storia artistica di Alessandro Rocchi affonda le radici a Pesaro, città di mare, vento e secolare tradizione musicale. Fin da bambino, la sua sensibilità è stata educata dalle voci e dalle visioni dei giganti della canzone d'autore italiana: l'umanità viscerale degli ultimi cantata da Fabrizio De André, la libertà melodica e narrativa di Lucio Dalla, la disillusione tagliente e ironica di Rino Gaetano, e la ricerca mistica tra sacro ed elettronica colta di Franco Battiato.",
       "Da quegli anni d'infanzia e adolescenza, Alessandro non ha mai smesso di scrivere. Ha riempito taccuini e fogli sparsi di poesie, riflessioni notturne, istantanee di vita quotidiana e squarci emotivi, custodendo la parola come un laboratorio segreto e necessario dell'anima.",
       "La svolta artistica matura con la decisione di dare voce e forma compiuta a questo patrimonio di testi. Lavorando con rigore sulla metrica, sul peso sillabico e sulla verità emotiva di ogni singolo verso, Alessandro Rocchi plasma un universo sonoro in cui la poesia si fa melodia naturale. Ogni arrangiamento — dalle aperture orchestrali alle chitarre sature, fino alle atmosfere noir — è concepito come un abito sartoriale al servizio esclusivo del racconto poetico.",
-      "Ne scaturiscono due concept album di rara intensità: «Non C'è Vita Su Marte», un'odissea sonora di 10 tracce che indaga l'isolamento contemporaneo attraverso la metafora dello spazio profondo, e «Fette Biscottate e Marmellata», 12 brani dalle tinte noir metropolitane che raccontano la dolcezza amara delle abitudini infrante. Un percorso dove la nobiltà del testo letterario si fa canzone senza tempo."
+      "Ne scaturiscono due concept album di rara intensità: «Non C'è Vita Su Marte», un'odissea sonora di 10 tracce che indaga l'isolamento contemporaneo attraverso la metafora dello spazio profondo, e «Quel Salto Nel Vuoto», 14 brani dalle tinte noir metropolitane che raccontano la vertigine dell'ignoto e la dolcezza amara delle abitudini infrante. Un percorso dove la nobiltà del testo letterario si fa canzone senza tempo."
     ],
     artisticManifesto:
       "«Le parole c'erano già tutte, scritte e custodite per decenni nei miei quaderni a Pesaro. La musica è nata per mettersi al loro servizio: quando la metrica di una poesia trova il suo ritmo naturale, il testo smette di essere solo inchiostro e comincia a camminare tra la gente.»"
   },
   fastStats: [
     { label: "Origine", value: "Pesaro", subtext: "Città della Musica (PU)" },
-    { label: "Album Ufficiali", value: "2", subtext: "22 Brani Inediti" },
+    { label: "Album Ufficiali", value: "2", subtext: "24 Brani Inediti" },
     { label: "Radici", value: "Cantautorato", subtext: "De André • Dalla • Gaetano • Battiato" },
     { label: "Scrittura", value: "Poesia & Testi", subtext: "Metrica e Canzone d'Autore" }
   ],
@@ -121,12 +121,12 @@ export const EPK_DATA: EPKData = {
     },
     {
       id: "photo-cover-fette",
-      title: "Cover Ufficiale — Fette Biscottate e Marmellata",
+      title: "Cover Ufficiale — Quel Salto Nel Vuoto",
       category: "Copertina",
       resolution: "1024 x 1024 px • 300 DPI",
       format: "JPEG / RGB (Print Ready)",
       url: "/images/albums/fette-biscottate-cover.jpeg",
-      credits: "Artwork: Noir Urbano 2026"
+      credits: "Artwork: Suno / Alessandro Rocchi 2026"
     },
     {
       id: "photo-portrait-1",
@@ -193,28 +193,30 @@ export const EPK_DATA: EPKData = {
     },
     {
       id: "pr-fette",
-      title: "«FETTE BISCOTTATE E MARMELLATA»: IL NOIR METROPOLITANO DI ALESSANDRO ROCCHI",
-      subtitle: "12 tracce di dolcezza amara, ombre urbane e ritmiche notturne.",
+      title: "«QUEL SALTO NEL VUOTO»: IL NOIR METROPOLITANO DI ALESSANDRO ROCCHI",
+      subtitle: "14 tracce di dolcezza amara, ombre urbane e ritmiche notturne.",
       date: "Ottobre 2026",
       albumId: "fette-biscottate-e-marmellata",
       body: [
-        "A completamento di una feconda stagione creativa, il cantautore pesarese Alessandro Rocchi pubblica «Fette Biscottate e Marmellata», un'opera che vira verso atmosfere noir e confidenziali.",
-        "Il contrasto tra il rito rassicurante della colazione del mattino e l'impatto con la solitudine notturna fa da sfondo a 12 tracce di rara finezza lirica, dove il timbro cantautorale si sposa con rimshot asciutti, trombe jazzate con sordina, campionamenti foley e un calore analogico avvolgente.",
+        "A completamento di una feconda stagione creativa, il cantautore pesarese Alessandro Rocchi pubblica «Quel Salto Nel Vuoto», un'opera che vira verso atmosfere noir, confidenziali e urbane.",
+        "Il contrasto tra il rito rassicurante della quotidianità e l'impatto vertiginoso con la solitudine notturna fa da sfondo a 14 tracce di rara finezza lirica, dove il timbro cantautorale si sposa con rimshot asciutti, trombe jazzate con sordina, campionamenti foley e un calore analogico avvolgente.",
         "Ancora una volta, i versi nati dalla penna di Rocchi trovano compimento in una scrittura intimista e cinematografica, dove ogni parola, rima e silenzio è dosato per restituire un racconto autentico e coinvolgente."
       ],
       trackByTrack: [
         { title: "01. Quel salto nel vuoto", notes: "«Non c'è una meta, non serve una mappa: conta soltanto chi resta e chi scappa.»" },
-        { title: "02. Fette Biscottate e Marmellata", notes: "«Sorrido quando serve, poi mi dimentico di togliermelo dal viso.»" },
-        { title: "03. C'è posto qui con me", notes: "«Mi hai lasciato a metà tra una parola e un'emozione.»" },
-        { title: "04. Resta ancora un po'", notes: "«Mi racconti una cosa che non avevi mai detto, io rido nel punto sbagliato e tu fai lo stesso.»" },
-        { title: "05. Tienimi giù", notes: "«Ci feriamo con parole appena sotto la pelle, ma abbastanza a fondo per dover ricucire.»" },
-        { title: "06. Restiamo a guardare", notes: "«Lascia le scarpe vicino all’ingresso, dimmi che il mondo fa schifo lo stesso.»" },
-        { title: "07. Pezzi di vetro", notes: "«Attento a dove cammini a piedi nudi in salotto: a volte le parole si rompono sul pavimento.»" },
-        { title: "08. Tutto", notes: "«Chiedere tutto è l'unico modo per non accontentarsi di quello che lasciano gli altri.»" },
-        { title: "09. Sepolto nel tuo gelo", notes: "«L'inverno non arriva con la neve, ma quando gli occhi di chi ami non ti riconoscono più.»" },
-        { title: "10. Lasciami una luce accesa", notes: "«Quella sul comodino, sul libro aperto, come fanno le madri quando il cuore è incerto.»" },
-        { title: "11. Solo Di Passaggio", notes: "«Non lasciare valigie disfare qui: siamo ospiti provvisori della nostra stessa nostalgia.»" },
-        { title: "12. Lampo d'Otone", notes: "«Un lampo d'argento, una curva, un rumore: la vita che inciampa nel giro d'un'ora.»" }
+        { title: "02. Le cose che tornano a galla (Edit)", notes: "«Ci sono storie che non chiedono il permesso di ritornare, come pezzi di legno dopo la tempesta.»" },
+        { title: "03. Fette Biscottate e Marmellata", notes: "«Sorrido quando serve, poi mi dimentico di togliermelo dal viso.»" },
+        { title: "04. C'è posto qui con me", notes: "«Mi hai lasciato a metà tra una parola e un'emozione.»" },
+        { title: "05. Resta ancora un po'", notes: "«Mi racconti una cosa che non avevi mai detto, io rido nel punto sbagliato e tu fai lo stesso.»" },
+        { title: "06. Tienimi giù", notes: "«Ci feriamo con parole appena sotto la pelle, ma abbastanza a fondo per dover ricucire.»" },
+        { title: "07. Restiamo a guardare", notes: "«Lascia le scarpe vicino all’ingresso, dimmi che il mondo fa schifo lo stesso.»" },
+        { title: "08. Pezzi di vetro", notes: "«Attento a dove cammini a piedi nudi in salotto: a volte le parole si rompono sul pavimento.»" },
+        { title: "09. Tutto", notes: "«Chiedere tutto è l'unico modo per non accontentarsi di quello che lasciano gli altri.»" },
+        { title: "10. Sepolto nel tuo gelo", notes: "«L'inverno non arriva con la neve, ma quando gli occhi di chi ami non ti riconoscono più.»" },
+        { title: "11. Lasciami una luce accesa", notes: "«Quella sul comodino, sul libro aperto, come fanno le madri quando il cuore è incerto.»" },
+        { title: "12. Solo Di Passaggio", notes: "«Non lasciare valigie disfare qui: siamo ospiti provvisori della nostra stessa nostalgia.»" },
+        { title: "13. Lampo d'Otone", notes: "«Un lampo d'argento, una curva, un rumore: la vita che inciampa nel giro d'un'ora.»" },
+        { title: "14. Le cose che tornano a galla", notes: "«Ci sono giorni in cui il mare restituisce ciò che credevi perduto per sempre.»" }
       ]
     }
   ],

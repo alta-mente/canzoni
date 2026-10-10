@@ -514,7 +514,7 @@ export const EditorialSwissView: React.FC<EditorialSwissViewProps> = ({
                 <div className="w-3.5 h-3.5 rounded-[2px] overflow-hidden shrink-0 border border-black/20">
                   <img src={album.coverUrl} alt="" className="w-full h-full object-cover" />
                 </div>
-                <span className="truncate">{idx === 0 ? "Non C'è Vita su Marte" : "Fette Biscottate"}</span>
+                <span className="truncate">{idx === 0 ? "Non C'è Vita su Marte" : "Quel Salto Nel Vuoto"}</span>
               </button>
             );
           })}
