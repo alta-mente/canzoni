@@ -34,6 +34,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({
   const [selectedAlbumId, setSelectedAlbumId] = useState<string>(albums[0]?.id || 'non-ce-vita-su-marte');
   const [selectedTrackIndex, setSelectedTrackIndex] = useState<number | 'all'>('all');
   const [displayMode, setDisplayMode] = useState<'floating' | 'inpage'>('floating');
+  const [floatingStyle, setFloatingStyle] = useState<'floating' | 'pill'>('floating');
   const [widgetStyle, setWidgetStyle] = useState<'card' | 'compact' | 'playlist'>('card');
   const [widgetTheme, setWidgetTheme] = useState<'dark' | 'light'>('dark');
   const [codeType, setCodeType] = useState<'iframe' | 'script'>('iframe');
@@ -64,7 +65,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({
   )}&text=${encodeURIComponent(shareText)}`;
 
   // Compute widget target URL
-  const effectiveStyle = displayMode === 'floating' ? 'floating' : widgetStyle;
+  const effectiveStyle = displayMode === 'floating' ? floatingStyle : widgetStyle;
   const trackParam = selectedTrackIndex === 'all' ? '1' : String(Number(selectedTrackIndex) + 1);
   
   const widgetIframeUrl = `${baseSiteUrl}#widget?album=${encodeURIComponent(selectedAlbumId)}&track=${encodeURIComponent(trackParam)}&style=${encodeURIComponent(effectiveStyle)}&theme=${encodeURIComponent(widgetTheme)}`;
@@ -73,9 +74,13 @@ export const ShareModal: React.FC<ShareModalProps> = ({
   let embedCode = '';
   if (displayMode === 'floating') {
     if (codeType === 'script') {
-      embedCode = `<!-- Alessandro Rocchi - Player Flottante in basso a destra -->\n<script src="${baseSiteUrl}widget.js" data-album="${selectedAlbumId}" data-track="${trackParam}" data-style="floating" data-theme="${widgetTheme}"></script>`;
+      embedCode = `<!-- Alessandro Rocchi - Player Flottante in basso a destra -->\n<script src="${baseSiteUrl}widget.js" data-album="${selectedAlbumId}" data-track="${trackParam}" data-style="${floatingStyle}" data-theme="${widgetTheme}"></script>`;
     } else {
-      embedCode = `<!-- Alessandro Rocchi - Player Flottante in basso a destra -->\n<div style="position:fixed;bottom:20px;right:20px;z-index:999999;filter:drop-shadow(0 15px 35px rgba(0,0,0,0.5));">\n  <iframe src="${widgetIframeUrl}" width="340" height="165" frameborder="0" allow="autoplay; encrypted-media" style="border:none;border-radius:24px;overflow:hidden;background:transparent;"></iframe>\n</div>`;
+      if (floatingStyle === 'pill') {
+        embedCode = `<!-- Alessandro Rocchi - Pillola Flottante in basso a destra -->\n<div style="position:fixed;bottom:20px;right:20px;z-index:999999;filter:drop-shadow(0 15px 35px rgba(0,0,0,0.5));">\n  <iframe src="${widgetIframeUrl}" width="260" height="56" frameborder="0" allow="autoplay; encrypted-media" style="border:none;border-radius:28px;overflow:hidden;background:transparent;"></iframe>\n</div>`;
+      } else {
+        embedCode = `<!-- Alessandro Rocchi - Card Flottante in basso a destra -->\n<div style="position:fixed;bottom:20px;right:20px;z-index:999999;filter:drop-shadow(0 15px 35px rgba(0,0,0,0.5));">\n  <iframe src="${widgetIframeUrl}" width="330" height="135" frameborder="0" allow="autoplay; encrypted-media" style="border:none;border-radius:20px;overflow:hidden;background:transparent;"></iframe>\n</div>`;
+      }
     }
   } else {
     // In-page embed
@@ -314,15 +319,35 @@ export const ShareModal: React.FC<ShareModalProps> = ({
                 </div>
               </div>
 
-              {/* 2. Formato Stile (se In-Page) */}
+              {/* 2. Formato Stile */}
               <div className="space-y-1.5">
                 <label className="text-[10px] text-white/50 uppercase tracking-wider block font-bold">
                   2. Stile Grafico
                 </label>
                 {displayMode === 'floating' ? (
-                  <div className="p-2 rounded-xl bg-white/5 border border-white/10 text-[11px] text-white/70">
-                    <span className="text-amber-400 font-bold block">✨ Card Vinile Flottante</span>
-                    <span>Minimizzabile a bolla con disco rotante in basso a destra.</span>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    <button
+                      onClick={() => setFloatingStyle('floating')}
+                      className={`p-2 rounded-xl text-center border transition-all ${
+                        floatingStyle === 'floating'
+                          ? 'bg-amber-400/15 border-amber-400 text-white font-bold'
+                          : 'bg-white/5 border-white/10 text-white/60 hover:text-white'
+                      }`}
+                    >
+                      <div className="text-xs">✨ Card Vinile</div>
+                      <div className="text-[9px] opacity-60">330×135 px</div>
+                    </button>
+                    <button
+                      onClick={() => setFloatingStyle('pill')}
+                      className={`p-2 rounded-xl text-center border transition-all ${
+                        floatingStyle === 'pill'
+                          ? 'bg-amber-400/15 border-amber-400 text-white font-bold'
+                          : 'bg-white/5 border-white/10 text-white/60 hover:text-white'
+                      }`}
+                    >
+                      <div className="text-xs">💊 Pillola Flottante</div>
+                      <div className="text-[9px] opacity-60">260×56 px</div>
+                    </button>
                   </div>
                 ) : (
                   <div className="grid grid-cols-3 gap-1">
@@ -331,7 +356,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({
                       className={`p-1.5 rounded-xl text-center border transition-all ${
                         widgetStyle === 'card'
                           ? 'bg-amber-400/15 border-amber-400 text-white font-bold'
-                          : 'bg-white/5 border-white/10 text-white/60'
+                          : 'bg-white/5 border-white/10 text-white/60 hover:text-white'
                       }`}
                     >
                       Card Vinile
@@ -341,7 +366,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({
                       className={`p-1.5 rounded-xl text-center border transition-all ${
                         widgetStyle === 'compact'
                           ? 'bg-amber-400/15 border-amber-400 text-white font-bold'
-                          : 'bg-white/5 border-white/10 text-white/60'
+                          : 'bg-white/5 border-white/10 text-white/60 hover:text-white'
                       }`}
                     >
                       Mini Barra
@@ -351,7 +376,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({
                       className={`p-1.5 rounded-xl text-center border transition-all ${
                         widgetStyle === 'playlist'
                           ? 'bg-amber-400/15 border-amber-400 text-white font-bold'
-                          : 'bg-white/5 border-white/10 text-white/60'
+                          : 'bg-white/5 border-white/10 text-white/60 hover:text-white'
                       }`}
                     >
                       Playlist
@@ -411,14 +436,24 @@ export const ShareModal: React.FC<ShareModalProps> = ({
                 <span className="text-[10px] text-white/40">Prova i controlli e l'audio qui sotto</span>
               </div>
 
-              <div className="relative rounded-2xl border border-white/15 bg-black/60 p-2 overflow-hidden flex items-center justify-center min-h-[170px]">
+              <div className="relative rounded-2xl border border-white/15 bg-black/60 p-4 overflow-hidden flex items-center justify-center min-h-[140px]">
                 <iframe
                   key={widgetIframeUrl}
                   src={widgetIframeUrl}
                   width="100%"
-                  height={displayMode === 'floating' ? 165 : widgetStyle === 'compact' ? 80 : widgetStyle === 'card' ? 230 : 380}
+                  height={
+                    displayMode === 'floating'
+                      ? (floatingStyle === 'pill' ? 56 : 135)
+                      : (widgetStyle === 'compact' ? 80 : widgetStyle === 'card' ? 230 : 380)
+                  }
                   className="rounded-2xl transition-all duration-300"
-                  style={{ border: 'none', background: 'transparent' }}
+                  style={{
+                    border: 'none',
+                    background: 'transparent',
+                    maxWidth: displayMode === 'floating'
+                      ? (floatingStyle === 'pill' ? '260px' : '330px')
+                      : (widgetStyle === 'compact' ? '600px' : widgetStyle === 'card' ? '460px' : '550px')
+                  }}
                   title="Anteprima Widget"
                 />
               </div>

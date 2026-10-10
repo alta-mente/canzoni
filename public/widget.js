@@ -41,8 +41,8 @@
                   '&style=' + encodeURIComponent(style) +
                   '&theme=' + encodeURIComponent(theme);
 
-  // If style is floating, create fixed overlay container
-  if (style === 'floating') {
+  // If style is floating or pill, create fixed overlay container
+  if (style === 'floating' || style === 'pill') {
     var container = document.createElement('div');
     container.id = 'alessandro-rocchi-floating-player';
     
@@ -52,9 +52,13 @@
       ' pointer-events: auto; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);' +
       ' filter: drop-shadow(0 15px 35px rgba(0,0,0,0.5));';
 
+    var isPill = style === 'pill';
     var iframe = document.createElement('iframe');
     iframe.src = widgetUrl;
-    iframe.style.cssText = 'border: none; overflow: hidden; background: transparent; transition: all 0.3s ease; width: 340px; height: 165px; border-radius: 24px;';
+    var w = isPill ? '260px' : '330px';
+    var h = isPill ? '56px' : '135px';
+    var r = isPill ? '28px' : '20px';
+    iframe.style.cssText = 'border: none; overflow: hidden; background: transparent; transition: all 0.3s ease; width: ' + w + '; height: ' + h + '; border-radius: ' + r + ';';
     iframe.allow = 'autoplay; encrypted-media';
     iframe.title = 'Alessandro Rocchi Player';
 
@@ -64,13 +68,13 @@
     window.addEventListener('message', function(event) {
       if (event.data && event.data.type === 'WIDGET_RESIZE') {
         if (event.data.isMinimized) {
-          iframe.style.width = '240px';
-          iframe.style.height = '60px';
-          iframe.style.borderRadius = '30px';
+          iframe.style.width = '260px';
+          iframe.style.height = '56px';
+          iframe.style.borderRadius = '28px';
         } else {
-          iframe.style.width = '340px';
-          iframe.style.height = '165px';
-          iframe.style.borderRadius = '24px';
+          iframe.style.width = '330px';
+          iframe.style.height = '135px';
+          iframe.style.borderRadius = '20px';
         }
       }
     });

@@ -52,7 +52,16 @@ export const resolveAssetUrl = (url?: string): string => {
   }
   const base = import.meta.env.BASE_URL || '/';
   const cleanBase = base.endsWith('/') ? base : `${base}/`;
+
+  // Avoid double-prepending if url already starts with base
+  if (cleanBase !== '/' && (url.startsWith(cleanBase) || url.startsWith(base))) {
+    return url;
+  }
   const cleanUrl = url.startsWith('/') ? url.slice(1) : url;
+  const baseWithoutSlash = cleanBase.startsWith('/') ? cleanBase.slice(1) : cleanBase;
+  if (baseWithoutSlash && cleanUrl.startsWith(baseWithoutSlash)) {
+    return `/${cleanUrl}`;
+  }
   return `${cleanBase}${cleanUrl}`;
 };
 

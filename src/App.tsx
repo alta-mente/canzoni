@@ -79,22 +79,30 @@ export const App: React.FC = () => {
       document.body.style.overflow = 'hidden';
       document.body.style.backgroundColor = 'transparent';
       document.documentElement.style.backgroundColor = 'transparent';
+      document.body.classList.remove('bg-[#030407]');
+      document.body.classList.add('bg-transparent');
     } else if (currentView === 'player') {
       document.documentElement.style.overflow = 'hidden';
       document.body.style.overflow = 'hidden';
       document.body.style.backgroundColor = '';
       document.documentElement.style.backgroundColor = '';
+      document.body.classList.remove('bg-transparent');
+      document.body.classList.add('bg-[#030407]');
     } else {
       document.documentElement.style.overflow = 'auto';
       document.body.style.overflow = 'auto';
       document.body.style.backgroundColor = '';
       document.documentElement.style.backgroundColor = '';
+      document.body.classList.remove('bg-transparent');
+      document.body.classList.add('bg-[#030407]');
     }
     return () => {
       document.documentElement.style.overflow = '';
       document.body.style.overflow = '';
       document.body.style.backgroundColor = '';
       document.documentElement.style.backgroundColor = '';
+      document.body.classList.remove('bg-transparent');
+      document.body.classList.add('bg-[#030407]');
     };
   }, [currentView]);
 
