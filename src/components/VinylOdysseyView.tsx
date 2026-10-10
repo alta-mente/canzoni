@@ -970,25 +970,25 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
 
       {/* ─────────────────────────────────────────────────────────────
           LYRICS SLIDE-OVER DRAWER (Desktop) & BOTTOM SHEET (Mobile)
-          Non-blocking, glassmorphic, Apple Music style
+          Opaque background to prevent underlying header buttons bleed-through
           ───────────────────────────────────────────────────────────── */}
       {showLyricsModal && activeTrack.lyrics && (
         <div className="fixed inset-0 z-50 flex justify-end items-end md:items-stretch pointer-events-none">
-          {/* Subtle click-outside backdrop */}
+          {/* Dark click-outside backdrop */}
           <div
-            className="absolute inset-0 bg-black/35 backdrop-blur-[2px] pointer-events-auto transition-opacity duration-300 animate-in fade-in"
+            className="absolute inset-0 bg-black/65 backdrop-blur-md pointer-events-auto transition-opacity duration-300 animate-in fade-in"
             onClick={() => setShowLyricsModal(false)}
           />
 
-          {/* Glass Slide-over Drawer / Bottom Sheet Container */}
+          {/* Solid Slide-over Drawer / Bottom Sheet Container (100% opaque) */}
           <aside
             role="dialog"
             aria-label={`Testi di ${activeTrack.title}`}
             onClick={(e) => e.stopPropagation()}
-            className={`relative pointer-events-auto w-full md:w-[440px] lg:w-[480px] max-h-[80dvh] md:max-h-full h-auto md:h-full flex flex-col rounded-t-[28px] md:rounded-t-none md:rounded-l-3xl shadow-2xl backdrop-blur-3xl border-t md:border-t-0 md:border-l transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] animate-in slide-in-from-bottom md:slide-in-from-right ${
+            className={`relative pointer-events-auto w-full md:w-[460px] lg:w-[500px] max-h-[82dvh] md:max-h-full h-auto md:h-full flex flex-col rounded-t-[28px] md:rounded-t-none md:rounded-l-3xl shadow-[0_0_80px_rgba(0,0,0,0.85)] border-t md:border-t-0 md:border-l transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] animate-in slide-in-from-bottom md:slide-in-from-right z-50 ${
               isLightMode
-                ? 'bg-white/90 border-black/15 text-gray-900 shadow-black/20'
-                : 'bg-[#0b0c13]/85 border-white/15 text-white shadow-black/80'
+                ? 'bg-[#f8f9fa] border-black/15 text-gray-900 shadow-black/25'
+                : 'bg-[#0c0d15] border-white/15 text-white shadow-black/95'
             }`}
           >
             {/* Mobile Drag Handle Indicator */}
