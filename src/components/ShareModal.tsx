@@ -122,7 +122,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({
             onClick={() => setActiveTab('link')}
             className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl font-mono text-xs font-bold transition-all ${
               activeTab === 'link'
-                ? 'bg-amber-400 text-black shadow'
+                ? 'bg-white text-black shadow'
                 : 'text-white/60 hover:text-white'
             }`}
           >
@@ -134,13 +134,13 @@ export const ShareModal: React.FC<ShareModalProps> = ({
             onClick={() => setActiveTab('widget')}
             className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl font-mono text-xs font-bold transition-all ${
               activeTab === 'widget'
-                ? 'bg-amber-400 text-black shadow'
+                ? 'bg-white text-black shadow'
                 : 'text-white/60 hover:text-white'
             }`}
           >
             <Code className="w-3.5 h-3.5" />
             <span>Widget per Siti Esterni</span>
-            <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
+            <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-white/10 text-white/90 border border-white/20">
               NEW
             </span>
           </button>
@@ -157,7 +157,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({
                 <img src={currentAlbum.coverUrl} alt={currentAlbum.title} className="w-full h-full object-cover" />
               </div>
               <div>
-                <span className="text-[10px] font-mono text-amber-400 uppercase tracking-wider block">
+                <span className="text-[10px] font-mono text-white/60 uppercase tracking-wider block">
                   Condividi Album
                 </span>
                 <h3 className="text-lg font-bold text-white leading-tight">
@@ -184,7 +184,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({
                   className={`px-4 py-2.5 rounded-xl font-medium text-xs flex items-center space-x-1.5 transition-all duration-200 ${
                     copiedLink
                       ? 'bg-emerald-500 text-white'
-                      : 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-bold'
+                      : 'bg-white hover:bg-neutral-200 text-black font-bold'
                   }`}
                 >
                   {copiedLink ? (
@@ -254,7 +254,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({
               <a
                 href="#epk"
                 onClick={onClose}
-                className="font-bold text-amber-400 hover:text-amber-300 hover:underline flex items-center gap-1"
+                className="font-bold text-white hover:text-white/80 hover:underline flex items-center gap-1"
               >
                 <span>Apri EPK</span>
                 <span>→</span>
@@ -270,7 +270,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({
           <div className="space-y-5">
             <div>
               <h3 className="text-base font-bold font-mono text-white flex items-center gap-2">
-                <Code className="w-4 h-4 text-amber-400" />
+                <Code className="w-4 h-4 text-white" />
                 <span>Generatore Widget Embed</span>
               </h3>
               <p className="text-xs font-mono text-white/50 mt-1">
@@ -291,11 +291,11 @@ export const ShareModal: React.FC<ShareModalProps> = ({
                     onClick={() => setDisplayMode('floating')}
                     className={`px-2.5 py-2 rounded-xl text-left border flex items-center gap-2 transition-all ${
                       displayMode === 'floating'
-                        ? 'bg-amber-400/15 border-amber-400 text-white font-bold'
+                        ? 'bg-white/15 border-white text-white font-bold'
                         : 'bg-white/5 border-white/10 text-white/60 hover:text-white'
                     }`}
                   >
-                    <Move className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                    <Move className="w-3.5 h-3.5 text-white shrink-0" />
                     <div className="min-w-0">
                       <div className="truncate">Flottante</div>
                       <div className="text-[9px] opacity-60">In basso a destra</div>
@@ -306,11 +306,11 @@ export const ShareModal: React.FC<ShareModalProps> = ({
                     onClick={() => setDisplayMode('inpage')}
                     className={`px-2.5 py-2 rounded-xl text-left border flex items-center gap-2 transition-all ${
                       displayMode === 'inpage'
-                        ? 'bg-amber-400/15 border-amber-400 text-white font-bold'
+                        ? 'bg-white/15 border-white text-white font-bold'
                         : 'bg-white/5 border-white/10 text-white/60 hover:text-white'
                     }`}
                   >
-                    <Layers className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                    <Layers className="w-3.5 h-3.5 text-white shrink-0" />
                     <div className="min-w-0">
                       <div className="truncate">Nel Contenuto</div>
                       <div className="text-[9px] opacity-60">Dentro la pagina</div>
@@ -330,7 +330,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({
                       onClick={() => setFloatingStyle('floating')}
                       className={`p-2 rounded-xl text-center border transition-all ${
                         floatingStyle === 'floating'
-                          ? 'bg-amber-400/15 border-amber-400 text-white font-bold'
+                          ? 'bg-white/15 border-white text-white font-bold'
                           : 'bg-white/5 border-white/10 text-white/60 hover:text-white'
                       }`}
                     >
@@ -341,7 +341,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({
                       onClick={() => setFloatingStyle('pill')}
                       className={`p-2 rounded-xl text-center border transition-all ${
                         floatingStyle === 'pill'
-                          ? 'bg-amber-400/15 border-amber-400 text-white font-bold'
+                          ? 'bg-white/15 border-white text-white font-bold'
                           : 'bg-white/5 border-white/10 text-white/60 hover:text-white'
                       }`}
                     >
@@ -355,7 +355,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({
                       onClick={() => setWidgetStyle('card')}
                       className={`p-1.5 rounded-xl text-center border transition-all ${
                         widgetStyle === 'card'
-                          ? 'bg-amber-400/15 border-amber-400 text-white font-bold'
+                          ? 'bg-white/15 border-white text-white font-bold'
                           : 'bg-white/5 border-white/10 text-white/60 hover:text-white'
                       }`}
                     >
@@ -365,7 +365,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({
                       onClick={() => setWidgetStyle('compact')}
                       className={`p-1.5 rounded-xl text-center border transition-all ${
                         widgetStyle === 'compact'
-                          ? 'bg-amber-400/15 border-amber-400 text-white font-bold'
+                          ? 'bg-white/15 border-white text-white font-bold'
                           : 'bg-white/5 border-white/10 text-white/60 hover:text-white'
                       }`}
                     >
@@ -375,7 +375,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({
                       onClick={() => setWidgetStyle('playlist')}
                       className={`p-1.5 rounded-xl text-center border transition-all ${
                         widgetStyle === 'playlist'
-                          ? 'bg-amber-400/15 border-amber-400 text-white font-bold'
+                          ? 'bg-white/15 border-white text-white font-bold'
                           : 'bg-white/5 border-white/10 text-white/60 hover:text-white'
                       }`}
                     >
@@ -396,7 +396,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({
                     setSelectedAlbumId(e.target.value);
                     setSelectedTrackIndex('all');
                   }}
-                  className="w-full bg-black/50 border border-white/10 rounded-xl px-3 py-2 text-white outline-none focus:border-amber-400"
+                  className="w-full bg-black/50 border border-white/10 rounded-xl px-3 py-2 text-white outline-none focus:border-white/50"
                 >
                   {albums.map((alb) => (
                     <option key={alb.id} value={alb.id}>
@@ -414,7 +414,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({
                 <select
                   value={selectedTrackIndex}
                   onChange={(e) => setSelectedTrackIndex(e.target.value === 'all' ? 'all' : Number(e.target.value))}
-                  className="w-full bg-black/50 border border-white/10 rounded-xl px-3 py-2 text-white outline-none focus:border-amber-400"
+                  className="w-full bg-black/50 border border-white/10 rounded-xl px-3 py-2 text-white outline-none focus:border-white/50"
                 >
                   <option value="all">💿 Tutto l'album (inizia dal brano 01)</option>
                   {currentAlbum.tracks.map((tr, idx) => (
@@ -430,7 +430,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({
             <div className="space-y-2">
               <div className="flex items-center justify-between text-xs font-mono">
                 <span className="text-white/60 flex items-center gap-1.5">
-                  <Eye className="w-3.5 h-3.5 text-amber-400" />
+                  <Eye className="w-3.5 h-3.5 text-white" />
                   <span>Anteprima Live Interattiva:</span>
                 </span>
                 <span className="text-[10px] text-white/40">Prova i controlli e l'audio qui sotto</span>
@@ -469,7 +469,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({
                       <button
                         onClick={() => setCodeType('iframe')}
                         className={`px-2 py-0.5 rounded text-[10px] font-mono ${
-                          codeType === 'iframe' ? 'bg-amber-400 text-black font-bold' : 'text-white/50'
+                          codeType === 'iframe' ? 'bg-white text-black font-bold' : 'text-white/50'
                         }`}
                       >
                         HTML Iframe
@@ -477,7 +477,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({
                       <button
                         onClick={() => setCodeType('script')}
                         className={`px-2 py-0.5 rounded text-[10px] font-mono ${
-                          codeType === 'script' ? 'bg-amber-400 text-black font-bold' : 'text-white/50'
+                          codeType === 'script' ? 'bg-white text-black font-bold' : 'text-white/50'
                         }`}
                       >
                         Script 1 riga
@@ -486,7 +486,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({
                   )}
                 </div>
 
-                <span className="text-[10px] text-amber-400/80">
+                <span className="text-[10px] text-white/50">
                   {codeType === 'script' && displayMode === 'floating' ? 'Script auto-iniettante' : 'Compatibile con tutti i siti'}
                 </span>
               </div>
@@ -496,7 +496,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({
                   readOnly
                   rows={3}
                   value={embedCode}
-                  className="w-full bg-black/70 border border-white/15 rounded-xl p-3 text-[11px] font-mono text-amber-300/90 focus:outline-none resize-none select-all"
+                  className="w-full bg-black/70 border border-white/15 rounded-xl p-3 text-[11px] font-mono text-zinc-200 focus:outline-none resize-none select-all"
                 />
                 
                 <button
@@ -504,7 +504,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({
                   className={`absolute right-2.5 top-2.5 px-3 py-1.5 rounded-lg text-xs font-mono font-bold flex items-center gap-1.5 shadow-lg transition-all ${
                     copiedCode
                       ? 'bg-emerald-500 text-white'
-                      : 'bg-amber-400 hover:bg-amber-300 text-black active:scale-95'
+                      : 'bg-white hover:bg-neutral-200 text-black active:scale-95'
                   }`}
                 >
                   {copiedCode ? (
