@@ -50,6 +50,11 @@ export const resolveAssetUrl = (url?: string): string => {
   if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:') || url.startsWith('blob:')) {
     return url;
   }
+  // In production (GitHub Pages), stream media directly via fast global CDN from main branch
+  if (import.meta.env.PROD && (url.includes('audio-fette') || url.includes('artwork-fette') || url.includes('images/albums'))) {
+    const clean = url.startsWith('/') ? url.slice(1) : url;
+    return `https://cdn.jsdelivr.net/gh/alta-mente/canzoni@main/public/${clean}`;
+  }
   const base = import.meta.env.BASE_URL || '/';
   const cleanBase = base.endsWith('/') ? base : `${base}/`;
 
