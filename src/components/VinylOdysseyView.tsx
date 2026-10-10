@@ -4,7 +4,7 @@ import { useAudio } from '../context/NativeAudioContext';
 import { useTheme } from '../context/ThemeContext';
 import { VinylCarousel } from './VinylCarousel';
 import { EditorialSwissView } from './EditorialSwissView';
-import { RecordCrateSelector } from './RecordCrateSelector';
+import { VinylBackCover } from './VinylBackCover';
 import { 
   ChevronLeft, 
   ChevronRight, 
@@ -785,16 +785,56 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
         )}
       </div>
 
-      {/* CENTER STAGE: The 3D Vinyl Carousel */}
-      <div className="relative z-10 flex-1 min-h-0 flex items-center justify-center my-auto w-full">
-        <VinylCarousel
-          currentIndex={currentIndex}
-          onSelectTrack={handleSelectTrack}
-          onPrevTrack={handlePrev}
-          onNextTrack={handleNext}
-          displayMode={displayMode}
-          album={currentAlbum}
-        />
+      {/* CENTER STAGE: 3D Flip Card (Front: Vinyl Carousel | Back: Retro della Custodia) */}
+      <div
+        className="relative z-10 flex-1 min-h-0 flex items-center justify-center my-auto w-full"
+        style={{ perspective: '1600px' }}
+      >
+        <div
+          className="relative w-full h-full flex items-center justify-center transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]"
+          style={{
+            transformStyle: 'preserve-3d',
+            transform: showTracklist ? 'rotateY(180deg)' : 'rotateY(0deg)',
+          }}
+        >
+          {/* LATO A / FRONTE: The 3D Vinyl Carousel */}
+          <div
+            style={{
+              backfaceVisibility: 'hidden',
+              WebkitBackfaceVisibility: 'hidden',
+            }}
+            className="w-full h-full flex items-center justify-center"
+          >
+            <VinylCarousel
+              currentIndex={currentIndex}
+              onSelectTrack={handleSelectTrack}
+              onPrevTrack={handlePrev}
+              onNextTrack={handleNext}
+              displayMode={displayMode}
+              album={currentAlbum}
+            />
+          </div>
+
+          {/* LATO B / RETRO: Vinyl Back Cover (Tracklist & crediti vintage) */}
+          <div
+            style={{
+              backfaceVisibility: 'hidden',
+              WebkitBackfaceVisibility: 'hidden',
+              transform: 'rotateY(180deg)',
+            }}
+            className="absolute inset-0 flex items-center justify-center pointer-events-auto"
+          >
+            <VinylBackCover
+              tracks={currentAlbum.tracks}
+              currentIndex={currentIndex}
+              isPlaying={isPlaying}
+              onSelectTrack={handleSelectTrack}
+              onClose={() => setShowTracklist(false)}
+              album={currentAlbum}
+              isLightMode={isLightMode}
+            />
+          </div>
+        </div>
       </div>
 
       {/* BOTTOM CONTROLS: Unified Hi-Fi Capsule */}
@@ -1029,21 +1069,6 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
             </div>
           </aside>
         </div>
-      )}
-
-      {/* THE RECORD CRATE (Sfoglia la cassetta dei vinili in 3D) */}
-      {showTracklist && (
-        <RecordCrateSelector
-          tracks={currentAlbum.tracks}
-          currentIndex={currentIndex}
-          isPlaying={isPlaying}
-          onSelectTrack={handleSelectTrack}
-          onClose={() => setShowTracklist(false)}
-          isLightMode={isLightMode}
-          albumCover={currentAlbum.coverUrl}
-          artistName={currentAlbum.artist}
-          albumTitle={currentAlbum.title}
-        />
       )}
     </div>
     </div>
