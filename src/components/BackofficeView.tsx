@@ -389,7 +389,7 @@ export const BackofficeView: React.FC<BackofficeViewProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-[#0d0e14] text-gray-100 flex flex-col font-sans">
+    <div className="w-full min-h-screen bg-[#0d0e14] text-gray-100 flex flex-col font-sans overflow-x-hidden overflow-y-auto">
       <audio
         ref={audioPreviewRef}
         onEnded={() => setIsPreviewPlaying(false)}
@@ -611,7 +611,7 @@ export const BackofficeView: React.FC<BackofficeViewProps> = ({
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             
             {/* Left Column: Track List */}
-            <div className="lg:col-span-5 space-y-2">
+            <div className="lg:col-span-5 space-y-2 lg:sticky lg:top-24 lg:self-start">
               <div className="flex items-center justify-between px-2 pb-1">
                 <span className="text-xs font-mono uppercase tracking-widest text-white/50 font-bold">
                   Elenco Brani
@@ -621,7 +621,7 @@ export const BackofficeView: React.FC<BackofficeViewProps> = ({
                 </span>
               </div>
 
-              <div className="space-y-1.5 max-h-[70vh] overflow-y-auto pr-1">
+              <div className="space-y-1.5 lg:max-h-[calc(100vh-180px)] overflow-y-auto pr-1">
                 {currentAlbum.tracks.map((track, idx) => {
                   const isSelected = idx === selectedTrackIndex;
                   return (
@@ -987,7 +987,7 @@ export const BackofficeView: React.FC<BackofficeViewProps> = ({
         {activeTab === 'lyrics' && currentAlbum && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* Left: Track list */}
-            <div className="lg:col-span-4 space-y-1.5 max-h-[75vh] overflow-y-auto pr-1">
+            <div className="lg:col-span-4 space-y-1.5 lg:sticky lg:top-24 lg:self-start lg:max-h-[calc(100vh-180px)] overflow-y-auto pr-1">
               <span className="text-xs font-mono uppercase tracking-widest text-white/50 font-bold block mb-2 px-1">
                 Seleziona Traccia
               </span>

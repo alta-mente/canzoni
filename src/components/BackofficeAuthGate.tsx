@@ -118,7 +118,7 @@ export const BackofficeAuthGate: React.FC<BackofficeAuthGateProps> = ({ onBackTo
   }
 
   return (
-    <div className="min-h-screen w-full bg-[#030407] text-white flex flex-col justify-between items-center relative overflow-hidden font-sans selection:bg-amber-500 selection:text-black">
+    <div className="min-h-screen w-full bg-[#030407] text-white flex flex-col justify-between items-center relative overflow-y-auto overflow-x-hidden font-sans selection:bg-amber-500 selection:text-black">
       {/* Background ambient lighting */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-red-600/10 rounded-full blur-[140px] pointer-events-none" />

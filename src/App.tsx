@@ -69,6 +69,21 @@ export const App: React.FC = () => {
     return () => window.removeEventListener('hashchange', handleHash);
   }, []);
 
+  // Manage viewport scroll behavior per view (lock on player, unlock on admin/epk)
+  useEffect(() => {
+    if (currentView === 'player') {
+      document.documentElement.style.overflow = 'hidden';
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.documentElement.style.overflow = 'auto';
+      document.body.style.overflow = 'auto';
+    }
+    return () => {
+      document.documentElement.style.overflow = '';
+      document.body.style.overflow = '';
+    };
+  }, [currentView]);
+
   const navigateTo = (view: 'player' | 'epk' | 'admin') => {
     setCurrentView(view);
     if (view === 'epk') {
