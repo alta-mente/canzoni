@@ -229,14 +229,14 @@ export const WidgetEmbedView: React.FC<WidgetEmbedViewProps> = ({ albums = DISCO
             {/* Info */}
             <div className="min-w-0 flex-1 pl-1">
               <div className="flex items-center gap-1">
-                <span className="text-[9px] font-mono font-bold text-amber-400 uppercase tracking-wider truncate">
+                <span className="text-[9px] font-mono font-bold text-amber-500 uppercase tracking-wider truncate">
                   {currentAlbum.artist}
                 </span>
-                <span className="text-[8px] font-mono px-1 py-0.2 rounded bg-white/10 text-white/60">
+                <span className={`text-[8px] font-mono px-1 py-0.2 rounded ${isLight ? 'bg-black/10 text-gray-700' : 'bg-white/10 text-white/60'}`}>
                   {String(currentTrack.number).padStart(2, '0')}
                 </span>
               </div>
-              <h4 className="font-mono text-xs font-bold truncate leading-tight text-white mt-0.5">
+              <h4 className={`font-mono text-xs font-bold truncate leading-tight mt-0.5 ${isLight ? 'text-gray-900' : 'text-white'}`}>
                 {currentTrack.title}
               </h4>
             </div>
@@ -256,32 +256,32 @@ export const WidgetEmbedView: React.FC<WidgetEmbedViewProps> = ({ albums = DISCO
             <div 
               ref={progressBarRef}
               onClick={handleSeek}
-              className="w-full h-1.5 bg-white/10 hover:h-2 rounded-full cursor-pointer relative overflow-hidden transition-all"
+              className={`w-full h-1.5 hover:h-2 rounded-full cursor-pointer relative overflow-hidden transition-all ${isLight ? 'bg-black/10' : 'bg-white/10'}`}
             >
               <div 
-                className="h-full bg-gradient-to-r from-amber-500 to-amber-300 rounded-full transition-all duration-100"
+                className="h-full bg-gradient-to-r from-amber-500 to-amber-400 rounded-full transition-all duration-100"
                 style={{ width: `${progressPercent}%` }}
               />
             </div>
 
-            <div className="flex items-center justify-between text-[9px] font-mono text-white/50 pt-0.5">
+            <div className={`flex items-center justify-between text-[9px] font-mono pt-0.5 ${isLight ? 'text-gray-600' : 'text-white/50'}`}>
               <span>{formatTime(currentTime)}</span>
 
               <div className="flex items-center gap-2">
-                <button onClick={handlePrev} className="hover:text-white transition-colors cursor-pointer" title="Precedente">
+                <button onClick={handlePrev} className={`transition-colors cursor-pointer ${isLight ? 'hover:text-black text-gray-700' : 'hover:text-white text-white/60'}`} title="Precedente">
                   <SkipBack className="w-3 h-3" />
                 </button>
-                <button onClick={handleNext} className="hover:text-white transition-colors cursor-pointer" title="Successivo">
+                <button onClick={handleNext} className={`transition-colors cursor-pointer ${isLight ? 'hover:text-black text-gray-700' : 'hover:text-white text-white/60'}`} title="Successivo">
                   <SkipForward className="w-3 h-3" />
                 </button>
-                <button onClick={toggleMute} className="hover:text-white transition-colors cursor-pointer" title="Volume">
-                  {isMuted ? <VolumeX className="w-3 h-3 text-red-400" /> : <Volume2 className="w-3 h-3" />}
+                <button onClick={toggleMute} className={`transition-colors cursor-pointer ${isLight ? 'hover:text-black text-gray-700' : 'hover:text-white text-white/60'}`} title="Volume">
+                  {isMuted ? <VolumeX className="w-3 h-3 text-red-500" /> : <Volume2 className="w-3 h-3" />}
                 </button>
                 <a
                   href={fullPlayerUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="hover:text-amber-400 transition-colors cursor-pointer"
+                  className={`transition-colors cursor-pointer ${isLight ? 'hover:text-black text-gray-700' : 'hover:text-amber-400 text-white/60'}`}
                   title="Apri il giradischi 3D completo"
                 >
                   <ExternalLink className="w-3 h-3" />
@@ -301,7 +301,7 @@ export const WidgetEmbedView: React.FC<WidgetEmbedViewProps> = ({ albums = DISCO
         <div
           className={`w-full h-full max-w-[280px] rounded-full px-3 py-1.5 shadow-2xl border flex items-center justify-between gap-2.5 backdrop-blur-2xl transition-all ${
             isLight
-              ? 'bg-white/95 text-gray-900 border-black/10'
+              ? 'bg-white/95 text-gray-900 border-black/10 shadow-black/15'
               : 'bg-[#0c0d15]/95 text-white border-amber-500/30 shadow-black/80'
           }`}
         >
@@ -322,10 +322,10 @@ export const WidgetEmbedView: React.FC<WidgetEmbedViewProps> = ({ albums = DISCO
 
           {/* Title & Artist */}
           <div className="min-w-0 flex-1">
-            <h4 className="font-mono text-[11px] font-bold truncate leading-tight text-white">
+            <h4 className={`font-mono text-[11px] font-bold truncate leading-tight ${isLight ? 'text-gray-900' : 'text-white'}`}>
               {currentTrack.title}
             </h4>
-            <p className="text-[9px] font-mono text-white/50 truncate">
+            <p className={`text-[9px] font-mono truncate ${isLight ? 'text-gray-500 font-medium' : 'text-white/50'}`}>
               {currentAlbum.artist}
             </p>
           </div>
