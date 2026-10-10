@@ -26,6 +26,21 @@
   var theme = currentScript.getAttribute('data-theme') || 'dark';
   var position = currentScript.getAttribute('data-position') || 'bottom-right'; // 'bottom-right' | 'bottom-left'
 
+  // If duplicate attributes exist in HTML tag, pick the last specified one
+  try {
+    var rawHtml = currentScript.outerHTML || '';
+    var styleMatches = rawHtml.match(/data-style=["']([^"']+)["']/g);
+    if (styleMatches && styleMatches.length > 0) {
+      var lastStyle = styleMatches[styleMatches.length - 1].replace(/data-style=["']/, '').replace(/["']$/, '');
+      if (lastStyle) style = lastStyle;
+    }
+    var themeMatches = rawHtml.match(/data-theme=["']([^"']+)["']/g);
+    if (themeMatches && themeMatches.length > 0) {
+      var lastTheme = themeMatches[themeMatches.length - 1].replace(/data-theme=["']/, '').replace(/["']$/, '');
+      if (lastTheme) theme = lastTheme;
+    }
+  } catch (e) {}
+
   // Base URL (derive from script source or default to github pages)
   var baseUrl = 'https://alta-mente.github.io/canzoni/';
   if (currentScript.src) {
