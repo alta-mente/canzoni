@@ -6,10 +6,11 @@ import { EPKView } from './components/EPKView';
 import { BackofficeView } from './components/BackofficeView';
 import { BackofficeAuthGate } from './components/BackofficeAuthGate';
 import { ShareModal } from './components/ShareModal';
+import { WidgetEmbedView } from './components/WidgetEmbedView';
 import { AlbumData, DISCOGRAPHY } from './data/albumData';
 
 export const App: React.FC = () => {
-  const [currentView, setCurrentView] = useState<'player' | 'epk' | 'admin'>('player');
+  const [currentView, setCurrentView] = useState<'player' | 'epk' | 'admin' | 'widget'>('player');
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [albums, setAlbums] = useState<AlbumData[]>(() => {
     try {
@@ -57,6 +58,8 @@ export const App: React.FC = () => {
         setCurrentView('epk');
       } else if (hash.startsWith('#admin') || hash.startsWith('#backoffice')) {
         setCurrentView('admin');
+      } else if (hash.startsWith('#widget') || hash.startsWith('#embed')) {
+        setCurrentView('widget');
       } else if (hash === '#player' || hash === '') {
         if (hash === '#player') {
           setCurrentView('player');
@@ -69,18 +72,29 @@ export const App: React.FC = () => {
     return () => window.removeEventListener('hashchange', handleHash);
   }, []);
 
-  // Manage viewport scroll behavior per view (lock on player, unlock on admin/epk)
+  // Manage viewport scroll & background behavior per view (lock on player/widget, unlock on admin/epk)
   useEffect(() => {
-    if (currentView === 'player') {
+    if (currentView === 'widget') {
       document.documentElement.style.overflow = 'hidden';
       document.body.style.overflow = 'hidden';
+      document.body.style.backgroundColor = 'transparent';
+      document.documentElement.style.backgroundColor = 'transparent';
+    } else if (currentView === 'player') {
+      document.documentElement.style.overflow = 'hidden';
+      document.body.style.overflow = 'hidden';
+      document.body.style.backgroundColor = '';
+      document.documentElement.style.backgroundColor = '';
     } else {
       document.documentElement.style.overflow = 'auto';
       document.body.style.overflow = 'auto';
+      document.body.style.backgroundColor = '';
+      document.documentElement.style.backgroundColor = '';
     }
     return () => {
       document.documentElement.style.overflow = '';
       document.body.style.overflow = '';
+      document.body.style.backgroundColor = '';
+      document.documentElement.style.backgroundColor = '';
     };
   }, [currentView]);
 
@@ -98,6 +112,10 @@ export const App: React.FC = () => {
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  if (currentView === 'widget') {
+    return <WidgetEmbedView albums={albums} />;
+  }
 
   return (
     <ThemeProvider>
@@ -118,6 +136,7 @@ export const App: React.FC = () => {
                 onAlbumsUpdated={(updated) => setAlbums(updated)}
                 onBackToPlayer={() => navigateTo('player')}
                 onLogout={handleLogout}
+                onOpenWidgetGenerator={() => setIsShareOpen(true)}
               />
             )}
           </BackofficeAuthGate>
@@ -129,7 +148,7 @@ export const App: React.FC = () => {
             onOpenBackoffice={() => navigateTo('admin')}
           />
         )}
-        <ShareModal isOpen={isShareOpen} onClose={() => setIsShareOpen(false)} />
+        <ShareModal isOpen={isShareOpen} onClose={() => setIsShareOpen(false)} albums={albums} />
       </NativeAudioProvider>
     </ThemeProvider>
   );

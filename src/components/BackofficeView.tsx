@@ -27,7 +27,8 @@ import {
   Download,
   Lock,
   RotateCcw,
-  FileJson
+  FileJson,
+  Code
 } from 'lucide-react';
 
 interface BackofficeViewProps {
@@ -35,6 +36,7 @@ interface BackofficeViewProps {
   onLogout?: () => void;
   albums?: AlbumData[];
   onAlbumsUpdated?: (albums: AlbumData[]) => void;
+  onOpenWidgetGenerator?: () => void;
 }
 
 interface MediaFile {
@@ -50,7 +52,8 @@ export const BackofficeView: React.FC<BackofficeViewProps> = ({
   onBackToPlayer,
   onLogout,
   albums: initialAlbums,
-  onAlbumsUpdated
+  onAlbumsUpdated,
+  onOpenWidgetGenerator
 }) => {
   const [albums, setAlbums] = useState<AlbumData[]>(() => {
     if (initialAlbums && initialAlbums.length > 0) return initialAlbums;
@@ -553,6 +556,18 @@ export const BackofficeView: React.FC<BackofficeViewProps> = ({
             <RotateCcw className="w-3.5 h-3.5" />
           </button>
 
+          {/* Generatore Widget Embed */}
+          {onOpenWidgetGenerator && (
+            <button
+              onClick={onOpenWidgetGenerator}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-400/10 hover:bg-amber-400/20 text-amber-300 border border-amber-400/30 font-mono text-xs font-bold transition-all shadow-sm"
+              title="Genera il widget per siti esterni (flottante o incorporato)"
+            >
+              <Code className="w-3.5 h-3.5 text-amber-400" />
+              <span className="hidden sm:inline">Genera Widget</span>
+            </button>
+          )}
+
           {onLogout && (
             <button
               onClick={onLogout}
@@ -718,6 +733,19 @@ export const BackofficeView: React.FC<BackofficeViewProps> = ({
                         )}
                       </button>
                     )}
+
+                    <button
+                      onClick={() => {
+                        const code = `<!-- Alessandro Rocchi - Player Flottante per "${activeTrack.title}" -->\n<div style="position:fixed;bottom:20px;right:20px;z-index:999999;filter:drop-shadow(0 15px 35px rgba(0,0,0,0.5));">\n  <iframe src="https://alta-mente.github.io/canzoni/#widget?album=${currentAlbum.id}&track=${activeTrack.number}&style=floating&theme=dark" width="340" height="165" frameborder="0" allow="autoplay; encrypted-media" style="border:none;border-radius:24px;overflow:hidden;background:transparent;"></iframe>\n</div>`;
+                        navigator.clipboard.writeText(code);
+                        showNotification(`Codice widget flottante per "${activeTrack.title}" copiato!`, 'success');
+                      }}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-mono text-white/80 hover:text-white transition-all"
+                      title="Copia codice HTML del widget flottante per questo brano"
+                    >
+                      <Code className="w-3.5 h-3.5 text-amber-400" />
+                      <span className="hidden sm:inline">Copia Widget</span>
+                    </button>
                   </div>
                 </div>
 
