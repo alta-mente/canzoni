@@ -4,7 +4,7 @@ import { useAudio } from '../context/NativeAudioContext';
 import { useTheme } from '../context/ThemeContext';
 import { VinylCarousel } from './VinylCarousel';
 import { EditorialSwissView } from './EditorialSwissView';
-import { RadialTrackSelector } from './RadialTrackSelector';
+import { RecordCrateSelector } from './RecordCrateSelector';
 import { 
   ChevronLeft, 
   ChevronRight, 
@@ -734,13 +734,7 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
       {/* ─────────────────────────────────────────────────────────────
           2. TRACK HERO & EDITORIAL LINER ROW (Spacious, balanced)
           ───────────────────────────────────────────────────────────── */}
-      <div
-        className={`relative z-10 flex flex-col items-start gap-1 pt-1 sm:pt-3 max-w-3xl shrink-0 w-full transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-          showTracklist
-            ? '-translate-y-2 sm:-translate-y-4 scale-[0.96] origin-top-left opacity-90'
-            : 'translate-y-0 scale-100 opacity-100'
-        }`}
-      >
+      <div className="relative z-10 flex flex-col items-start gap-1 pt-1 sm:pt-3 max-w-3xl shrink-0 w-full">
         
         {/* Track Title */}
         <div className="space-y-0.5 w-full">
@@ -791,14 +785,8 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
         )}
       </div>
 
-      {/* CENTER STAGE: The 3D Vinyl Carousel (shifts up smoothly when orbit is open) */}
-      <div
-        className={`relative z-10 flex-1 min-h-0 flex items-center justify-center my-auto w-full transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-          showTracklist
-            ? '-translate-y-4 sm:-translate-y-8 scale-[0.72] sm:scale-[0.80]'
-            : 'translate-y-0 scale-100'
-        }`}
-      >
+      {/* CENTER STAGE: The 3D Vinyl Carousel */}
+      <div className="relative z-10 flex-1 min-h-0 flex items-center justify-center my-auto w-full">
         <VinylCarousel
           currentIndex={currentIndex}
           onSelectTrack={handleSelectTrack}
@@ -807,31 +795,6 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
           displayMode={displayMode}
           album={currentAlbum}
         />
-      </div>
-
-      {/* ─────────────────────────────────────────────────────────────
-          EMERGING SEMICIRCLE TRACK ORBIT
-          Rises from below, shifting elements upward to make room!
-          ───────────────────────────────────────────────────────────── */}
-      <div
-        className={`relative z-30 w-full max-w-3xl mx-auto flex flex-col items-center justify-end transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] shrink-0 ${
-          showTracklist
-            ? 'h-[175px] sm:h-[220px] opacity-100 translate-y-0 pointer-events-auto my-1'
-            : 'h-0 opacity-0 translate-y-12 pointer-events-none my-0 overflow-hidden'
-        }`}
-      >
-        {showTracklist && (
-          <RadialTrackSelector
-            tracks={currentAlbum.tracks}
-            currentIndex={currentIndex}
-            isPlaying={isPlaying}
-            onSelectTrack={handleSelectTrack}
-            onClose={() => setShowTracklist(false)}
-            isLightMode={isLightMode}
-            albumCover={currentAlbum.coverUrl}
-            artistName={currentAlbum.artist}
-          />
-        )}
       </div>
 
       {/* BOTTOM CONTROLS: Unified Hi-Fi Capsule */}
@@ -1066,6 +1029,21 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
             </div>
           </aside>
         </div>
+      )}
+
+      {/* THE RECORD CRATE (Sfoglia la cassetta dei vinili in 3D) */}
+      {showTracklist && (
+        <RecordCrateSelector
+          tracks={currentAlbum.tracks}
+          currentIndex={currentIndex}
+          isPlaying={isPlaying}
+          onSelectTrack={handleSelectTrack}
+          onClose={() => setShowTracklist(false)}
+          isLightMode={isLightMode}
+          albumCover={currentAlbum.coverUrl}
+          artistName={currentAlbum.artist}
+          albumTitle={currentAlbum.title}
+        />
       )}
     </div>
     </div>
