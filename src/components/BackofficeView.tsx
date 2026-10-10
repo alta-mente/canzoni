@@ -25,7 +25,9 @@ import {
   Eye,
   CheckCircle2,
   Download,
-  Lock
+  Lock,
+  RotateCcw,
+  FileJson
 } from 'lucide-react';
 
 interface BackofficeViewProps {
@@ -50,7 +52,19 @@ export const BackofficeView: React.FC<BackofficeViewProps> = ({
   albums: initialAlbums,
   onAlbumsUpdated
 }) => {
-  const [albums, setAlbums] = useState<AlbumData[]>(initialAlbums && initialAlbums.length > 0 ? initialAlbums : DISCOGRAPHY);
+  const [albums, setAlbums] = useState<AlbumData[]>(() => {
+    if (initialAlbums && initialAlbums.length > 0) return initialAlbums;
+    try {
+      const saved = localStorage.getItem('antigravity_discography_custom');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {
+      console.warn('Could not parse localStorage discography:', e);
+    }
+    return DISCOGRAPHY;
+  });
   const [selectedAlbumId, setSelectedAlbumId] = useState<string>(initialAlbums?.[0]?.id || DISCOGRAPHY[0]?.id || '');
   const [activeTab, setActiveTab] = useState<'albums' | 'tracks' | 'lyrics' | 'media'>('tracks');
   const [selectedTrackIndex, setSelectedTrackIndex] = useState<number>(0);
@@ -72,6 +86,10 @@ export const BackofficeView: React.FC<BackofficeViewProps> = ({
   const [isPreviewPlaying, setIsPreviewPlaying] = useState<boolean>(false);
   const audioPreviewRef = useRef<HTMLAudioElement | null>(null);
 
+  // JSON export/import helpers
+  const [hasCopiedJson, setHasCopiedJson] = useState<boolean>(false);
+  const jsonFileInputRef = useRef<HTMLInputElement | null>(null);
+
   // Sync if initialAlbums prop updates
   useEffect(() => {
     if (initialAlbums && initialAlbums.length > 0) {
@@ -92,18 +110,24 @@ export const BackofficeView: React.FC<BackofficeViewProps> = ({
     setStatusMessage({ type, text });
     setTimeout(() => {
       setStatusMessage(null);
-    }, 4000);
+    }, 4500);
   };
 
   const fetchAlbums = async () => {
     setIsLoading(true);
     try {
       const res = await fetch('/api/albums');
-      if (res.ok) {
+      const contentType = res.headers.get('content-type') || '';
+      if (res.ok && contentType.includes('application/json')) {
         const data = await res.json();
-        setAlbums(data);
-        if (data.length > 0 && !selectedAlbumId) {
-          setSelectedAlbumId(data[0].id);
+        if (Array.isArray(data) && data.length > 0) {
+          const hasLocalCustom = !!localStorage.getItem('antigravity_discography_custom');
+          if (!hasLocalCustom) {
+            setAlbums(data);
+            if (!selectedAlbumId) {
+              setSelectedAlbumId(data[0].id);
+            }
+          }
         }
       }
     } catch (err) {
@@ -116,7 +140,8 @@ export const BackofficeView: React.FC<BackofficeViewProps> = ({
   const fetchMediaFiles = async () => {
     try {
       const res = await fetch('/api/media');
-      if (res.ok) {
+      const contentType = res.headers.get('content-type') || '';
+      if (res.ok && contentType.includes('application/json')) {
         const data = await res.json();
         setMediaFiles(data.files || []);
       }
@@ -128,24 +153,107 @@ export const BackofficeView: React.FC<BackofficeViewProps> = ({
   const saveAlbumsToDisk = async (albumsToSave = albums) => {
     setIsSaving(true);
     try {
-      const res = await fetch('/api/albums', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(albumsToSave, null, 2)
-      });
-      if (res.ok) {
-        showNotification('Modifiche salvate con successo su disco!', 'success');
-        if (onAlbumsUpdated) {
-          onAlbumsUpdated(albumsToSave);
+      // 1. ALWAYS persist immediately to browser localStorage
+      try {
+        localStorage.setItem('antigravity_discography_custom', JSON.stringify(albumsToSave, null, 2));
+      } catch (storageErr) {
+        console.warn('LocalStorage save error:', storageErr);
+      }
+
+      if (onAlbumsUpdated) {
+        onAlbumsUpdated(albumsToSave);
+      }
+
+      // 2. Try saving to server (local development Vite backend)
+      let savedOnServer = false;
+      try {
+        const res = await fetch('/api/albums', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(albumsToSave, null, 2)
+        });
+
+        const contentType = res.headers.get('content-type') || '';
+        if (res.ok && contentType.includes('application/json')) {
+          const data = await res.json().catch(() => ({}));
+          if (data?.success) {
+            savedOnServer = true;
+          }
         }
+      } catch {
+        // Server fetch failed (e.g. static hosting on GitHub Pages)
+      }
+
+      if (savedOnServer) {
+        showNotification('Modifiche salvate con successo su disco e nel browser!', 'success');
       } else {
-        const err = await res.json();
-        showNotification(`Errore di salvataggio: ${err.error}`, 'error');
+        showNotification(
+          'Modifiche salvate nel browser e attive nel player! Su GitHub Pages usa "Scarica JSON" per aggiornare il repository.',
+          'success'
+        );
       }
     } catch (err: any) {
-      showNotification(`Errore di rete: ${err.message}`, 'error');
+      showNotification(`Errore: ${err.message}`, 'error');
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const downloadAlbumsJson = () => {
+    try {
+      const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(albums, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute('href', dataStr);
+      downloadAnchor.setAttribute('download', 'albums.json');
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+      showNotification('File albums.json scaricato con successo!', 'success');
+    } catch (err: any) {
+      showNotification(`Errore download: ${err.message}`, 'error');
+    }
+  };
+
+  const copyAlbumsJson = async () => {
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(albums, null, 2));
+      setHasCopiedJson(true);
+      showNotification('JSON completo copiato negli appunti!', 'success');
+      setTimeout(() => setHasCopiedJson(false), 2500);
+    } catch (err: any) {
+      showNotification(`Errore copia: ${err.message}`, 'error');
+    }
+  };
+
+  const handleImportJsonFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const text = event.target?.result as string;
+        const parsed = JSON.parse(text);
+        if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].tracks) {
+          setAlbums(parsed);
+          saveAlbumsToDisk(parsed);
+          showNotification('Nuovo albums.json importato con successo!', 'success');
+        } else {
+          showNotification('Formato JSON non valido (atteso array di album)', 'error');
+        }
+      } catch (err: any) {
+        showNotification(`Errore lettura JSON: ${err.message}`, 'error');
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+
+  const resetToDefault = () => {
+    if (window.confirm('Vuoi ripristinare la discografia originale? Tutte le modifiche locali non salvate su file andranno perse.')) {
+      localStorage.removeItem('antigravity_discography_custom');
+      setAlbums(DISCOGRAPHY);
+      if (onAlbumsUpdated) onAlbumsUpdated(DISCOGRAPHY);
+      showNotification('Discografia originale ripristinata!', 'info');
     }
   };
 
@@ -158,13 +266,18 @@ export const BackofficeView: React.FC<BackofficeViewProps> = ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ urlOrId: sunoImportUrl.trim() })
       });
-      const data = await res.json();
-      if (res.ok && data.lyrics) {
-        updateCurrentTrack('lyrics', data.lyrics);
-        showNotification('Testo importato da Suno con successo!', 'success');
-        setSunoImportUrl('');
+      const contentType = res.headers.get('content-type') || '';
+      if (res.ok && contentType.includes('application/json')) {
+        const data = await res.json();
+        if (data.lyrics) {
+          updateCurrentTrack('lyrics', data.lyrics);
+          showNotification('Testo importato da Suno con successo!', 'success');
+          setSunoImportUrl('');
+        } else {
+          showNotification(data.error || 'Errore importazione testo da Suno', 'error');
+        }
       } else {
-        showNotification(data.error || 'Errore importazione testo da Suno', 'error');
+        showNotification('Importazione Suno disponibile solo in locale con server attivo (npm run dev)', 'info');
       }
     } catch (err: any) {
       showNotification(`Errore di rete: ${err.message}`, 'error');
@@ -192,15 +305,22 @@ export const BackofficeView: React.FC<BackofficeViewProps> = ({
               base64Data
             })
           });
-          const result = await res.json();
-          if (res.ok && result.success) {
-            showNotification(`File "${result.filename}" caricato in ${targetFolder}!`, 'success');
-            fetchMediaFiles();
-            resolve(result.url);
-          } else {
-            showNotification(`Upload fallito: ${result.error}`, 'error');
-            resolve(null);
+          const contentType = res.headers.get('content-type') || '';
+          if (res.ok && contentType.includes('application/json')) {
+            const result = await res.json();
+            if (result.success) {
+              showNotification(`File "${result.filename}" caricato in ${targetFolder}!`, 'success');
+              fetchMediaFiles();
+              resolve(result.url);
+              return;
+            } else {
+              showNotification(`Upload fallito: ${result.error}`, 'error');
+              resolve(null);
+              return;
+            }
           }
+          showNotification('Upload file su disco disponibile solo in locale con server attivo (npm run dev)', 'info');
+          resolve(null);
         } catch (err: any) {
           showNotification(`Errore upload: ${err.message}`, 'error');
           resolve(null);
@@ -376,13 +496,61 @@ export const BackofficeView: React.FC<BackofficeViewProps> = ({
             </div>
           )}
 
+          {/* Salva modifiche */}
           <button
             onClick={() => saveAlbumsToDisk()}
             disabled={isSaving}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-mono font-bold text-xs shadow-lg shadow-amber-500/20 active:scale-95 transition-all disabled:opacity-50"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-mono font-bold text-xs shadow-lg shadow-amber-500/20 active:scale-95 transition-all disabled:opacity-50"
+            title="Salva modifiche (salva immediatamente nel browser e su file se in locale)"
           >
             {isSaving ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
-            <span>Salva su Disco</span>
+            <span>Salva</span>
+          </button>
+
+          {/* Scarica JSON */}
+          <button
+            onClick={downloadAlbumsJson}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/80 hover:text-white border border-white/10 font-mono text-xs font-medium transition-all"
+            title="Scarica il file albums.json aggiornato"
+          >
+            <Download className="w-3.5 h-3.5 text-amber-400" />
+            <span className="hidden sm:inline">Scarica JSON</span>
+          </button>
+
+          {/* Copia JSON */}
+          <button
+            onClick={copyAlbumsJson}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/80 hover:text-white border border-white/10 font-mono text-xs font-medium transition-all"
+            title="Copia l'intero JSON negli appunti"
+          >
+            {hasCopiedJson ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-white/60" />}
+            <span className="hidden md:inline">{hasCopiedJson ? 'Copiato!' : 'Copia'}</span>
+          </button>
+
+          {/* Importa JSON */}
+          <button
+            onClick={() => jsonFileInputRef.current?.click()}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/80 hover:text-white border border-white/10 font-mono text-xs font-medium transition-all"
+            title="Importa un file albums.json salvato"
+          >
+            <Upload className="w-3.5 h-3.5 text-white/60" />
+            <span className="hidden lg:inline">Importa</span>
+            <input
+              ref={jsonFileInputRef}
+              type="file"
+              accept=".json,application/json"
+              className="hidden"
+              onChange={handleImportJsonFile}
+            />
+          </button>
+
+          {/* Ripristina Default */}
+          <button
+            onClick={resetToDefault}
+            className="flex items-center gap-1.5 px-2.5 py-2 rounded-xl bg-white/5 hover:bg-amber-500/20 text-white/60 hover:text-amber-300 border border-white/10 font-mono text-xs transition-all"
+            title="Ripristina la discografia originale"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
           </button>
 
           {onLogout && (
@@ -1074,6 +1242,57 @@ export const BackofficeView: React.FC<BackofficeViewProps> = ({
                   onChange={(e) => updateCurrentAlbum('synopsis', e.target.value)}
                   className="w-full p-3.5 rounded-xl bg-black/40 border border-white/10 text-white font-mono text-xs focus:border-amber-400 outline-none resize-none"
                 />
+              </div>
+            </div>
+
+            {/* Sezione Backup & Esportazione */}
+            <div className="pt-6 border-t border-white/10 space-y-4">
+              <div>
+                <h3 className="text-sm font-mono font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                  <FileJson className="w-4 h-4 text-amber-400" />
+                  <span>Backup & Sincronizzazione Dati (JSON)</span>
+                </h3>
+                <p className="text-xs font-mono text-white/50 mt-1">
+                  Salva le modifiche nel browser, esporta il file per il codice sorgente o ripristina la discografia predefinita.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <button
+                  type="button"
+                  onClick={() => saveAlbumsToDisk()}
+                  className="flex items-center justify-center gap-2 p-3 rounded-2xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 font-mono text-xs font-bold transition-all"
+                >
+                  <Save className="w-4 h-4" />
+                  <span>Salva Modifiche</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={downloadAlbumsJson}
+                  className="flex items-center justify-center gap-2 p-3 rounded-2xl bg-white/5 hover:bg-white/10 text-white border border-white/10 font-mono text-xs font-bold transition-all"
+                >
+                  <Download className="w-4 h-4 text-amber-400" />
+                  <span>Scarica albums.json</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={copyAlbumsJson}
+                  className="flex items-center justify-center gap-2 p-3 rounded-2xl bg-white/5 hover:bg-white/10 text-white border border-white/10 font-mono text-xs font-bold transition-all"
+                >
+                  {hasCopiedJson ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4 text-white/60" />}
+                  <span>{hasCopiedJson ? 'Copiato!' : 'Copia JSON'}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={resetToDefault}
+                  className="flex items-center justify-center gap-2 p-3 rounded-2xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30 font-mono text-xs font-bold transition-all"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                  <span>Ripristina Default</span>
+                </button>
               </div>
             </div>
           </div>

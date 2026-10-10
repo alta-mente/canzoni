@@ -11,18 +11,36 @@ import { AlbumData, DISCOGRAPHY } from './data/albumData';
 export const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<'player' | 'epk' | 'admin'>('player');
   const [isShareOpen, setIsShareOpen] = useState(false);
-  const [albums, setAlbums] = useState<AlbumData[]>(DISCOGRAPHY);
+  const [albums, setAlbums] = useState<AlbumData[]>(() => {
+    try {
+      const saved = localStorage.getItem('antigravity_discography_custom');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      }
+    } catch (e) {
+      console.warn('Could not parse localStorage discography:', e);
+    }
+    return DISCOGRAPHY;
+  });
 
-  // Fetch latest discography from server if available
+  // Fetch latest discography from server if available (e.g. local dev server)
   useEffect(() => {
     fetch('/api/albums')
       .then((res) => {
-        if (res.ok) return res.json();
+        const ct = res.headers.get('content-type') || '';
+        if (res.ok && ct.includes('application/json')) return res.json();
         return null;
       })
       .then((data) => {
         if (data && Array.isArray(data) && data.length > 0) {
-          setAlbums(data);
+          // If no local storage customization exists, use server data
+          const hasLocalCustom = !!localStorage.getItem('antigravity_discography_custom');
+          if (!hasLocalCustom) {
+            setAlbums(data);
+          }
         }
       })
       .catch((err) => {

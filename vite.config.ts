@@ -12,27 +12,29 @@ function backofficeApiPlugin(): Plugin {
         const pathname = parsedUrl.pathname;
 
         // 1. GET /api/albums
-        if (pathname === '/api/albums' && req.method === 'GET') {
+        if ((pathname === '/api/albums' || pathname.endsWith('/api/albums')) && req.method === 'GET') {
           const filePath = path.resolve(__dirname, 'src/data/albums.json');
           if (fs.existsSync(filePath)) {
             const data = fs.readFileSync(filePath, 'utf8');
-            res.setHeader('Content-Type', 'application/json');
+            res.setHeader('Content-Type', 'application/json; charset=utf-8');
             res.end(data);
           } else {
             res.statusCode = 404;
+            res.setHeader('Content-Type', 'application/json');
             res.end(JSON.stringify({ error: 'albums.json not found' }));
           }
           return;
         }
 
         // 2. POST /api/albums
-        if (pathname === '/api/albums' && req.method === 'POST') {
-          let body = '';
+        if ((pathname === '/api/albums' || pathname.endsWith('/api/albums')) && req.method === 'POST') {
+          const chunks: Buffer[] = [];
           req.on('data', (chunk) => {
-            body += chunk;
+            chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
           });
           req.on('end', () => {
             try {
+              const body = Buffer.concat(chunks).toString('utf8');
               const albums = JSON.parse(body);
               const filePath = path.resolve(__dirname, 'src/data/albums.json');
               fs.writeFileSync(filePath, JSON.stringify(albums, null, 2), 'utf8');
@@ -40,6 +42,7 @@ function backofficeApiPlugin(): Plugin {
               res.end(JSON.stringify({ success: true, count: albums.length }));
             } catch (err: any) {
               res.statusCode = 400;
+              res.setHeader('Content-Type', 'application/json');
               res.end(JSON.stringify({ error: err.message || 'Invalid JSON' }));
             }
           });
@@ -47,16 +50,18 @@ function backofficeApiPlugin(): Plugin {
         }
 
         // 3. POST /api/upload
-        if (pathname === '/api/upload' && req.method === 'POST') {
-          let body = '';
+        if ((pathname === '/api/upload' || pathname.endsWith('/api/upload')) && req.method === 'POST') {
+          const chunks: Buffer[] = [];
           req.on('data', (chunk) => {
-            body += chunk;
+            chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
           });
           req.on('end', () => {
             try {
+              const body = Buffer.concat(chunks).toString('utf8');
               const { filename, targetFolder = 'uploads', base64Data } = JSON.parse(body);
               if (!filename || !base64Data) {
                 res.statusCode = 400;
+                res.setHeader('Content-Type', 'application/json');
                 res.end(JSON.stringify({ error: 'Missing filename or base64Data' }));
                 return;
               }
@@ -94,7 +99,7 @@ function backofficeApiPlugin(): Plugin {
         }
 
         // 4. GET /api/media
-        if (pathname === '/api/media' && req.method === 'GET') {
+        if ((pathname === '/api/media' || pathname.endsWith('/api/media')) && req.method === 'GET') {
           const publicDir = path.resolve(__dirname, 'public');
           const results: Array<{
             name: string;
@@ -145,20 +150,23 @@ function backofficeApiPlugin(): Plugin {
         }
 
         // 5. POST /api/import-suno
-        if (pathname === '/api/import-suno' && req.method === 'POST') {
-          let body = '';
-          req.on('data', (chunk) => body += chunk);
+        if ((pathname === '/api/import-suno' || pathname.endsWith('/api/import-suno')) && req.method === 'POST') {
+          const chunks: Buffer[] = [];
+          req.on('data', (chunk) => chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)));
           req.on('end', async () => {
             try {
+              const body = Buffer.concat(chunks).toString('utf8');
               const { urlOrId } = JSON.parse(body);
               if (!urlOrId) {
                 res.statusCode = 400;
+                res.setHeader('Content-Type', 'application/json');
                 res.end(JSON.stringify({ error: 'Missing urlOrId' }));
                 return;
               }
               const m = urlOrId.match(/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/i);
               if (!m) {
                 res.statusCode = 400;
+                res.setHeader('Content-Type', 'application/json');
                 res.end(JSON.stringify({ error: 'Nessun ID o link Suno valido trovato' }));
                 return;
               }
