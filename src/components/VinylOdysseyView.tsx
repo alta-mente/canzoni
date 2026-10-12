@@ -353,6 +353,17 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
             loop
             muted
             playsInline
+            onError={(e) => {
+              const target = e.currentTarget;
+              if (target.src && target.src.includes('video-fette') && !target.src.includes('raw.githubusercontent.com')) {
+                const filename = target.src.split('/').pop()?.split('?')[0];
+                if (filename) {
+                  target.src = `https://raw.githubusercontent.com/alta-mente/canzoni/main/public/video-fette/${filename}`;
+                  target.load();
+                  target.play().catch(() => {});
+                }
+              }
+            }}
             className={`w-full h-full object-cover transition-opacity duration-1000 ${
               isLightMode ? 'opacity-30 mix-blend-multiply' : 'opacity-65 mix-blend-normal'
             }`}
