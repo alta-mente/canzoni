@@ -407,20 +407,21 @@
       {
         "id": "fb-track-11",
         "number": 11,
-        "title": "Lasciami una luce accesa",
+        "title": "Shanghai",
         "spotifyId": "",
         "spotifyUri": "",
         "spotifyUrl": "",
         "duration": "3:28",
         "durationSeconds": 208,
-        "audioSrc": "/audio-fette/track-11.m4a",
-        "artworkUrl": "/images/artwork-fette/track-11.jpeg",
+        "audioSrc": "/audio-fette/SHANGHAI.mp3",
+        "artworkUrl": "/imagesartwork-fette/Progetto_senza_titolo__6_.png",
         "mood": "Speranza • Notte Fonda • Guida",
         "storyQuote": "«Lasciami una luce accesa, sul comodino o in cucina, come un segnale nella nebbia quando la notte si avvicina.»",
         "colorDark": "#ca8a04",
         "colorLight": "#fefce8",
         "highlight": false,
-        "lyrics": "[Verse 1]\nScrivimi una canzone mentre,\nsono in bagno e la televisione mente.\nTu raccontami tutte le cose che\nti fanno felice, non so se si dice.\nLascia le scarpe vicino all’ingresso,\ndimmi che il mondo fa schifo lo stesso.\nLa luna scintilla sull'orlo del bicchiere,\ndimmi che cosa sei venuto a bere.\n\n[Chorus]\nE noi restiamo a guardare,\ne se resti qui con me\nproviamo a cambiare,\nma se invece te ne vai\nnon so con chi parlare.\n\n[Verse 2]\nIl posacenere è pieno sul tavolo,\ndimmi chi è stato a inventare il diavolo.\nMi giuri che questo è il momento perfetto\nper chiudere a chiave qualche cassetto.\n\n[Bridge]\nE non serve capire dove andremo a finire,\nse la sveglia suona o se crolla il soffitto.\n\n[Chorus]\nE noi restiamo a guardare,\ne se resti qui con me\nproviamo a cambiare,\nma se invece te ne vai\nnon so con chi parlare.\n\n[Outro]\nLasciami una luce accesa nell’ingresso.\nDimmi che resti, anche se non è più presto.\nDimmi che cosa sei venuto a bere,\nprima che il sole ci venga a vedere.\n\n[End]"
+        "lyrics": "[Verse 1]\nScrivimi una canzone mentre,\nsono in bagno e la televisione mente.\nTu raccontami tutte le cose che\nti fanno felice, non so se si dice.\nLascia le scarpe vicino all’ingresso,\ndimmi che il mondo fa schifo lo stesso.\nLa luna scintilla sull'orlo del bicchiere,\ndimmi che cosa sei venuto a bere.\n\n[Chorus]\nE noi restiamo a guardare,\ne se resti qui con me\nproviamo a cambiare,\nma se invece te ne vai\nnon so con chi parlare.\n\n[Verse 2]\nIl posacenere è pieno sul tavolo,\ndimmi chi è stato a inventare il diavolo.\nMi giuri che questo è il momento perfetto\nper chiudere a chiave qualche cassetto.\n\n[Bridge]\nE non serve capire dove andremo a finire,\nse la sveglia suona o se crolla il soffitto.\n\n[Chorus]\nE noi restiamo a guardare,\ne se resti qui con me\nproviamo a cambiare,\nma se invece te ne vai\nnon so con chi parlare.\n\n[Outro]\nLasciami una luce accesa nell’ingresso.\nDimmi che resti, anche se non è più presto.\nDimmi che cosa sei venuto a bere,\nprima che il sole ci venga a vedere.\n\n[End]",
+        "canvasVideoSrc": "/video-fette/15643001_3840_2160_25fps.mp4"
       },
       {
         "id": "fb-track-12",
