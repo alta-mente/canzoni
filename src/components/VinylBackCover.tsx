@@ -21,10 +21,12 @@ export const VinylBackCover: React.FC<VinylBackCoverProps> = ({
   album,
   isLightMode,
 }) => {
-  const sideA = tracks.slice(0, 5);
-  const sideB = tracks.slice(5, 10);
+  const half = Math.ceil(tracks.length / 2);
+  const sideA = tracks.slice(0, half);
+  const sideB = tracks.slice(half);
 
-  const handleTrackClick = (index: number) => {
+  const handleTrackClick = (e: React.MouseEvent, index: number) => {
+    e.stopPropagation();
     onSelectTrack(index);
     onClose();
   };
@@ -32,11 +34,11 @@ export const VinylBackCover: React.FC<VinylBackCoverProps> = ({
   return (
     <div
       onClick={(e) => e.stopPropagation()}
-      className="relative w-[min(94vw,520px)] aspect-square rounded-[4px] p-4 sm:p-7 flex flex-col justify-between select-none shadow-[0_40px_100px_rgba(0,0,0,0.9),0_0_50px_rgba(0,0,0,0.5)] border border-white/20 overflow-hidden text-white"
+      className="relative w-[min(94vw,520px)] aspect-square rounded-[4px] p-3.5 sm:p-6 flex flex-col justify-between select-none shadow-[0_40px_100px_rgba(0,0,0,0.9),0_0_50px_rgba(0,0,0,0.5)] border border-white/20 overflow-hidden text-white"
       style={{
-        backgroundColor: '#0f1016',
+        backgroundColor: '#0c0d12',
         backgroundImage:
-          'radial-gradient(circle at 50% 50%, rgba(255,255,255,0.03) 0%, transparent 80%)',
+          'radial-gradient(circle at 50% 50%, rgba(255,255,255,0.04) 0%, transparent 80%)',
       }}
     >
       {/* ─────────────────────────────────────────────────────────────
@@ -60,10 +62,10 @@ export const VinylBackCover: React.FC<VinylBackCoverProps> = ({
       {/* ─────────────────────────────────────────────────────────────
           1. HEADER: RETRO DELLA CUSTODIA (Back Cover Header)
           ───────────────────────────────────────────────────────────── */}
-      <div className="relative z-10 pl-2 sm:pl-3 flex items-start justify-between border-b border-white/10 pb-2.5 sm:pb-3 shrink-0">
+      <div className="relative z-10 pl-2 sm:pl-3 flex items-start justify-between border-b border-white/10 pb-2 sm:pb-2.5 shrink-0">
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-[8px] sm:text-[9px] font-mono uppercase tracking-[0.28em] text-amber-400 font-bold">
+            <span className="text-[8px] sm:text-[9px] font-mono uppercase tracking-[0.28em] text-white/90 font-bold">
               LATO A / LATO B • 33⅓ GIRI
             </span>
             <span className="text-[8px] sm:text-[9px] font-mono opacity-40">•</span>
@@ -71,7 +73,7 @@ export const VinylBackCover: React.FC<VinylBackCoverProps> = ({
               {album.year}
             </span>
           </div>
-          <h2 className="text-sm sm:text-lg font-black font-sans tracking-tight uppercase mt-0.5 text-white">
+          <h2 className="text-sm sm:text-base md:text-lg font-black font-sans tracking-tight uppercase mt-0.5 text-white truncate max-w-[260px] sm:max-w-[360px]">
             {album.artist} — {album.title}
           </h2>
         </div>
@@ -81,9 +83,9 @@ export const VinylBackCover: React.FC<VinylBackCoverProps> = ({
           onClick={onClose}
           type="button"
           title="Gira copertina sul fronte (ESC)"
-          className="group flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white font-mono text-[9px] sm:text-[10px] font-bold tracking-wider uppercase transition-all duration-200 hover:scale-105 active:scale-95 shadow-md shrink-0"
+          className="group flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white font-mono text-[9px] sm:text-[10px] font-bold tracking-wider uppercase transition-all duration-200 hover:scale-105 active:scale-95 shadow-md shrink-0 cursor-pointer"
         >
-          <RotateCcw className="w-3 h-3 group-hover:-rotate-90 transition-transform duration-300 text-amber-400" />
+          <RotateCcw className="w-3 h-3 group-hover:-rotate-90 transition-transform duration-300 text-white" />
           <span className="hidden xs:inline">Fronte</span>
           <X className="w-3 h-3 xs:hidden" />
         </button>
@@ -92,49 +94,49 @@ export const VinylBackCover: React.FC<VinylBackCoverProps> = ({
       {/* ─────────────────────────────────────────────────────────────
           2. TRACKLIST: LATO A & LATO B (Two Columns)
           ───────────────────────────────────────────────────────────── */}
-      <div className="relative z-10 pl-2 sm:pl-3 my-auto grid grid-cols-2 gap-3 sm:gap-6 py-2">
-        {/* LATO A (Tracce 1 - 5) */}
-        <div className="space-y-1 sm:space-y-1.5">
+      <div className="relative z-10 pl-2 sm:pl-3 my-auto grid grid-cols-2 gap-2 sm:gap-4 py-1.5 overflow-hidden">
+        {/* LATO A */}
+        <div className="space-y-1">
           <div className="flex items-center gap-1.5 pb-1 border-b border-white/10">
-            <span className="w-2 h-2 rounded-full bg-amber-400/80 shrink-0" />
-            <span className="font-mono text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-amber-400">
+            <span className="w-2 h-2 rounded-full bg-white/80 shrink-0" />
+            <span className="font-mono text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-white/90">
               LATO A
             </span>
           </div>
 
-          <div className="space-y-0.5 sm:space-y-1">
+          <div className="space-y-0.5">
             {sideA.map((t, idx) => {
               const globalIdx = idx;
               const isSelected = globalIdx === currentIndex;
               return (
                 <button
                   key={t.id}
-                  onClick={() => handleTrackClick(globalIdx)}
+                  onClick={(e) => handleTrackClick(e, globalIdx)}
                   type="button"
-                  className={`w-full text-left p-1.5 sm:p-2 rounded-lg transition-all duration-150 flex items-center justify-between group focus:outline-none ${
+                  className={`w-full text-left p-1 sm:p-1.5 rounded-md transition-all duration-150 flex items-center justify-between group focus:outline-none cursor-pointer ${
                     isSelected
-                      ? 'bg-amber-400/20 text-amber-300 border border-amber-400/40 shadow-sm'
+                      ? 'bg-white/20 text-white border border-white/40 shadow-sm font-semibold'
                       : 'hover:bg-white/10 text-white/80 hover:text-white'
                   }`}
                 >
-                  <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 pr-1 truncate">
+                  <div className="flex items-center gap-1.5 min-w-0 pr-1 truncate">
                     <span
                       className={`font-mono text-[8px] sm:text-[9px] font-bold shrink-0 ${
-                        isSelected ? 'text-amber-400' : 'opacity-40'
+                        isSelected ? 'text-white' : 'opacity-40'
                       }`}
                     >
                       A{idx + 1}
                     </span>
-                    <span className="font-sans text-[10px] sm:text-[12px] font-bold truncate leading-tight">
+                    <span className="font-sans text-[9px] sm:text-[11px] font-bold truncate leading-tight">
                       {t.title}
                     </span>
                   </div>
 
                   <div className="flex items-center gap-1 shrink-0">
                     {isSelected && isPlaying ? (
-                      <Volume2 className="w-3 h-3 text-amber-400 animate-pulse" />
+                      <Volume2 className="w-3 h-3 text-white animate-pulse" />
                     ) : (
-                      <span className="font-mono text-[8px] sm:text-[9px] opacity-40 group-hover:opacity-80">
+                      <span className="font-mono text-[7px] sm:text-[8px] opacity-40 group-hover:opacity-80">
                         {t.duration}
                       </span>
                     )}
@@ -145,48 +147,48 @@ export const VinylBackCover: React.FC<VinylBackCoverProps> = ({
           </div>
         </div>
 
-        {/* LATO B (Tracce 6 - 10) */}
-        <div className="space-y-1 sm:space-y-1.5">
+        {/* LATO B */}
+        <div className="space-y-1">
           <div className="flex items-center gap-1.5 pb-1 border-b border-white/10">
-            <span className="w-2 h-2 rounded-full bg-amber-400/80 shrink-0" />
-            <span className="font-mono text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-amber-400">
+            <span className="w-2 h-2 rounded-full bg-white/80 shrink-0" />
+            <span className="font-mono text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-white/90">
               LATO B
             </span>
           </div>
 
-          <div className="space-y-0.5 sm:space-y-1">
+          <div className="space-y-0.5">
             {sideB.map((t, idx) => {
-              const globalIdx = idx + 5;
+              const globalIdx = idx + half;
               const isSelected = globalIdx === currentIndex;
               return (
                 <button
                   key={t.id}
-                  onClick={() => handleTrackClick(globalIdx)}
+                  onClick={(e) => handleTrackClick(e, globalIdx)}
                   type="button"
-                  className={`w-full text-left p-1.5 sm:p-2 rounded-lg transition-all duration-150 flex items-center justify-between group focus:outline-none ${
+                  className={`w-full text-left p-1 sm:p-1.5 rounded-md transition-all duration-150 flex items-center justify-between group focus:outline-none cursor-pointer ${
                     isSelected
-                      ? 'bg-amber-400/20 text-amber-300 border border-amber-400/40 shadow-sm'
+                      ? 'bg-white/20 text-white border border-white/40 shadow-sm font-semibold'
                       : 'hover:bg-white/10 text-white/80 hover:text-white'
                   }`}
                 >
-                  <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 pr-1 truncate">
+                  <div className="flex items-center gap-1.5 min-w-0 pr-1 truncate">
                     <span
                       className={`font-mono text-[8px] sm:text-[9px] font-bold shrink-0 ${
-                        isSelected ? 'text-amber-400' : 'opacity-40'
+                        isSelected ? 'text-white' : 'opacity-40'
                       }`}
                     >
                       B{idx + 1}
                     </span>
-                    <span className="font-sans text-[10px] sm:text-[12px] font-bold truncate leading-tight">
+                    <span className="font-sans text-[9px] sm:text-[11px] font-bold truncate leading-tight">
                       {t.title}
                     </span>
                   </div>
 
                   <div className="flex items-center gap-1 shrink-0">
                     {isSelected && isPlaying ? (
-                      <Volume2 className="w-3 h-3 text-amber-400 animate-pulse" />
+                      <Volume2 className="w-3 h-3 text-white animate-pulse" />
                     ) : (
-                      <span className="font-mono text-[8px] sm:text-[9px] opacity-40 group-hover:opacity-80">
+                      <span className="font-mono text-[7px] sm:text-[8px] opacity-40 group-hover:opacity-80">
                         {t.duration}
                       </span>
                     )}
@@ -201,7 +203,7 @@ export const VinylBackCover: React.FC<VinylBackCoverProps> = ({
       {/* ─────────────────────────────────────────────────────────────
           3. FOOTER: CREDITS, BARCODE & CATALOG STAMP
           ───────────────────────────────────────────────────────────── */}
-      <div className="relative z-10 pl-2 sm:pl-3 pt-2 border-t border-white/10 flex items-end justify-between text-[7px] sm:text-[8px] font-mono text-white/50 shrink-0">
+      <div className="relative z-10 pl-2 sm:pl-3 pt-1.5 border-t border-white/10 flex items-end justify-between text-[7px] sm:text-[8px] font-mono text-white/50 shrink-0">
         <div className="space-y-0.5 leading-tight max-w-[240px] sm:max-w-[340px]">
           <div>PRODUZIONE: {album.credits?.production || 'Alessandro Rocchi'}</div>
           <div>TESTI & MUSICA: {album.artist} • WEAGENCY RECORDS</div>
@@ -210,7 +212,7 @@ export const VinylBackCover: React.FC<VinylBackCoverProps> = ({
 
         {/* Faux Vinyl Barcode Graphic */}
         <div className="flex flex-col items-center shrink-0">
-          <div className="h-5 sm:h-6 w-16 sm:w-20 bg-white/90 p-0.5 rounded-[1px] flex items-center justify-between">
+          <div className="h-4 sm:h-5 w-14 sm:w-18 bg-white/90 p-0.5 rounded-[1px] flex items-center justify-between">
             {/* Barcode lines */}
             <div className="w-0.5 h-full bg-black" />
             <div className="w-1 h-full bg-black" />

@@ -715,7 +715,7 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
                 }}
                 className={`flex-1 flex items-center justify-center gap-1.5 py-1 px-1.5 rounded-md text-[9px] font-mono font-bold uppercase tracking-wider transition-all duration-200 min-w-0 ${
                   isSelected
-                    ? 'bg-amber-400 text-black shadow-sm font-black'
+                    ? 'bg-white text-black shadow-sm font-black'
                     : isLightMode
                     ? 'text-gray-700 hover:text-black hover:bg-black/5'
                     : 'text-white/60 hover:text-white hover:bg-white/5'
@@ -740,7 +740,7 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
         <div className="space-y-0.5 w-full">
           {/* Metadata info: Hidden on mobile per request, visible on sm+ */}
           <div className="hidden sm:flex flex-wrap items-center gap-1.5 sm:gap-2 text-[10px] sm:text-[11px] font-mono">
-            <span className="font-bold uppercase tracking-widest text-amber-400">
+            <span className="font-bold uppercase tracking-widest text-white/90">
               TRK {String(activeTrack.number).padStart(2, '0')}/{currentAlbum.tracks.length}
             </span>
             <span className="opacity-40">•</span>
@@ -803,7 +803,9 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
               backfaceVisibility: 'hidden',
               WebkitBackfaceVisibility: 'hidden',
             }}
-            className="w-full h-full flex items-center justify-center"
+            className={`w-full h-full flex items-center justify-center transition-opacity duration-300 ${
+              showTracklist ? 'pointer-events-none invisible opacity-0' : 'pointer-events-auto visible opacity-100'
+            }`}
           >
             <VinylCarousel
               currentIndex={currentIndex}
@@ -822,7 +824,9 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
               WebkitBackfaceVisibility: 'hidden',
               transform: 'rotateY(180deg)',
             }}
-            className="absolute inset-0 flex items-center justify-center pointer-events-auto"
+            className={`absolute inset-0 flex items-center justify-center z-30 transition-opacity duration-300 ${
+              showTracklist ? 'pointer-events-auto visible opacity-100' : 'pointer-events-none invisible opacity-0'
+            }`}
           >
             <VinylBackCover
               tracks={currentAlbum.tracks}
@@ -931,7 +935,7 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
               title={showTracklist ? "Comprimi orbita tracce" : "Espandi orbita semicircolare delle tracce"}
               className={`font-mono text-[9px] sm:text-[11px] px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-full font-bold tracking-wider flex items-center space-x-1 sm:space-x-1.5 transition-all duration-300 ${
                 showTracklist
-                  ? 'bg-amber-400 text-black shadow-md shadow-amber-400/40 ring-2 ring-amber-400/60 scale-105 font-black'
+                  ? 'bg-white text-black shadow-md shadow-white/30 scale-105 font-black'
                   : isLightMode
                   ? 'bg-black/10 hover:bg-black/15 text-gray-900'
                   : 'bg-white/10 hover:bg-white/20 text-white/90 border border-white/10'
