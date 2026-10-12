@@ -21,10 +21,9 @@ const AudioContext = createContext<AudioContextType | undefined>(undefined);
 
 export const NativeAudioProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [currentTrack, setCurrentTrack] = useState<Track>(() => {
-    const tracks = ALBUM_DATA.tracks;
-    if (!tracks || tracks.length === 0) return ALBUM_DATA.tracks[0];
-    const randomIndex = Math.floor(Math.random() * tracks.length);
-    return tracks[randomIndex];
+    return ALBUM_DATA.tracks && ALBUM_DATA.tracks.length > 0
+      ? ALBUM_DATA.tracks[0]
+      : ({} as Track);
   });
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [currentTime, setCurrentTime] = useState<number>(0);

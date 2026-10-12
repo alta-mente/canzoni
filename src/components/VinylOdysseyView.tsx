@@ -52,14 +52,13 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
   const { currentTrack, isPlaying, playTrack, togglePlay, currentTime, duration, seek, isMuted, toggleMute } = useAudio();
   const { isDark, toggleTheme } = useTheme();
 
-  // Start with the random track chosen by NativeAudioContext on first load
+  // Always start with the first track on first load
   const [currentIndex, setCurrentIndex] = useState<number>(() => {
     if (currentTrack) {
       const idx = currentAlbum.tracks.findIndex((t) => t.id === currentTrack.id);
       if (idx !== -1) return idx;
     }
-    const count = currentAlbum.tracks.length;
-    return count > 0 ? Math.floor(Math.random() * count) : 0;
+    return 0;
   });
 
   const [displayMode, setDisplayMode] = useState<'carousel' | 'sleeve' | 'editorial'>(() => {
