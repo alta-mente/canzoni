@@ -61,6 +61,16 @@ export const NativeAudioProvider: React.FC<{ children: ReactNode }> = ({ childre
     const onPause = () => setIsPlaying(false);
     const onError = (e: Event) => {
       console.warn('NativeAudio error on source:', audio.src, e);
+      if (audio.src && audio.src.includes('audio-fette') && !audio.src.includes('raw.githubusercontent.com')) {
+        const filename = audio.src.split('/').pop()?.split('?')[0];
+        if (filename) {
+          console.info('Retrying with GitHub raw fallback:', filename);
+          audio.src = `https://raw.githubusercontent.com/alta-mente/canzoni/main/public/audio-fette/${filename}`;
+          audio.currentTime = 0;
+          audio.play().then(() => setIsPlaying(true)).catch(() => setIsPlaying(false));
+          return;
+        }
+      }
       setIsPlaying(false);
     };
 
