@@ -88,7 +88,6 @@ export const NativeAudioProvider: React.FC<{ children: ReactNode }> = ({ childre
     if (audio) {
       audio.src = track.audioSrc;
       audio.currentTime = 0;
-      audio.load();
       audio.play().then(() => {
         setIsPlaying(true);
       }).catch((err) => {
@@ -106,7 +105,6 @@ export const NativeAudioProvider: React.FC<{ children: ReactNode }> = ({ childre
     } else {
       if (!audio.src || audio.src === '') {
         audio.src = currentTrack.audioSrc;
-        audio.load();
       }
       audio.play().then(() => {
         setIsPlaying(true);
