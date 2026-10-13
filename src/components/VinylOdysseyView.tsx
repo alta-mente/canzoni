@@ -391,14 +391,16 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
               </span>
             </div>
 
-            {/* Desktop vertical divider */}
-            <div className="hidden md:block h-6 w-px bg-white/15 mb-2 sm:mb-2.5 shrink-0" />
+            {discography.length > 1 && (
+              <>
+                {/* Desktop vertical divider */}
+                <div className="hidden md:block h-6 w-px bg-white/15 mb-2 sm:mb-2.5 shrink-0" />
 
-            {/* Desktop Navigation Tabs (Hidden on mobile, replaced by row 2) */}
-            <nav
-              aria-label="Selezione Album"
-              className="hidden md:flex items-end gap-1.5 sm:gap-2 mb-[-1px]"
-            >
+                {/* Desktop Navigation Tabs (Hidden on mobile, replaced by row 2) */}
+                <nav
+                  aria-label="Selezione Album"
+                  className="hidden md:flex items-end gap-1.5 sm:gap-2 mb-[-1px]"
+                >
               {discography.map((album, idx) => {
                 const isSelected = album.id === currentAlbum.id;
                 const spotifyUrl = album.spotifyAlbumUrl;
@@ -482,6 +484,8 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
                 );
               })}
             </nav>
+              </>
+            )}
           </div>
 
           {/* Right: Actions (Spotify mobile, EPK & Settings Menu) */}
@@ -712,33 +716,35 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
         </div>
       </div>
 
-        {/* Mobile-Only Dedicated Album Switcher Segmented Control */}
-        <div className="flex md:hidden items-center p-0.5 rounded-lg bg-black/40 dark:bg-black/60 border border-white/10 backdrop-blur-xl w-full mt-1.5">
-          {discography.map((album, idx) => {
-            const isSelected = album.id === currentAlbum.id;
-            return (
-              <button
-                key={album.id}
-                type="button"
-                onClick={() => {
-                  if (!isSelected) handleSelectAlbum(album);
-                }}
-                className={`flex-1 flex items-center justify-center gap-1.5 py-1 px-1.5 rounded-md text-[9px] font-mono font-bold uppercase tracking-wider transition-all duration-200 min-w-0 ${
-                  isSelected
-                    ? 'bg-white text-black shadow-sm font-black'
-                    : isLightMode
-                    ? 'text-gray-700 hover:text-black hover:bg-black/5'
-                    : 'text-white/60 hover:text-white hover:bg-white/5'
-                }`}
-              >
-                <div className="w-3 h-3 rounded-[2px] overflow-hidden shrink-0 border border-black/20">
-                  <img src={album.coverUrl} alt="" className="w-full h-full object-cover" />
-                </div>
-                <span className="truncate">{idx === 0 ? "Non C'è Vita su Marte" : "Quel Salto Nel Vuoto"}</span>
-              </button>
-            );
-          })}
-        </div>
+        {/* Mobile-Only Dedicated Album Switcher Segmented Control (only if multiple albums) */}
+        {discography.length > 1 && (
+          <div className="flex md:hidden items-center p-0.5 rounded-lg bg-black/40 dark:bg-black/60 border border-white/10 backdrop-blur-xl w-full mt-1.5">
+            {discography.map((album) => {
+              const isSelected = album.id === currentAlbum.id;
+              return (
+                <button
+                  key={album.id}
+                  type="button"
+                  onClick={() => {
+                    if (!isSelected) handleSelectAlbum(album);
+                  }}
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-1 px-1.5 rounded-md text-[9px] font-mono font-bold uppercase tracking-wider transition-all duration-200 min-w-0 ${
+                    isSelected
+                      ? 'bg-white text-black shadow-sm font-black'
+                      : isLightMode
+                      ? 'text-gray-700 hover:text-black hover:bg-black/5'
+                      : 'text-white/60 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  <div className="w-3 h-3 rounded-[2px] overflow-hidden shrink-0 border border-black/20">
+                    <img src={album.coverUrl} alt="" className="w-full h-full object-cover" />
+                  </div>
+                  <span className="truncate">{album.title}</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
       </header>
 
       {/* ─────────────────────────────────────────────────────────────

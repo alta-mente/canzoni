@@ -345,31 +345,33 @@ export const EPKView: React.FC<EPKViewProps> = ({ onBackToPlayer, onSelectAlbumA
               </h2>
             </div>
 
-            {/* Switch Album Tabs */}
-            <div
-              className={`inline-flex p-1 rounded-2xl border backdrop-blur-xl ${
-                isLightMode ? 'bg-black/5 border-black/10' : 'bg-black/40 border-white/15'
-              }`}
-            >
-              {discography.map((alb) => (
-                <button
-                  key={alb.id}
-                  onClick={() => {
-                    setActiveAlbumTab(alb.id);
-                    setSelectedTrackId(null);
-                  }}
-                  className={`px-4 py-2 rounded-xl text-xs font-mono uppercase tracking-wider font-bold transition-all ${
-                    activeAlbumTab === alb.id
-                      ? 'bg-amber-400 text-black shadow-md'
-                      : isLightMode
-                      ? 'text-gray-600 hover:text-black'
-                      : 'text-white/60 hover:text-white'
-                  }`}
-                >
-                  {alb.title}
-                </button>
-              ))}
-            </div>
+            {/* Switch Album Tabs (only if multiple albums) */}
+            {discography.length > 1 && (
+              <div
+                className={`inline-flex p-1 rounded-2xl border backdrop-blur-xl ${
+                  isLightMode ? 'bg-black/5 border-black/10' : 'bg-black/40 border-white/15'
+                }`}
+              >
+                {discography.map((alb) => (
+                  <button
+                    key={alb.id}
+                    onClick={() => {
+                      setActiveAlbumTab(alb.id);
+                      setSelectedTrackId(null);
+                    }}
+                    className={`px-4 py-2 rounded-xl text-xs font-mono uppercase tracking-wider font-bold transition-all ${
+                      activeAlbumTab === alb.id
+                        ? 'bg-amber-400 text-black shadow-md'
+                        : isLightMode
+                        ? 'text-gray-600 hover:text-black'
+                        : 'text-white/60 hover:text-white'
+                    }`}
+                  >
+                    {alb.title}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Active Album Detail Card */}
@@ -865,31 +867,38 @@ export const EPKView: React.FC<EPKViewProps> = ({ onBackToPlayer, onSelectAlbumA
           </div>
 
           {/* Switch PR Tabs */}
-          <div className="flex gap-2 border-b border-white/10 pb-2 overflow-x-auto">
-            {EPK_DATA.pressReleases.map((pr) => (
-              <button
-                key={pr.id}
-                onClick={() => setActivePrTab(pr.id)}
-                className={`px-4 py-2 rounded-xl text-xs font-mono uppercase tracking-wider font-bold transition-all shrink-0 ${
-                  activePrTab === pr.id
-                    ? 'bg-amber-400 text-black shadow'
-                    : isLightMode
-                    ? 'text-gray-600 hover:bg-black/5'
-                    : 'text-white/60 hover:bg-white/10'
-                }`}
-              >
-                {pr.title.split('«')[1]?.replace('»', '') || pr.title}
-              </button>
-            ))}
-          </div>
-
-          {/* Active Press Release Reader */}
           {(() => {
-            const pr = EPK_DATA.pressReleases.find((p) => p.id === activePrTab) || EPK_DATA.pressReleases[0];
-            const isCopied = copiedPrId === pr.id;
+            const relevantPrs = EPK_DATA.pressReleases.filter((pr) =>
+              discography.some((alb) => alb.id === pr.albumId)
+            );
+            const activePr = relevantPrs.find((p) => p.id === activePrTab) || relevantPrs[0] || EPK_DATA.pressReleases[0];
+            const isCopied = copiedPrId === activePr.id;
 
             return (
-              <div
+              <>
+                {relevantPrs.length > 1 && (
+                  <div className="flex gap-2 border-b border-white/10 pb-2 overflow-x-auto">
+                    {relevantPrs.map((pr) => (
+                      <button
+                        key={pr.id}
+                        onClick={() => setActivePrTab(pr.id)}
+                        className={`px-4 py-2 rounded-xl text-xs font-mono uppercase tracking-wider font-bold transition-all shrink-0 ${
+                          (activePrTab === pr.id || (!activePrTab && pr.id === activePr.id))
+                            ? 'bg-amber-400 text-black shadow'
+                            : isLightMode
+                            ? 'text-gray-600 hover:bg-black/5'
+                            : 'text-white/60 hover:bg-white/10'
+                        }`}
+                      >
+                        {pr.title.split('«')[1]?.replace('»', '') || pr.title}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {/* Active Press Release Reader */}
+                {activePr && (
+                  <div
                 className={`p-6 sm:p-10 rounded-3xl border space-y-6 ${
                   isLightMode ? 'bg-white border-black/10 shadow-lg' : 'bg-white/[0.03] border-white/15 shadow-2xl'
                 }`}
@@ -961,8 +970,10 @@ export const EPKView: React.FC<EPKViewProps> = ({ onBackToPlayer, onSelectAlbumA
                   </div>
                 )}
               </div>
-            );
-          })()}
+            )}
+          </>
+        );
+      })()}
         </section>
 
         {/* SEZIONE 5: RASSEGNA STAMPA & CITAZIONI */}

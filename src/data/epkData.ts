@@ -93,19 +93,19 @@ export const EPK_DATA: EPKData = {
     ],
     genres: ["Canzone d'Autore", "Indie Rock", "Italian Noir", "Psichedelia Elettronica", "Lo-Fi"],
     shortBio:
-      "Nato e cresciuto a Pesaro, Alessandro Rocchi si forma fin dall'infanzia ascoltando i grandi maestri del cantautorato italiano — Fabrizio De André, Lucio Dalla, Rino Gaetano e Franco Battiato. Da sempre autore attento di pensieri, taccuini intimi e poesie, ha dedicato decenni alla scrittura e alla metrica della parola. I suoi concept album, «Non C'è Vita Su Marte» e «Quel Salto Nel Vuoto», nascono da questo archivio letterario personale: un connubio in cui la forza espressiva del testo, l'introspezione e la cura della parola guidano sonorità avvolgenti e cinematiche.",
+      "Nato e cresciuto a Pesaro, Alessandro Rocchi si forma fin dall'infanzia ascoltando i grandi maestri del cantautorato italiano — Fabrizio De André, Lucio Dalla, Rino Gaetano e Franco Battiato. Da sempre autore attento di pensieri, taccuini intimi e poesie, ha dedicato decenni alla scrittura e alla metrica della parola. Il suo concept album, «Non C'è Vita Su Marte», nasce da questo archivio letterario personale: un connubio in cui la forza espressiva del testo, l'introspezione e la cura della parola guidano sonorità avvolgenti e cinematiche.",
     fullBio: [
       "La storia artistica di Alessandro Rocchi affonda le radici a Pesaro, città di mare, vento e secolare tradizione musicale. Fin da bambino, la sua sensibilità è stata educata dalle voci e dalle visioni dei giganti della canzone d'autore italiana: l'umanità viscerale degli ultimi cantata da Fabrizio De André, la libertà melodica e narrativa di Lucio Dalla, la disillusione tagliente e ironica di Rino Gaetano, e la ricerca mistica tra sacro ed elettronica colta di Franco Battiato.",
       "Da quegli anni d'infanzia e adolescenza, Alessandro non ha mai smesso di scrivere. Ha riempito taccuini e fogli sparsi di poesie, riflessioni notturne, istantanee di vita quotidiana e squarci emotivi, custodendo la parola come un laboratorio segreto e necessario dell'anima.",
-      "La svolta artistica matura con la decisione di dare voce e forma compiuta a questo patrimonio di testi. Lavorando con rigore sulla metrica, sul peso sillabico e sulla verità emotiva di ogni singolo verso, Alessandro Rocchi plasma un universo sonoro in cui la poesia si fa melodia naturale. Ogni arrangiamento — dalle aperture orchestrali alle chitarre sature, fino alle atmosfere noir — è concepito come un abito sartoriale al servizio esclusivo del racconto poetico.",
-      "Ne scaturiscono due concept album di rara intensità: «Non C'è Vita Su Marte», un'odissea sonora di 10 tracce che indaga l'isolamento contemporaneo attraverso la metafora dello spazio profondo, e «Quel Salto Nel Vuoto», 14 brani dalle tinte noir metropolitane che raccontano la vertigine dell'ignoto e la dolcezza amara delle abitudini infrante. Un percorso dove la nobiltà del testo letterario si fa canzone senza tempo."
+      "La svolta artistica matura con la decisione di dare voce e forma compiuta a questo patrimonio di testi. Lavorando con rigore sulla metrica, sul peso sillabico e sulla verità emotiva di ogni singolo verso, Alessandro Rocchi plasma un universo sonoro in cui la poesia si fa melodia naturale. Ogni arrangiamento — dalle aperture orchestrali alle chitarre sature, fino ai synth evocativi — è concepito come un abito sartoriale al servizio esclusivo del racconto poetico.",
+      "Ne scaturisce il concept album di rara intensità «Non C'è Vita Su Marte», un'odissea sonora di 10 tracce che indaga l'isolamento contemporaneo attraverso la metafora dello spazio profondo. Un percorso dove la nobiltà del testo letterario si fa canzone senza tempo."
     ],
     artisticManifesto:
       "«Le parole c'erano già tutte, scritte e custodite per decenni nei miei quaderni a Pesaro. La musica è nata per mettersi al loro servizio: quando la metrica di una poesia trova il suo ritmo naturale, il testo smette di essere solo inchiostro e comincia a camminare tra la gente.»"
   },
   fastStats: [
     { label: "Origine", value: "Pesaro", subtext: "Città della Musica (PU)" },
-    { label: "Album Ufficiali", value: "2", subtext: "24 Brani Inediti" },
+    { label: "Concept Album", value: "Non C'è Vita Su Marte", subtext: "10 Brani Inediti • 2026" },
     { label: "Radici", value: "Cantautorato", subtext: "De André • Dalla • Gaetano • Battiato" },
     { label: "Scrittura", value: "Poesia & Testi", subtext: "Metrica e Canzone d'Autore" }
   ],

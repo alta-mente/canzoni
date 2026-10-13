@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { AlbumData, Track, DISCOGRAPHY } from '../data/albumData';
+import albumsAllJson from '../data/albums.all.json';
+
+const STORAGE_KEY = 'antigravity_discography_v2';
 import { 
   ArrowLeft, 
   Save, 
@@ -58,7 +61,8 @@ export const BackofficeView: React.FC<BackofficeViewProps> = ({
   const [albums, setAlbums] = useState<AlbumData[]>(() => {
     if (initialAlbums && initialAlbums.length > 0) return initialAlbums;
     try {
-      const saved = localStorage.getItem('antigravity_discography_custom');
+      localStorage.removeItem('antigravity_discography_custom'); // Clear legacy cache
+      const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
@@ -124,7 +128,7 @@ export const BackofficeView: React.FC<BackofficeViewProps> = ({
       if (res.ok && contentType.includes('application/json')) {
         const data = await res.json();
         if (Array.isArray(data) && data.length > 0) {
-          const hasLocalCustom = !!localStorage.getItem('antigravity_discography_custom');
+          const hasLocalCustom = !!localStorage.getItem(STORAGE_KEY);
           if (!hasLocalCustom) {
             setAlbums(data);
             if (!selectedAlbumId) {
@@ -158,7 +162,7 @@ export const BackofficeView: React.FC<BackofficeViewProps> = ({
     try {
       // 1. ALWAYS persist immediately to browser localStorage
       try {
-        localStorage.setItem('antigravity_discography_custom', JSON.stringify(albumsToSave, null, 2));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(albumsToSave, null, 2));
       } catch (storageErr) {
         console.warn('LocalStorage save error:', storageErr);
       }
@@ -253,6 +257,7 @@ export const BackofficeView: React.FC<BackofficeViewProps> = ({
 
   const resetToDefault = () => {
     if (window.confirm('Vuoi ripristinare la discografia originale? Tutte le modifiche locali non salvate su file andranno perse.')) {
+      localStorage.removeItem(STORAGE_KEY);
       localStorage.removeItem('antigravity_discography_custom');
       setAlbums(DISCOGRAPHY);
       if (onAlbumsUpdated) onAlbumsUpdated(DISCOGRAPHY);
@@ -356,6 +361,140 @@ export const BackofficeView: React.FC<BackofficeViewProps> = ({
       return { ...alb, [field]: value };
     });
     setAlbums(updatedAlbums);
+  };
+
+  // Check which backup albums (e.g. Quel Salto Nel Vuoto) can be restored
+  const backupAlbumsAvailable = ((albumsAllJson || []) as AlbumData[]).filter(
+    (bAlb) => !albums.some((a) => a.id === bAlb.id)
+  );
+
+  // 1. Add new empty album
+  const handleAddEmptyAlbum = () => {
+    const num = albums.length + 1;
+    const newId = `album-${Date.now()}`;
+    const newAlbum: AlbumData = {
+      id: newId,
+      title: `NUOVO ALBUM ${num}`,
+      artist: 'ALESSANDRO ROCCHI',
+      year: new Date().getFullYear().toString(),
+      releaseDate: '2026',
+      genre: 'Canzone d\'Autore / Indie Rock',
+      coverUrl: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800&q=80',
+      tagline: 'Nuovo progetto musicale.',
+      synopsis: 'Descrizione del nuovo album...',
+      tracks: [
+        {
+          id: `${newId}-track-1`,
+          number: 1,
+          title: 'Traccia 1',
+          spotifyId: '',
+          spotifyUri: '',
+          spotifyUrl: '',
+          duration: '3:30',
+          durationSeconds: 210,
+          audioSrc: '',
+          artworkUrl: '',
+          mood: 'Intro • Atmosferico',
+          storyQuote: '',
+          colorDark: '#1a1b26',
+          colorLight: '#f8f9fa',
+          lyrics: ''
+        }
+      ],
+      credits: {
+        lyricsAndMusic: 'Alessandro Rocchi',
+        production: 'Alessandro Rocchi',
+        mixAndMaster: '',
+        artwork: '',
+        label: 'Indipendente'
+      }
+    };
+    const nextAlbums = [...albums, newAlbum];
+    setAlbums(nextAlbums);
+    setSelectedAlbumId(newId);
+    setSelectedTrackIndex(0);
+    setActiveTab('albums');
+    showNotification(`Nuovo album "${newAlbum.title}" creato! Compila i dettagli e clicca "Salva".`, 'success');
+  };
+
+  // 2. Restore backup album (e.g. Quel Salto Nel Vuoto)
+  const handleRestoreBackupAlbum = (backupAlbum: AlbumData) => {
+    if (albums.some((a) => a.id === backupAlbum.id)) {
+      showNotification(`L'album "${backupAlbum.title}" è già presente nella discografia.`, 'info');
+      setSelectedAlbumId(backupAlbum.id);
+      return;
+    }
+    const nextAlbums = [...albums, backupAlbum];
+    setAlbums(nextAlbums);
+    setSelectedAlbumId(backupAlbum.id);
+    setSelectedTrackIndex(0);
+    showNotification(
+      `Album "${backupAlbum.title}" (${backupAlbum.tracks.length} brani) ripristinato! Clicca "Salva" per confermare.`,
+      'success'
+    );
+  };
+
+  // 3. Delete an album
+  const handleDeleteAlbum = (albumId: string) => {
+    if (albums.length <= 1) {
+      showNotification('Non puoi eliminare l\'unico album presente. Aggiungine un altro prima di rimuovere questo.', 'error');
+      return;
+    }
+    const targetAlbum = albums.find((a) => a.id === albumId);
+    const confirmed = window.confirm(
+      `Sei sicuro di voler rimuovere l'album "${targetAlbum?.title || albumId}" dalla discografia attiva? (I file e backup rimangono intatti)`
+    );
+    if (!confirmed) return;
+
+    const nextAlbums = albums.filter((a) => a.id !== albumId);
+    setAlbums(nextAlbums);
+    setSelectedAlbumId(nextAlbums[0].id);
+    setSelectedTrackIndex(0);
+    showNotification(`Album rimosso. Ricordati di cliccare su "Salva" per confermare!`, 'success');
+  };
+
+  // 4. Add a track to current album
+  const handleAddTrack = () => {
+    if (!currentAlbum) return;
+    const newNum = currentAlbum.tracks.length + 1;
+    const newTrack: Track = {
+      id: `${currentAlbum.id}-track-${Date.now()}`,
+      number: newNum,
+      title: `Nuovo Brano ${newNum}`,
+      spotifyId: '',
+      spotifyUri: '',
+      spotifyUrl: '',
+      duration: '3:30',
+      durationSeconds: 210,
+      audioSrc: '',
+      artworkUrl: currentAlbum.coverUrl,
+      mood: 'Atmosferico',
+      storyQuote: '',
+      colorDark: '#1a1b26',
+      colorLight: '#f8f9fa',
+      lyrics: ''
+    };
+    const updatedTracks = [...currentAlbum.tracks, newTrack];
+    updateCurrentAlbum('tracks', updatedTracks);
+    setSelectedTrackIndex(updatedTracks.length - 1);
+    showNotification(`Traccia ${newNum} aggiunta all'album!`, 'info');
+  };
+
+  // 5. Delete a track from current album
+  const handleDeleteTrack = (indexToDelete: number) => {
+    if (!currentAlbum) return;
+    if (currentAlbum.tracks.length <= 1) {
+      showNotification('L\'album deve avere almeno un brano.', 'error');
+      return;
+    }
+    const track = currentAlbum.tracks[indexToDelete];
+    if (!window.confirm(`Sei sicuro di voler eliminare il brano "${track.title}"?`)) return;
+    const updatedTracks = currentAlbum.tracks
+      .filter((_, idx) => idx !== indexToDelete)
+      .map((t, idx) => ({ ...t, number: idx + 1 }));
+    updateCurrentAlbum('tracks', updatedTracks);
+    setSelectedTrackIndex(Math.max(0, indexToDelete - 1));
+    showNotification(`Brano "${track.title}" rimosso. Clicca "Salva" per applicare.`, 'info');
   };
 
   // Audio preview toggle
@@ -586,12 +725,12 @@ export const BackofficeView: React.FC<BackofficeViewProps> = ({
           ───────────────────────────────────────────────────────────── */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-8">
         
-        {/* ALBUM SELECTOR BAR (Present on tracks and lyrics tabs) */}
+        {/* ALBUM SELECTOR BAR (Present on tracks, lyrics, and albums tabs) */}
         {(activeTab === 'tracks' || activeTab === 'lyrics' || activeTab === 'albums') && (
           <div className="flex flex-wrap items-center justify-between gap-4 mb-6 p-3 rounded-2xl bg-white/[0.03] border border-white/10">
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
               <span className="text-xs font-mono uppercase tracking-wider text-white/50">Album attivo:</span>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 {albums.map((alb) => (
                   <button
                     key={alb.id}
@@ -610,11 +749,47 @@ export const BackofficeView: React.FC<BackofficeViewProps> = ({
                     <span className="text-[10px] opacity-60">({alb.tracks.length})</span>
                   </button>
                 ))}
+
+                {/* + Nuovo Album */}
+                <button
+                  onClick={handleAddEmptyAlbum}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-mono font-medium text-amber-300 hover:text-amber-200 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 transition-all shadow-sm"
+                  title="Aggiungi un nuovo album alla discografia"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Nuovo Album</span>
+                </button>
+
+                {/* Ripristina Album da Backup se disponibile */}
+                {backupAlbumsAvailable.map((bAlb) => (
+                  <button
+                    key={bAlb.id}
+                    onClick={() => handleRestoreBackupAlbum(bAlb)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-mono font-medium text-purple-300 hover:text-purple-200 bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 transition-all shadow-sm"
+                    title={`Ripristina ${bAlb.title} con tutti i suoi brani`}
+                  >
+                    <Sparkles className="w-3 h-3 text-purple-400" />
+                    <span>Ripristina «{bAlb.title}»</span>
+                  </button>
+                ))}
               </div>
             </div>
 
-            <div className="text-xs font-mono text-white/50">
-              {currentAlbum?.tracks.length || 0} Tracce • Anno {currentAlbum?.year}
+            <div className="flex items-center gap-3">
+              <div className="text-xs font-mono text-white/50">
+                {currentAlbum?.tracks.length || 0} Tracce • Anno {currentAlbum?.year}
+              </div>
+
+              {albums.length > 1 && currentAlbum && (
+                <button
+                  onClick={() => handleDeleteAlbum(currentAlbum.id)}
+                  className="flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-mono text-rose-300 hover:text-rose-200 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 transition-all"
+                  title={`Rimuovi l'album "${currentAlbum.title}" dalla discografia`}
+                >
+                  <Trash2 className="w-3 h-3 text-rose-400" />
+                  <span>Rimuovi Album</span>
+                </button>
+              )}
             </div>
           </div>
         )}
@@ -696,6 +871,16 @@ export const BackofficeView: React.FC<BackofficeViewProps> = ({
                   );
                 })}
               </div>
+
+              {/* + Aggiungi Nuovo Brano */}
+              <button
+                type="button"
+                onClick={handleAddTrack}
+                className="w-full py-2.5 px-3 rounded-2xl border border-dashed border-white/20 hover:border-amber-400/50 bg-white/[0.02] hover:bg-amber-400/10 text-white/70 hover:text-amber-300 font-mono text-xs flex items-center justify-center gap-2 transition-all mt-2"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Aggiungi Nuovo Brano ({currentAlbum.tracks.length + 1})</span>
+              </button>
             </div>
 
             {/* Right Column: Track Detail Editor */}
@@ -746,6 +931,18 @@ export const BackofficeView: React.FC<BackofficeViewProps> = ({
                       <Code className="w-3.5 h-3.5 text-amber-400" />
                       <span className="hidden sm:inline">Copia Widget</span>
                     </button>
+
+                    {currentAlbum.tracks.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteTrack(selectedTrackIndex)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-rose-500/20 border border-white/10 hover:border-rose-500/30 text-xs font-mono text-white/60 hover:text-rose-300 transition-all"
+                        title={`Elimina traccia "${activeTrack.title}"`}
+                      >
+                        <Trash2 className="w-3.5 h-3.5 text-rose-400" />
+                        <span className="hidden sm:inline">Elimina</span>
+                      </button>
+                    )}
                   </div>
                 </div>
 
@@ -1123,17 +1320,56 @@ export const BackofficeView: React.FC<BackofficeViewProps> = ({
             ───────────────────────────────────────────────────────────── */}
         {activeTab === 'albums' && currentAlbum && (
           <div className="max-w-4xl mx-auto bg-white/[0.02] border border-white/10 rounded-3xl p-6 sm:p-8 space-y-6">
-            <div className="flex items-start justify-between pb-4 border-b border-white/10">
-              <div>
-                <span className="text-[10px] font-mono uppercase tracking-widest text-amber-400 font-bold">
-                  Metadati Album
-                </span>
-                <h2 className="text-2xl font-bold font-mono text-white mt-1">
-                  {currentAlbum.title}
-                </h2>
+            {/* Header & Album Management Bar */}
+            <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-white/10">
+              <div className="flex items-center gap-3">
+                <img src={currentAlbum.coverUrl} className="w-14 h-14 rounded-xl shadow-lg border border-white/20 object-cover" />
+                <div>
+                  <span className="text-[10px] font-mono uppercase tracking-widest text-amber-400 font-bold">
+                    Scheda Album ({albums.findIndex(a => a.id === currentAlbum.id) + 1} di {albums.length})
+                  </span>
+                  <h2 className="text-2xl font-bold font-mono text-white mt-0.5">
+                    {currentAlbum.title}
+                  </h2>
+                </div>
               </div>
 
-              <img src={currentAlbum.coverUrl} className="w-14 h-14 rounded-xl shadow-lg border border-white/20 object-cover" />
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleAddEmptyAlbum}
+                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 font-mono text-xs font-bold transition-all shadow-sm"
+                  title="Crea un nuovo album"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>+ Aggiungi Album</span>
+                </button>
+
+                {backupAlbumsAvailable.map((bAlb) => (
+                  <button
+                    key={bAlb.id}
+                    type="button"
+                    onClick={() => handleRestoreBackupAlbum(bAlb)}
+                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-purple-500/15 hover:bg-purple-500/25 text-purple-200 border border-purple-500/30 font-mono text-xs font-bold transition-all shadow-sm"
+                    title={`Ripristina l'album ${bAlb.title} con tutte le sue tracce`}
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+                    <span>Ripristina «{bAlb.title}»</span>
+                  </button>
+                ))}
+
+                {albums.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteAlbum(currentAlbum.id)}
+                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30 font-mono text-xs font-bold transition-all shadow-sm"
+                    title="Elimina questo album dalla discografia"
+                  >
+                    <Trash2 className="w-3.5 h-3.5 text-rose-400" />
+                    <span>Elimina Questo Album</span>
+                  </button>
+                )}
+              </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

@@ -14,7 +14,8 @@ export const App: React.FC = () => {
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [albums, setAlbums] = useState<AlbumData[]>(() => {
     try {
-      const saved = localStorage.getItem('antigravity_discography_custom');
+      localStorage.removeItem('antigravity_discography_custom'); // Clear legacy 2-album test cache
+      const saved = localStorage.getItem('antigravity_discography_v2');
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
@@ -38,7 +39,7 @@ export const App: React.FC = () => {
       .then((data) => {
         if (data && Array.isArray(data) && data.length > 0) {
           // If no local storage customization exists, use server data
-          const hasLocalCustom = !!localStorage.getItem('antigravity_discography_custom');
+          const hasLocalCustom = !!localStorage.getItem('antigravity_discography_v2');
           if (!hasLocalCustom) {
             setAlbums(data);
           }
