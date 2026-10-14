@@ -45,8 +45,15 @@ export interface AlbumData {
   };
 }
 
-export const resolveAssetUrl = (url?: string): string => {
-  if (!url) return '';
+export const resolveAssetUrl = (rawUrl?: string): string => {
+  if (!rawUrl) return '';
+  let url = rawUrl;
+  if (url.includes('/audio/track-') && url.endsWith('.wav')) {
+    url = url.replace(/\.wav$/, '.m4a');
+  }
+  if (url.includes('imagesartwork-fette/Progetto_senza_titolo__6_.png')) {
+    url = '/images/artwork-fette/track-11.jpeg';
+  }
   if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:') || url.startsWith('blob:')) {
     return url;
   }

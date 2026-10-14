@@ -1,20 +1,32 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { ThemeProvider } from './context/ThemeContext';
 import { NativeAudioProvider } from './context/NativeAudioContext';
 import { VinylOdysseyView } from './components/VinylOdysseyView';
-import { EPKView } from './components/EPKView';
-import { BackofficeView } from './components/BackofficeView';
-import { BackofficeAuthGate } from './components/BackofficeAuthGate';
-import { ShareModal } from './components/ShareModal';
-import { WidgetEmbedView } from './components/WidgetEmbedView';
 import { AlbumData, DISCOGRAPHY } from './data/albumData';
+
+const EPKView = lazy(() =>
+  import('./components/EPKView').then((m) => ({ default: m.EPKView }))
+);
+const BackofficeView = lazy(() =>
+  import('./components/BackofficeView').then((m) => ({ default: m.BackofficeView }))
+);
+const BackofficeAuthGate = lazy(() =>
+  import('./components/BackofficeAuthGate').then((m) => ({ default: m.BackofficeAuthGate }))
+);
+const ShareModal = lazy(() =>
+  import('./components/ShareModal').then((m) => ({ default: m.ShareModal }))
+);
+const WidgetEmbedView = lazy(() =>
+  import('./components/WidgetEmbedView').then((m) => ({ default: m.WidgetEmbedView }))
+);
 
 export const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<'player' | 'epk' | 'admin' | 'widget'>('player');
   const [isShareOpen, setIsShareOpen] = useState(false);
+  const [selectedAlbumId, setSelectedAlbumId] = useState<string | null>(null);
   const [albums, setAlbums] = useState<AlbumData[]>(() => {
     try {
-      localStorage.removeItem('antigravity_discography_custom'); // Clear legacy 2-album test cache
+      localStorage.removeItem('antigravity_discography_custom');
       const saved = localStorage.getItem('antigravity_discography_v2');
       if (saved) {
         const parsed = JSON.parse(saved);
@@ -38,7 +50,6 @@ export const App: React.FC = () => {
       })
       .then((data) => {
         if (data && Array.isArray(data) && data.length > 0) {
-          // If no local storage customization exists, use server data
           const hasLocalCustom = !!localStorage.getItem('antigravity_discography_v2');
           if (!hasLocalCustom) {
             setAlbums(data);
@@ -114,7 +125,6 @@ export const App: React.FC = () => {
     } else if (view === 'admin') {
       window.location.hash = 'admin';
     } else {
-      // Remove hash cleanly without full reload
       if (window.location.hash) {
         history.pushState('', document.title, window.location.pathname + window.location.search);
       }
@@ -123,41 +133,53 @@ export const App: React.FC = () => {
   };
 
   if (currentView === 'widget') {
-    return <WidgetEmbedView albums={albums} />;
+    return (
+      <Suspense fallback={null}>
+        <WidgetEmbedView albums={albums} />
+      </Suspense>
+    );
   }
 
   return (
     <ThemeProvider>
-      <NativeAudioProvider>
-        {currentView === 'epk' ? (
-          <EPKView
-            albums={albums}
-            onBackToPlayer={() => navigateTo('player')}
-            onSelectAlbumAndPlay={(_album: AlbumData) => {
-              navigateTo('player');
-            }}
-          />
-        ) : currentView === 'admin' ? (
-          <BackofficeAuthGate onBackToPlayer={() => navigateTo('player')}>
-            {(handleLogout) => (
-              <BackofficeView
-                albums={albums}
-                onAlbumsUpdated={(updated) => setAlbums(updated)}
-                onBackToPlayer={() => navigateTo('player')}
-                onLogout={handleLogout}
-                onOpenWidgetGenerator={() => setIsShareOpen(true)}
-              />
-            )}
-          </BackofficeAuthGate>
-        ) : (
-          <VinylOdysseyView
-            albums={albums}
-            onOpenShare={() => setIsShareOpen(true)}
-            onOpenEPK={() => navigateTo('epk')}
-            onOpenBackoffice={() => navigateTo('admin')}
-          />
+      <NativeAudioProvider albums={albums}>
+        <Suspense fallback={<div className="min-h-screen bg-[#030407]" />}>
+          {currentView === 'epk' ? (
+            <EPKView
+              albums={albums}
+              onBackToPlayer={() => navigateTo('player')}
+              onSelectAlbumAndPlay={(album: AlbumData) => {
+                setSelectedAlbumId(album.id);
+                navigateTo('player');
+              }}
+            />
+          ) : currentView === 'admin' ? (
+            <BackofficeAuthGate onBackToPlayer={() => navigateTo('player')}>
+              {(handleLogout) => (
+                <BackofficeView
+                  albums={albums}
+                  onAlbumsUpdated={(updated) => setAlbums(updated)}
+                  onBackToPlayer={() => navigateTo('player')}
+                  onLogout={handleLogout}
+                  onOpenWidgetGenerator={() => setIsShareOpen(true)}
+                />
+              )}
+            </BackofficeAuthGate>
+          ) : (
+            <VinylOdysseyView
+              albums={albums}
+              initialAlbumId={selectedAlbumId}
+              onOpenShare={() => setIsShareOpen(true)}
+              onOpenEPK={() => navigateTo('epk')}
+              onOpenBackoffice={() => navigateTo('admin')}
+            />
+          )}
+        </Suspense>
+        {isShareOpen && (
+          <Suspense fallback={null}>
+            <ShareModal isOpen={isShareOpen} onClose={() => setIsShareOpen(false)} albums={albums} />
+          </Suspense>
         )}
-        <ShareModal isOpen={isShareOpen} onClose={() => setIsShareOpen(false)} albums={albums} />
       </NativeAudioProvider>
     </ThemeProvider>
   );

@@ -1,23 +1,16 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback, Suspense, lazy } from 'react';
 import { AlbumData, DISCOGRAPHY } from '../data/albumData';
-import { useAudio } from '../context/NativeAudioContext';
+import { useAudio, useAudioTime } from '../context/NativeAudioContext';
 import { useTheme } from '../context/ThemeContext';
 import { VinylCarousel } from './VinylCarousel';
-import { EditorialSwissView } from './EditorialSwissView';
 import { VinylBackCover } from './VinylBackCover';
 import { 
-  ChevronLeft, 
-  ChevronRight, 
-  ChevronDown,
   Play, 
   Pause, 
   Sun, 
   Moon, 
-  Radio, 
   Share2, 
   ExternalLink,
-  Disc,
-  Layers,
   Volume2,
   VolumeX,
   Clapperboard,
@@ -32,24 +25,94 @@ import {
   Check
 } from 'lucide-react';
 
+const EditorialSwissView = lazy(() =>
+  import('./EditorialSwissView').then((m) => ({ default: m.EditorialSwissView }))
+);
+
+const formatTime = (secs: number) => {
+  const m = Math.floor(secs / 60);
+  const s = Math.floor(secs % 60);
+  return `${m}:${s < 10 ? '0' : ''}${s}`;
+};
+
+interface AudioScrubberBarProps {
+  duration: number;
+  trackDurationLabel: string;
+  isLightMode: boolean;
+  onSeek: (seconds: number) => void;
+}
+
+const AudioScrubberBar: React.FC<AudioScrubberBarProps> = React.memo(({
+  duration,
+  trackDurationLabel,
+  isLightMode,
+  onSeek,
+}) => {
+  const currentTime = useAudioTime();
+  const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
+
+  const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    onSeek(ratio * duration);
+  };
+
+  return (
+    <div className="flex-1 flex items-center space-x-1.5 sm:space-x-3 min-w-0">
+      <span className="text-[10px] sm:text-[11px] font-mono opacity-70 w-7 sm:w-9 text-right tabular-nums shrink-0">
+        {formatTime(currentTime)}
+      </span>
+
+      <div
+        onClick={handleSeek}
+        className="flex-1 h-6 flex items-center cursor-pointer group relative"
+        title="Scorri brano"
+      >
+        <div
+          className={`w-full h-1.5 group-hover:h-2 rounded-full transition-all duration-150 relative overflow-hidden ${
+            isLightMode ? 'bg-black/15' : 'bg-white/20'
+          }`}
+        >
+          <div
+            className={`h-full rounded-full transition-all duration-100 ${
+              isLightMode ? 'bg-gray-950' : 'bg-white'
+            }`}
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+      </div>
+
+      <span className="text-[10px] sm:text-[11px] font-mono opacity-70 w-7 sm:w-9 text-left tabular-nums shrink-0">
+        {trackDurationLabel}
+      </span>
+    </div>
+  );
+});
+
 interface VinylOdysseyViewProps {
   onOpenShare: () => void;
   onOpenEPK: () => void;
   onOpenBackoffice?: () => void;
   albums?: AlbumData[];
+  initialAlbumId?: string | null;
 }
 
 export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({ 
   onOpenShare, 
   onOpenEPK, 
   onOpenBackoffice,
-  albums
+  albums,
+  initialAlbumId
 }) => {
   const discography = albums && albums.length > 0 ? albums : DISCOGRAPHY;
-  const [currentAlbumId, setCurrentAlbumId] = useState<string>(discography[0].id);
+  const [currentAlbumId, setCurrentAlbumId] = useState<string>(
+    initialAlbumId && discography.some((a) => a.id === initialAlbumId)
+      ? initialAlbumId
+      : discography[0].id
+  );
   const currentAlbum = discography.find((a) => a.id === currentAlbumId) || discography[0];
 
-  const { currentTrack, isPlaying, playTrack, togglePlay, currentTime, duration, seek, isMuted, toggleMute } = useAudio();
+  const { currentTrack, isPlaying, playTrack, togglePlay, duration, seek, isMuted, toggleMute } = useAudio();
   const { isDark, toggleTheme } = useTheme();
 
   // Always start with the first track on first load
@@ -68,80 +131,85 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
         return saved as 'carousel' | 'sleeve' | 'editorial';
       }
     }
-    // Default to 3D Carousel everywhere for an immersive, visual experience
     return 'carousel';
   });
 
-  const handleSetDisplayMode = (mode: 'carousel' | 'sleeve' | 'editorial') => {
+  const handleSetDisplayMode = useCallback((mode: 'carousel' | 'sleeve' | 'editorial') => {
     setDisplayMode(mode);
     try {
       localStorage.setItem('canzoni_display_mode', mode);
     } catch {
       // ignore
     }
-  };
+  }, []);
+
   const [showCanvasBackground, setShowCanvasBackground] = useState<boolean>(true);
   const [showTracklist, setShowTracklist] = useState<boolean>(false);
   const [showSettingsMenu, setShowSettingsMenu] = useState<boolean>(false);
   const [showLyricsModal, setShowLyricsModal] = useState<boolean>(false);
   const [copiedLyrics, setCopiedLyrics] = useState<boolean>(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const isPlayingRef = useRef<boolean>(isPlaying);
+  isPlayingRef.current = isPlaying;
 
   const activeTrack = currentAlbum.tracks[currentIndex] || currentAlbum.tracks[0];
   // Track-specific video canvas takes precedence over album-level fallback video
   const activeVideoSrc = activeTrack.canvasVideoSrc || currentAlbum.canvasVideoSrc;
 
-  const handleSelectTrack = (index: number) => {
+  const handleSelectTrack = useCallback((index: number) => {
     setCurrentIndex(index);
     playTrack(currentAlbum.tracks[index]);
-  };
+  }, [currentAlbum.tracks, playTrack]);
 
-  const handlePrev = () => {
+  const handlePrev = useCallback(() => {
     const prev = (currentIndex - 1 + currentAlbum.tracks.length) % currentAlbum.tracks.length;
     handleSelectTrack(prev);
-  };
+  }, [currentIndex, currentAlbum.tracks.length, handleSelectTrack]);
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     const next = (currentIndex + 1) % currentAlbum.tracks.length;
     handleSelectTrack(next);
-  };
+  }, [currentIndex, currentAlbum.tracks.length, handleSelectTrack]);
 
-  const handleSelectAlbum = (album: AlbumData) => {
+  const handleSelectAlbum = useCallback((album: AlbumData) => {
     setCurrentAlbumId(album.id);
     setCurrentIndex(0);
     playTrack(album.tracks[0]);
-  };
+  }, [playTrack]);
 
-  const handleCopyLyrics = () => {
+  const handleCopyLyrics = useCallback(() => {
     if (activeTrack.lyrics) {
       navigator.clipboard.writeText(activeTrack.lyrics);
       setCopiedLyrics(true);
       setTimeout(() => setCopiedLyrics(false), 2000);
     }
-  };
+  }, [activeTrack.lyrics]);
 
-  // Attempt autoplay of the chosen random track, with fallback on very first user interaction
+  // Attempt autoplay of the initial track, with clean fallback on first user interaction
   useEffect(() => {
     const initialTrack = currentAlbum.tracks[currentIndex] || currentAlbum.tracks[0];
     if (!initialTrack) return;
 
-    // 1. Try immediate playback
     playTrack(initialTrack);
 
-    // 2. Fallback listener if browser autoplay policy stopped immediate playback
+    const cleanup = () => {
+      window.removeEventListener('pointerdown', handleFirstUserGesture);
+      window.removeEventListener('keydown', handleFirstUserGesture);
+      window.removeEventListener('touchstart', handleFirstUserGesture);
+    };
+
     const handleFirstUserGesture = () => {
-      playTrack(initialTrack);
+      cleanup();
+      if (!isPlayingRef.current) {
+        playTrack(initialTrack);
+      }
     };
 
     window.addEventListener('pointerdown', handleFirstUserGesture, { once: true });
     window.addEventListener('keydown', handleFirstUserGesture, { once: true });
     window.addEventListener('touchstart', handleFirstUserGesture, { once: true });
 
-    return () => {
-      window.removeEventListener('pointerdown', handleFirstUserGesture);
-      window.removeEventListener('keydown', handleFirstUserGesture);
-      window.removeEventListener('touchstart', handleFirstUserGesture);
-    };
+    return cleanup;
   }, []);
 
   // Synchronize visual state whenever audio track changes (e.g. auto-play next track on ended)
@@ -185,7 +253,7 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [currentIndex, isPlaying, showLyricsModal, showTracklist, showSettingsMenu]);
+  }, [handlePrev, handleNext, togglePlay, showLyricsModal, showTracklist, showSettingsMenu]);
 
   // Ensure video plays smoothly whenever track or album changes
   useEffect(() => {
@@ -197,33 +265,17 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
     }
   }, [activeVideoSrc, showCanvasBackground]);
 
-  const formatTime = (secs: number) => {
-    const m = Math.floor(secs / 60);
-    const s = Math.floor(secs % 60);
-    return `${m}:${s < 10 ? '0' : ''}${s}`;
-  };
-
-  const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
-
-  const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-    seek(ratio * duration);
-  };
-
-  const currentBgColor = isDark ? activeTrack.colorDark : activeTrack.colorLight;
   const isLightMode = !isDark;
 
   if (displayMode === 'editorial') {
     return (
-      <>
+      <Suspense fallback={<div className="w-screen h-screen bg-[#030407]" />}>
         <EditorialSwissView
           albums={discography}
           currentAlbum={currentAlbum}
           activeTrack={activeTrack}
           currentIndex={currentIndex}
           isPlaying={isPlaying}
-          currentTime={currentTime}
           duration={duration}
           isMuted={isMuted}
           onSelectTrack={handleSelectTrack}
@@ -237,7 +289,7 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
           onOpenEPK={onOpenEPK}
           onOpenShare={onOpenShare}
           onOpenBackoffice={onOpenBackoffice}
-          onSwitchDisplayMode={(mode) => handleSetDisplayMode(mode)}
+          onSwitchDisplayMode={handleSetDisplayMode}
           displayMode={displayMode}
           formatTime={formatTime}
         />
@@ -313,7 +365,7 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
             </div>
           </div>
         )}
-      </>
+      </Suspense>
     );
   }
 
@@ -911,35 +963,13 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
             </button>
           </div>
 
-          {/* Time Scrubber (Continuous, wide seekbar) */}
-          <div className="flex-1 flex items-center space-x-1.5 sm:space-x-3 min-w-0">
-            <span className="text-[10px] sm:text-[11px] font-mono opacity-70 w-7 sm:w-9 text-right tabular-nums shrink-0">
-              {formatTime(currentTime)}
-            </span>
-
-            <div
-              onClick={handleSeek}
-              className="flex-1 h-6 flex items-center cursor-pointer group relative"
-              title="Scorri brano"
-            >
-              <div
-                className={`w-full h-1.5 group-hover:h-2 rounded-full transition-all duration-150 relative overflow-hidden ${
-                  isLightMode ? 'bg-black/15' : 'bg-white/20'
-                }`}
-              >
-                <div
-                  className={`h-full rounded-full transition-all duration-100 ${
-                    isLightMode ? 'bg-gray-950' : 'bg-white'
-                  }`}
-                  style={{ width: `${progress}%` }}
-                />
-              </div>
-            </div>
-
-            <span className="text-[10px] sm:text-[11px] font-mono opacity-70 w-7 sm:w-9 text-left tabular-nums shrink-0">
-              {activeTrack.duration}
-            </span>
-          </div>
+          {/* Time Scrubber (Continuous, wide seekbar isolated from parent re-renders) */}
+          <AudioScrubberBar
+            duration={duration}
+            trackDurationLabel={activeTrack.duration}
+            isLightMode={isLightMode}
+            onSeek={seek}
+          />
 
           {/* Divider */}
           <div className={`h-5 w-px shrink-0 hidden xs:block ${isLightMode ? 'bg-black/15' : 'bg-white/15'}`} />

@@ -1,14 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { AlbumData, Track } from '../data/albumData';
 import { useTheme } from '../context/ThemeContext';
+import { useAudioTime } from '../context/NativeAudioContext';
 import { 
   Play, 
   Pause, 
   FileText, 
   ExternalLink, 
-  Radio,
   Layers, 
-  Disc, 
   Share2, 
   Settings,
   X,
@@ -27,7 +26,7 @@ interface EditorialSwissViewProps {
   activeTrack: Track;
   currentIndex: number;
   isPlaying: boolean;
-  currentTime: number;
+  currentTime?: number;
   duration: number;
   isMuted: boolean;
   onSelectTrack: (index: number) => void;
@@ -52,7 +51,6 @@ export const EditorialSwissView: React.FC<EditorialSwissViewProps> = ({
   activeTrack,
   currentIndex,
   isPlaying,
-  currentTime,
   duration,
   isMuted,
   onSelectTrack,
@@ -70,6 +68,7 @@ export const EditorialSwissView: React.FC<EditorialSwissViewProps> = ({
   displayMode,
   formatTime,
 }) => {
+  const currentTime = useAudioTime();
   const [showAllTracks, setShowAllTracks] = useState<boolean>(false);
   const [showSettingsMenu, setShowSettingsMenu] = useState<boolean>(false);
   const vinylCenterRef = useRef<HTMLDivElement | null>(null);

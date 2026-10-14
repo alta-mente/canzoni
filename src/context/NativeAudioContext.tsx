@@ -1,10 +1,9 @@
-import React, { createContext, useContext, useState, useEffect, useRef, useCallback, ReactNode } from 'react';
-import { ALBUM_DATA, Track, DISCOGRAPHY } from '../data/albumData';
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback, useMemo, ReactNode } from 'react';
+import { ALBUM_DATA, AlbumData, Track, DISCOGRAPHY } from '../data/albumData';
 
 interface AudioContextType {
   currentTrack: Track;
   isPlaying: boolean;
-  currentTime: number;
   duration: number;
   volume: number;
   isMuted: boolean;
@@ -18,16 +17,23 @@ interface AudioContextType {
 }
 
 const AudioContext = createContext<AudioContextType | undefined>(undefined);
+const AudioTimeContext = createContext<number>(0);
 
-export const NativeAudioProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const NativeAudioProvider: React.FC<{ children: ReactNode; albums?: AlbumData[] }> = ({
+  children,
+  albums,
+}) => {
+  const activeDiscography = albums && albums.length > 0 ? albums : DISCOGRAPHY;
+
   const [currentTrack, setCurrentTrack] = useState<Track>(() => {
-    return ALBUM_DATA.tracks && ALBUM_DATA.tracks.length > 0
-      ? ALBUM_DATA.tracks[0]
+    const firstAlbum = activeDiscography[0] || ALBUM_DATA;
+    return firstAlbum.tracks && firstAlbum.tracks.length > 0
+      ? firstAlbum.tracks[0]
       : ({} as Track);
   });
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [currentTime, setCurrentTime] = useState<number>(0);
-  const [duration, setDuration] = useState<number>(15); // default preview length
+  const [duration, setDuration] = useState<number>(15);
   const [volume, setVolumeState] = useState<number>(0.85);
   const [isMuted, setIsMuted] = useState<boolean>(false);
 
@@ -36,7 +42,7 @@ export const NativeAudioProvider: React.FC<{ children: ReactNode }> = ({ childre
 
   useEffect(() => {
     const audio = new Audio();
-    audio.preload = 'auto';
+    audio.preload = 'metadata';
     audio.volume = volume;
     audioRef.current = audio;
 
@@ -51,7 +57,6 @@ export const NativeAudioProvider: React.FC<{ children: ReactNode }> = ({ childre
     };
 
     const onEnded = () => {
-      // Loop or go to next track via ref to always have latest state
       if (nextTrackRef.current) {
         nextTrackRef.current();
       }
@@ -94,6 +99,10 @@ export const NativeAudioProvider: React.FC<{ children: ReactNode }> = ({ childre
 
   const playTrack = useCallback((track: Track) => {
     setCurrentTrack(track);
+    setCurrentTime(0);
+    if (track.durationSeconds) {
+      setDuration(track.durationSeconds);
+    }
     const audio = audioRef.current;
     if (audio) {
       audio.src = track.audioSrc;
@@ -113,7 +122,7 @@ export const NativeAudioProvider: React.FC<{ children: ReactNode }> = ({ childre
     if (isPlaying) {
       audio.pause();
     } else {
-      if (!audio.src || audio.src === '') {
+      if (!audio.src || audio.src === '' || audio.src === window.location.href) {
         audio.src = currentTrack.audioSrc;
       }
       audio.play().then(() => {
@@ -150,42 +159,65 @@ export const NativeAudioProvider: React.FC<{ children: ReactNode }> = ({ childre
   }, []);
 
   const nextTrack = useCallback(() => {
-    const currentAlbum = DISCOGRAPHY.find((a) => a.tracks.some((t) => t.id === currentTrack.id)) || ALBUM_DATA;
+    const currentAlbum =
+      activeDiscography.find((a) => a.tracks.some((t) => t.id === currentTrack.id)) ||
+      activeDiscography[0] ||
+      ALBUM_DATA;
     const currIdx = currentAlbum.tracks.findIndex((t) => t.id === currentTrack.id);
     const nextIdx = (currIdx + 1) % currentAlbum.tracks.length;
     playTrack(currentAlbum.tracks[nextIdx]);
-  }, [currentTrack, playTrack]);
+  }, [activeDiscography, currentTrack, playTrack]);
 
   useEffect(() => {
     nextTrackRef.current = nextTrack;
   }, [nextTrack]);
 
   const prevTrack = useCallback(() => {
-    const currentAlbum = DISCOGRAPHY.find((a) => a.tracks.some((t) => t.id === currentTrack.id)) || ALBUM_DATA;
+    const currentAlbum =
+      activeDiscography.find((a) => a.tracks.some((t) => t.id === currentTrack.id)) ||
+      activeDiscography[0] ||
+      ALBUM_DATA;
     const currIdx = currentAlbum.tracks.findIndex((t) => t.id === currentTrack.id);
     const prevIdx = (currIdx - 1 + currentAlbum.tracks.length) % currentAlbum.tracks.length;
     playTrack(currentAlbum.tracks[prevIdx]);
-  }, [currentTrack, playTrack]);
+  }, [activeDiscography, currentTrack, playTrack]);
+
+  const contextValue = useMemo<AudioContextType>(
+    () => ({
+      currentTrack,
+      isPlaying,
+      duration,
+      volume,
+      isMuted,
+      playTrack,
+      togglePlay,
+      seek,
+      setVolume,
+      toggleMute,
+      nextTrack,
+      prevTrack,
+    }),
+    [
+      currentTrack,
+      isPlaying,
+      duration,
+      volume,
+      isMuted,
+      playTrack,
+      togglePlay,
+      seek,
+      setVolume,
+      toggleMute,
+      nextTrack,
+      prevTrack,
+    ]
+  );
 
   return (
-    <AudioContext.Provider
-      value={{
-        currentTrack,
-        isPlaying,
-        currentTime,
-        duration,
-        volume,
-        isMuted,
-        playTrack,
-        togglePlay,
-        seek,
-        setVolume,
-        toggleMute,
-        nextTrack,
-        prevTrack,
-      }}
-    >
-      {children}
+    <AudioContext.Provider value={contextValue}>
+      <AudioTimeContext.Provider value={currentTime}>
+        {children}
+      </AudioTimeContext.Provider>
     </AudioContext.Provider>
   );
 };
@@ -196,4 +228,8 @@ export const useAudio = (): AudioContextType => {
     throw new Error('useAudio must be used within NativeAudioProvider');
   }
   return context;
+};
+
+export const useAudioTime = (): number => {
+  return useContext(AudioTimeContext);
 };

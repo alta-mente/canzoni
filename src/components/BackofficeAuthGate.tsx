@@ -79,7 +79,7 @@ export const BackofficeAuthGate: React.FC<BackofficeAuthGateProps> = ({ onBackTo
       const customHash = localStorage.getItem(CUSTOM_HASH_KEY);
       const expectedHash = customHash || DEFAULT_PASSWORD_HASH;
 
-      const isValid = computedHash === expectedHash || password.trim() === 'marte2026';
+      const isValid = computedHash === expectedHash;
 
       if (isValid) {
         if (rememberMe) {

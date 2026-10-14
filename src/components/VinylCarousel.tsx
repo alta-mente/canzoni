@@ -12,7 +12,7 @@ interface VinylCarouselProps {
   album?: AlbumData;
 }
 
-export const VinylCarousel: React.FC<VinylCarouselProps> = ({
+export const VinylCarousel: React.FC<VinylCarouselProps> = React.memo(({
   currentIndex,
   onSelectTrack,
   onPrevTrack,
@@ -187,6 +187,8 @@ export const VinylCarousel: React.FC<VinylCarouselProps> = ({
           <img
             src={track.artworkUrl || album.coverUrl}
             alt={track.title}
+            loading={isCenter ? 'eager' : 'lazy'}
+            decoding="async"
             className="w-full h-full object-cover scale-105 pointer-events-none transition-transform duration-700"
           />
 
@@ -467,4 +469,4 @@ export const VinylCarousel: React.FC<VinylCarouselProps> = ({
       </button>
     </div>
   );
-};
+});
