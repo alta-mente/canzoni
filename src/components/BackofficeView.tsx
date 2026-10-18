@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { AlbumData, Track, DISCOGRAPHY } from '../data/albumData';
 import albumsAllJson from '../data/albums.all.json';
 
-const STORAGE_KEY = 'antigravity_discography_v3';
+const STORAGE_KEY = 'antigravity_discography_v4';
 import { 
   ArrowLeft, 
   Save, 
@@ -63,6 +63,7 @@ export const BackofficeView: React.FC<BackofficeViewProps> = ({
     try {
       localStorage.removeItem('antigravity_discography_custom'); // Clear legacy cache
       localStorage.removeItem('antigravity_discography_v2');
+      localStorage.removeItem('antigravity_discography_v3');
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);

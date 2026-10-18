@@ -28,7 +28,8 @@ export const App: React.FC = () => {
     try {
       localStorage.removeItem('antigravity_discography_custom');
       localStorage.removeItem('antigravity_discography_v2');
-      const saved = localStorage.getItem('antigravity_discography_v3');
+      localStorage.removeItem('antigravity_discography_v3');
+      const saved = localStorage.getItem('antigravity_discography_v4');
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
@@ -43,7 +44,7 @@ export const App: React.FC = () => {
 
   // Fetch latest discography from server if available (e.g. local dev server)
   useEffect(() => {
-    fetch('/api/albums')
+    fetch(`/api/albums?t=${Date.now()}`, { cache: 'no-store' })
       .then((res) => {
         const ct = res.headers.get('content-type') || '';
         if (res.ok && ct.includes('application/json')) return res.json();
@@ -51,7 +52,7 @@ export const App: React.FC = () => {
       })
       .then((data) => {
         if (data && Array.isArray(data) && data.length > 0) {
-          const hasLocalCustom = !!localStorage.getItem('antigravity_discography_v3');
+          const hasLocalCustom = !!localStorage.getItem('antigravity_discography_v4');
           if (!hasLocalCustom) {
             setAlbums(data);
           }
