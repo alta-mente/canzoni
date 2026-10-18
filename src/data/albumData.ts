@@ -64,19 +64,26 @@ export const resolveAssetUrl = (rawUrl?: string): string => {
   const base = import.meta.env.BASE_URL || '/';
   const cleanBase = base.endsWith('/') ? base : `${base}/`;
 
-  // Avoid double-prepending if url already starts with base
+  let resolved = url;
   if (cleanBase !== '/' && (url.startsWith(cleanBase) || url.startsWith(base))) {
-    return url;
+    resolved = url;
+  } else {
+    const cleanUrl = url.startsWith('/') ? url.slice(1) : url;
+    const baseWithoutSlash = cleanBase.startsWith('/') ? cleanBase.slice(1) : cleanBase;
+    if (baseWithoutSlash && cleanUrl.startsWith(baseWithoutSlash)) {
+      resolved = `/${cleanUrl}`;
+    } else {
+      resolved = `${cleanBase}${cleanUrl}`;
+    }
   }
-  const cleanUrl = url.startsWith('/') ? url.slice(1) : url;
-  const baseWithoutSlash = cleanBase.startsWith('/') ? cleanBase.slice(1) : cleanBase;
-  if (baseWithoutSlash && cleanUrl.startsWith(baseWithoutSlash)) {
-    return `/${cleanUrl}`;
+
+  if (resolved.includes('/audio-fette/') && !resolved.includes('?v=')) {
+    resolved = `${resolved}?v=5`;
   }
-  return `${cleanBase}${cleanUrl}`;
+  return resolved;
 };
 
-const normalizeAlbum = (album: AlbumData): AlbumData => ({
+export const normalizeAlbum = (album: AlbumData): AlbumData => ({
   ...album,
   coverUrl: resolveAssetUrl(album.coverUrl),
   canvasVideoSrc: album.canvasVideoSrc ? resolveAssetUrl(album.canvasVideoSrc) : undefined,

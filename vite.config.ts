@@ -409,9 +409,7 @@ function backofficeApiPlugin(): Plugin {
                   const durSec = Math.round(clip.metadata?.duration || 0);
                   const mins = Math.floor(durSec / 60);
                   const secs = String(durSec % 60).padStart(2, '0');
-                  const streamUrl =
-                    clip.media_urls?.[0]?.url ||
-                    `https://d2lwuy8qc234o3.cloudfront.net/1/clip/${clip.id}.m4a`;
+                  const streamUrl = `https://cdn1.suno.ai/${clip.id}.mp4`;
                   return {
                     sunoId: clip.id,
                     sunoUrl: `https://suno.com/song/${clip.id}`,
@@ -420,7 +418,7 @@ function backofficeApiPlugin(): Plugin {
                     duration: `${mins}:${secs}`,
                     durationSeconds: durSec,
                     audioUrl: streamUrl,
-                    videoUrl: clip.video_url || clip.video_cover_url || '',
+                    videoUrl: clip.video_url || clip.video_cover_url || streamUrl,
                     artworkUrl: clip.image_large_url || clip.image_url || feedData.feed_image_url || '',
                     lyrics: (clip.metadata?.prompt || '').trim(),
                     tags: clip.display_tags || clip.metadata?.tags || '',

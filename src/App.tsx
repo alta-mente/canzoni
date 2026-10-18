@@ -2,7 +2,7 @@ import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { ThemeProvider } from './context/ThemeContext';
 import { NativeAudioProvider } from './context/NativeAudioContext';
 import { VinylOdysseyView } from './components/VinylOdysseyView';
-import { AlbumData, DISCOGRAPHY } from './data/albumData';
+import { AlbumData, DISCOGRAPHY, normalizeAlbum } from './data/albumData';
 
 const EPKView = lazy(() =>
   import('./components/EPKView').then((m) => ({ default: m.EPKView }))
@@ -29,11 +29,12 @@ export const App: React.FC = () => {
       localStorage.removeItem('antigravity_discography_custom');
       localStorage.removeItem('antigravity_discography_v2');
       localStorage.removeItem('antigravity_discography_v3');
-      const saved = localStorage.getItem('antigravity_discography_v4');
+      localStorage.removeItem('antigravity_discography_v4');
+      const saved = localStorage.getItem('antigravity_discography_v5');
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed;
+          return parsed.map(normalizeAlbum);
         }
       }
     } catch (e) {
@@ -52,9 +53,9 @@ export const App: React.FC = () => {
       })
       .then((data) => {
         if (data && Array.isArray(data) && data.length > 0) {
-          const hasLocalCustom = !!localStorage.getItem('antigravity_discography_v4');
+          const hasLocalCustom = !!localStorage.getItem('antigravity_discography_v5');
           if (!hasLocalCustom) {
-            setAlbums(data);
+            setAlbums(data.map(normalizeAlbum));
           }
         }
       })

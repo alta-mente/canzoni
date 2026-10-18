@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback, useMemo, ReactNode } from 'react';
-import { ALBUM_DATA, AlbumData, Track, DISCOGRAPHY } from '../data/albumData';
+import { ALBUM_DATA, AlbumData, Track, DISCOGRAPHY, resolveAssetUrl } from '../data/albumData';
 
 interface AudioContextType {
   currentTrack: Track;
@@ -38,7 +38,12 @@ export const NativeAudioProvider: React.FC<{ children: ReactNode; albums?: Album
   const [isMuted, setIsMuted] = useState<boolean>(false);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const currentTrackRef = useRef<Track>(currentTrack);
   const nextTrackRef = useRef<() => void>(() => {});
+
+  useEffect(() => {
+    currentTrackRef.current = currentTrack;
+  }, [currentTrack]);
 
   useEffect(() => {
     const audio = new Audio();
@@ -66,7 +71,8 @@ export const NativeAudioProvider: React.FC<{ children: ReactNode; albums?: Album
     const onPause = () => setIsPlaying(false);
     const onError = (e: Event) => {
       console.warn('NativeAudio error on source:', audio.src, e);
-      if (audio.src && audio.src.includes('audio-fette') && !audio.src.includes('raw.githubusercontent.com')) {
+      const track = currentTrackRef.current;
+      if (audio.src && audio.src.includes('audio-fette') && !audio.src.includes('raw.githubusercontent.com') && !audio.src.includes('cdn1.suno.ai')) {
         const filename = audio.src.split('/').pop()?.split('?')[0];
         if (filename) {
           console.info('Retrying with GitHub raw fallback:', filename);
@@ -75,6 +81,13 @@ export const NativeAudioProvider: React.FC<{ children: ReactNode; albums?: Album
           audio.play().then(() => setIsPlaying(true)).catch(() => setIsPlaying(false));
           return;
         }
+      }
+      if (track?.sunoId && !audio.src.includes('cdn1.suno.ai')) {
+        console.info('Retrying with Suno CDN fallback:', track.sunoId);
+        audio.src = `https://cdn1.suno.ai/${track.sunoId}.mp4`;
+        audio.currentTime = 0;
+        audio.play().then(() => setIsPlaying(true)).catch(() => setIsPlaying(false));
+        return;
       }
       setIsPlaying(false);
     };
@@ -99,13 +112,14 @@ export const NativeAudioProvider: React.FC<{ children: ReactNode; albums?: Album
 
   const playTrack = useCallback((track: Track) => {
     setCurrentTrack(track);
+    currentTrackRef.current = track;
     setCurrentTime(0);
     if (track.durationSeconds) {
       setDuration(track.durationSeconds);
     }
     const audio = audioRef.current;
     if (audio) {
-      audio.src = track.audioSrc;
+      audio.src = resolveAssetUrl(track.audioSrc);
       audio.currentTime = 0;
       audio.play().then(() => {
         setIsPlaying(true);
@@ -122,8 +136,9 @@ export const NativeAudioProvider: React.FC<{ children: ReactNode; albums?: Album
     if (isPlaying) {
       audio.pause();
     } else {
+      const resolvedSrc = resolveAssetUrl(currentTrack.audioSrc);
       if (!audio.src || audio.src === '' || audio.src === window.location.href) {
-        audio.src = currentTrack.audioSrc;
+        audio.src = resolvedSrc;
       }
       audio.play().then(() => {
         setIsPlaying(true);
