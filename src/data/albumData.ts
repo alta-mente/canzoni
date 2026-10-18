@@ -7,6 +7,8 @@ export interface Track {
   spotifyId: string;
   spotifyUri: string;
   spotifyUrl: string;
+  sunoId?: string;
+  sunoUrl?: string;
   duration: string;
   durationSeconds: number;
   mood: string;
@@ -31,6 +33,8 @@ export interface AlbumData {
   spotifyAlbumUri?: string;
   spotifyAlbumUrl?: string;
   spotifyArtistUrl?: string;
+  sunoAlbumId?: string;
+  sunoAlbumUrl?: string;
   coverUrl: string;
   canvasVideoSrc?: string; // Video Canvas unico continuo per l'intero album
   tagline: string;

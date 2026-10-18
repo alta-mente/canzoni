@@ -238,6 +238,219 @@ function backofficeApiPlugin(): Plugin {
           return;
         }
 
+        // 6. GET /api/suno-profile (Lists @arocchi's Suno Albums & Playlists)
+        if ((pathname === '/api/suno-profile' || pathname.endsWith('/api/suno-profile')) && req.method === 'GET') {
+          (async () => {
+            try {
+              const https = await import('https');
+              const targetUserId = parsedUrl.searchParams.get('userId') || 'f1f44a03-db07-49da-8099-36a0e72b34dd';
+
+              const postUnifiedFeed = (payload: any): Promise<any> =>
+                new Promise((resolve, reject) => {
+                  const data = JSON.stringify(payload);
+                  const r = https.request(
+                    'https://studio-api.prod.suno.com/api/unified/feed',
+                    {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        'Content-Length': Buffer.byteLength(data)
+                      }
+                    },
+                    (sRes) => {
+                      let body = '';
+                      sRes.on('data', (c) => (body += c));
+                      sRes.on('end', () => {
+                        try {
+                          resolve(JSON.parse(body));
+                        } catch (e) {
+                          reject(e);
+                        }
+                      });
+                    }
+                  );
+                  r.on('error', reject);
+                  r.write(data);
+                  r.end();
+                });
+
+              const [albumsRes, playlistsRes] = await Promise.all([
+                postUnifiedFeed({ feed_id: 'user_albums', target_user_id: targetUserId, page_size: 25 }),
+                postUnifiedFeed({ feed_id: 'user_playlists', target_user_id: targetUserId, page_size: 25 })
+              ]);
+
+              const albums = (albumsRes?.feed?.items || [])
+                .map((it: any) => it.content_item)
+                .filter(Boolean)
+                .map((alb: any) => ({
+                  id: alb.id,
+                  name: alb.name,
+                  imageUrl: alb.image_url,
+                  songCount: alb.song_count || 0,
+                  totalDurationSeconds: alb.total_duration_seconds || 0,
+                  albumType: alb.album_type || 'lp',
+                  lifecycleState: alb.lifecycle_state || 'published',
+                  feedId: alb.feed_id || `album:${alb.id}`,
+                  url: `https://suno.com/album/${alb.id}`,
+                  type: 'album'
+                }));
+
+              const playlists = (playlistsRes?.feed?.items || [])
+                .map((it: any) => it.content_item)
+                .filter(Boolean)
+                .map((pl: any) => ({
+                  id: pl.playlist_id || pl.id,
+                  name: (pl.playlist_name || pl.name || '').trim(),
+                  imageUrl: pl.playlist_image_url || pl.image_url,
+                  songCount: pl.playlist_song_count || pl.song_count || 0,
+                  feedId: `generic_playlist:${pl.playlist_id || pl.id}`,
+                  url: `https://suno.com/playlist/${pl.playlist_id || pl.id}`,
+                  type: 'playlist'
+                }));
+
+              res.setHeader('Content-Type', 'application/json; charset=utf-8');
+              res.end(
+                JSON.stringify({
+                  success: true,
+                  handle: 'arocchi',
+                  userId: targetUserId,
+                  albums,
+                  playlists
+                })
+              );
+            } catch (err: any) {
+              res.statusCode = 500;
+              res.setHeader('Content-Type', 'application/json');
+              res.end(JSON.stringify({ error: err.message || 'Failed to fetch Suno profile' }));
+            }
+          })();
+          return;
+        }
+
+        // 7. POST /api/import-suno-album (Fetches all tracks & lyrics of a Suno Album or Playlist)
+        if ((pathname === '/api/import-suno-album' || pathname.endsWith('/api/import-suno-album')) && req.method === 'POST') {
+          const chunks: Buffer[] = [];
+          req.on('data', (chunk) => chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)));
+          req.on('end', async () => {
+            try {
+              const body = Buffer.concat(chunks).toString('utf8');
+              const { urlOrId, feedType } = JSON.parse(body);
+              if (!urlOrId) {
+                res.statusCode = 400;
+                res.setHeader('Content-Type', 'application/json');
+                res.end(JSON.stringify({ error: 'Missing urlOrId' }));
+                return;
+              }
+              const m = urlOrId.match(/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/i);
+              if (!m) {
+                res.statusCode = 400;
+                res.setHeader('Content-Type', 'application/json');
+                res.end(JSON.stringify({ error: 'Nessun ID Album/Playlist Suno valido trovato' }));
+                return;
+              }
+              const collectionId = m[1];
+              const isPlaylistHint = feedType === 'playlist' || urlOrId.includes('/playlist/');
+              const candidateFeeds = isPlaylistHint
+                ? [`generic_playlist:${collectionId}`, `album:${collectionId}`]
+                : [`album:${collectionId}`, `generic_playlist:${collectionId}`];
+
+              const https = await import('https');
+              const postUnifiedFeed = (feed_id: string): Promise<any> =>
+                new Promise((resolve, reject) => {
+                  const data = JSON.stringify({ feed_id, page_size: 50 });
+                  const r = https.request(
+                    'https://studio-api.prod.suno.com/api/unified/feed',
+                    {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        'Content-Length': Buffer.byteLength(data)
+                      }
+                    },
+                    (sRes) => {
+                      let b = '';
+                      sRes.on('data', (c) => (b += c));
+                      sRes.on('end', () => {
+                        try {
+                          resolve(JSON.parse(b));
+                        } catch (e) {
+                          reject(e);
+                        }
+                      });
+                    }
+                  );
+                  r.on('error', reject);
+                  r.write(data);
+                  r.end();
+                });
+
+              let feedData: any = null;
+              let resolvedType: 'album' | 'playlist' = isPlaylistHint ? 'playlist' : 'album';
+              for (const fid of candidateFeeds) {
+                const resp = await postUnifiedFeed(fid);
+                if (resp?.feed && Array.isArray(resp.feed.items)) {
+                  feedData = resp.feed;
+                  resolvedType = fid.startsWith('album:') ? 'album' : 'playlist';
+                  break;
+                }
+              }
+
+              if (!feedData) {
+                res.statusCode = 404;
+                res.setHeader('Content-Type', 'application/json');
+                res.end(JSON.stringify({ error: 'Album o Playlist Suno non trovato' }));
+                return;
+              }
+
+              const tracks = (feedData.items || [])
+                .map((it: any) => it.content_item)
+                .filter(Boolean)
+                .map((clip: any, idx: number) => {
+                  const durSec = Math.round(clip.metadata?.duration || 0);
+                  const mins = Math.floor(durSec / 60);
+                  const secs = String(durSec % 60).padStart(2, '0');
+                  const streamUrl =
+                    clip.media_urls?.[0]?.url ||
+                    `https://d2lwuy8qc234o3.cloudfront.net/1/clip/${clip.id}.m4a`;
+                  return {
+                    sunoId: clip.id,
+                    sunoUrl: `https://suno.com/song/${clip.id}`,
+                    number: idx + 1,
+                    title: (clip.title || `Traccia ${idx + 1}`).trim(),
+                    duration: `${mins}:${secs}`,
+                    durationSeconds: durSec,
+                    audioUrl: streamUrl,
+                    videoUrl: clip.video_url || clip.video_cover_url || '',
+                    artworkUrl: clip.image_large_url || clip.image_url || feedData.feed_image_url || '',
+                    lyrics: (clip.metadata?.prompt || '').trim(),
+                    tags: clip.display_tags || clip.metadata?.tags || '',
+                    playCount: clip.play_count || 0
+                  };
+                });
+
+              res.setHeader('Content-Type', 'application/json; charset=utf-8');
+              res.end(
+                JSON.stringify({
+                  success: true,
+                  collectionId,
+                  collectionType: resolvedType,
+                  title: (feedData.feed_title || 'Nuovo Album Suno').replace(/\s*\(album\)\s*/i, '').trim(),
+                  rawTitle: (feedData.feed_title || '').trim(),
+                  coverUrl: feedData.feed_image_url || tracks[0]?.artworkUrl || '',
+                  sunoUrl: `https://suno.com/${resolvedType}/${collectionId}`,
+                  songCount: tracks.length,
+                  tracks
+                })
+              );
+            } catch (err: any) {
+              res.statusCode = 500;
+              res.setHeader('Content-Type', 'application/json');
+              res.end(JSON.stringify({ error: err.message || 'Errore importazione album Suno' }));
+            }
+          });
+          return;
+        }
+
         next();
       });
     }

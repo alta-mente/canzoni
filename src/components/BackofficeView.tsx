@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { AlbumData, Track, DISCOGRAPHY } from '../data/albumData';
 import albumsAllJson from '../data/albums.all.json';
 
-const STORAGE_KEY = 'antigravity_discography_v2';
+const STORAGE_KEY = 'antigravity_discography_v3';
 import { 
   ArrowLeft, 
   Save, 
@@ -62,6 +62,7 @@ export const BackofficeView: React.FC<BackofficeViewProps> = ({
     if (initialAlbums && initialAlbums.length > 0) return initialAlbums;
     try {
       localStorage.removeItem('antigravity_discography_custom'); // Clear legacy cache
+      localStorage.removeItem('antigravity_discography_v2');
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
@@ -88,6 +89,32 @@ export const BackofficeView: React.FC<BackofficeViewProps> = ({
   const [sunoImportUrl, setSunoImportUrl] = useState<string>('');
   const [isImportingSuno, setIsImportingSuno] = useState<boolean>(false);
 
+  // Suno Albums & Playlists discovery / import state
+  const [sunoProfileAlbums, setSunoProfileAlbums] = useState<
+    Array<{
+      id: string;
+      name: string;
+      imageUrl: string;
+      songCount: number;
+      albumType?: string;
+      url: string;
+      type: 'album' | 'playlist';
+    }>
+  >([]);
+  const [sunoProfilePlaylists, setSunoProfilePlaylists] = useState<
+    Array<{
+      id: string;
+      name: string;
+      imageUrl: string;
+      songCount: number;
+      url: string;
+      type: 'album' | 'playlist';
+    }>
+  >([]);
+  const [isLoadingSunoProfile, setIsLoadingSunoProfile] = useState<boolean>(false);
+  const [sunoAlbumImportUrl, setSunoAlbumImportUrl] = useState<string>('');
+  const [isImportingSunoAlbum, setIsImportingSunoAlbum] = useState<boolean>(false);
+
   // Audio preview in backoffice
   const [previewAudioSrc, setPreviewAudioSrc] = useState<string | null>(null);
   const [isPreviewPlaying, setIsPreviewPlaying] = useState<boolean>(false);
@@ -107,10 +134,11 @@ export const BackofficeView: React.FC<BackofficeViewProps> = ({
   const currentAlbum = albums.find((a) => a.id === selectedAlbumId) || albums[0];
   const activeTrack: Track | undefined = currentAlbum?.tracks[selectedTrackIndex] || currentAlbum?.tracks[0];
 
-  // Fetch albums & media on mount
+  // Fetch albums, media & Suno profile on mount
   useEffect(() => {
     fetchAlbums();
     fetchMediaFiles();
+    fetchSunoProfile();
   }, []);
 
   const showNotification = (text: string, type: 'success' | 'error' | 'info' = 'success') => {
@@ -118,6 +146,65 @@ export const BackofficeView: React.FC<BackofficeViewProps> = ({
     setTimeout(() => {
       setStatusMessage(null);
     }, 4500);
+  };
+
+  const fetchSunoProfile = async () => {
+    setIsLoadingSunoProfile(true);
+    try {
+      const res = await fetch('/api/suno-profile');
+      const ct = res.headers.get('content-type') || '';
+      if (res.ok && ct.includes('application/json')) {
+        const data = await res.json();
+        if (data.success) {
+          setSunoProfileAlbums(data.albums || []);
+          setSunoProfilePlaylists(data.playlists || []);
+          return;
+        }
+      }
+      // Fallback: direct Suno unified feed call if running without Vite backend
+      const targetUserId = 'f1f44a03-db07-49da-8099-36a0e72b34dd';
+      const [albRes, plRes] = await Promise.all([
+        fetch('https://studio-api.prod.suno.com/api/unified/feed', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ feed_id: 'user_albums', target_user_id: targetUserId, page_size: 25 })
+        }).then((r) => r.json()),
+        fetch('https://studio-api.prod.suno.com/api/unified/feed', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ feed_id: 'user_playlists', target_user_id: targetUserId, page_size: 25 })
+        }).then((r) => r.json())
+      ]);
+      const parsedAlbums = (albRes?.feed?.items || [])
+        .map((it: any) => it.content_item)
+        .filter(Boolean)
+        .map((alb: any) => ({
+          id: alb.id,
+          name: alb.name,
+          imageUrl: alb.image_url,
+          songCount: alb.song_count || 0,
+          albumType: alb.album_type || 'lp',
+          url: `https://suno.com/album/${alb.id}`,
+          type: 'album' as const
+        }));
+      const parsedPlaylists = (plRes?.feed?.items || [])
+        .map((it: any) => it.content_item)
+        .filter(Boolean)
+        .map((pl: any) => ({
+          id: pl.playlist_id || pl.id,
+          name: (pl.playlist_name || pl.name || '').trim(),
+          imageUrl: pl.playlist_image_url || pl.image_url,
+          songCount: pl.playlist_song_count || pl.song_count || 0,
+          url: `https://suno.com/playlist/${pl.playlist_id || pl.id}`,
+          type: 'playlist' as const
+        }));
+      setSunoProfileAlbums(parsedAlbums);
+      setSunoProfilePlaylists(parsedPlaylists);
+    } catch (err) {
+      console.warn('Could not fetch Suno profile albums:', err);
+    } finally {
+      setIsLoadingSunoProfile(false);
+    }
   };
 
   const fetchAlbums = async () => {
@@ -291,6 +378,217 @@ export const BackofficeView: React.FC<BackofficeViewProps> = ({
       showNotification(`Errore di rete: ${err.message}`, 'error');
     } finally {
       setIsImportingSuno(false);
+    }
+  };
+
+  // Import or synchronize an entire Suno Album or Playlist
+  const handleImportSunoAlbum = async (customUrlOrId?: string, feedType?: 'album' | 'playlist') => {
+    const targetInput = (customUrlOrId || sunoAlbumImportUrl).trim();
+    if (!targetInput) return;
+    setIsImportingSunoAlbum(true);
+    try {
+      let data: any = null;
+      try {
+        const res = await fetch('/api/import-suno-album', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ urlOrId: targetInput, feedType })
+        });
+        const ct = res.headers.get('content-type') || '';
+        if (res.ok && ct.includes('application/json')) {
+          data = await res.json();
+        }
+      } catch {
+        // Fallback to direct Suno API below
+      }
+
+      if (!data || !data.success) {
+        const m = targetInput.match(/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/i);
+        if (!m) {
+          showNotification('Nessun ID o link Album/Playlist Suno valido trovato', 'error');
+          return;
+        }
+        const collectionId = m[1];
+        const isPl = feedType === 'playlist' || targetInput.includes('/playlist/');
+        const candidates = isPl
+          ? [`generic_playlist:${collectionId}`, `album:${collectionId}`]
+          : [`album:${collectionId}`, `generic_playlist:${collectionId}`];
+
+        for (const fid of candidates) {
+          const r = await fetch('https://studio-api.prod.suno.com/api/unified/feed', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ feed_id: fid, page_size: 50 })
+          }).then((x) => x.json());
+          if (r?.feed && Array.isArray(r.feed.items)) {
+            const feed = r.feed;
+            const resolvedType = fid.startsWith('album:') ? 'album' : 'playlist';
+            const tracks = (feed.items || [])
+              .map((it: any) => it.content_item)
+              .filter(Boolean)
+              .map((clip: any, idx: number) => {
+                const durSec = Math.round(clip.metadata?.duration || 0);
+                const mins = Math.floor(durSec / 60);
+                const secs = String(durSec % 60).padStart(2, '0');
+                return {
+                  sunoId: clip.id,
+                  sunoUrl: `https://suno.com/song/${clip.id}`,
+                  number: idx + 1,
+                  title: (clip.title || `Traccia ${idx + 1}`).trim(),
+                  duration: `${mins}:${secs}`,
+                  durationSeconds: durSec,
+                  audioUrl:
+                    clip.media_urls?.[0]?.url ||
+                    `https://d2lwuy8qc234o3.cloudfront.net/1/clip/${clip.id}.m4a`,
+                  videoUrl: clip.video_url || clip.video_cover_url || '',
+                  artworkUrl: clip.image_large_url || clip.image_url || feed.feed_image_url || '',
+                  lyrics: (clip.metadata?.prompt || '').trim(),
+                  tags: clip.display_tags || clip.metadata?.tags || ''
+                };
+              });
+            data = {
+              success: true,
+              collectionId,
+              collectionType: resolvedType,
+              title: (feed.feed_title || 'Nuovo Album Suno').replace(/\s*\(album\)\s*/i, '').trim(),
+              coverUrl: feed.feed_image_url || tracks[0]?.artworkUrl || '',
+              sunoUrl: `https://suno.com/${resolvedType}/${collectionId}`,
+              tracks
+            };
+            break;
+          }
+        }
+      }
+
+      if (!data || !data.success || !Array.isArray(data.tracks)) {
+        showNotification(data?.error || 'Impossibile leggere questo Album/Playlist da Suno', 'error');
+        return;
+      }
+
+      const norm = (s: string) =>
+        (s || '')
+          .toLowerCase()
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .replace(/[^a-z0-9]/g, '');
+
+      const importedTitleNorm = norm(data.title);
+      const allReferenceAlbums: AlbumData[] = [
+        ...albums,
+        ...((albumsAllJson || []) as AlbumData[])
+      ];
+
+      // Find matching reference album (if any) to preserve curated local metadata/assets
+      const matchedRefAlbum = allReferenceAlbums.find(
+        (a) =>
+          a.sunoAlbumId === data.collectionId ||
+          norm(a.title) === importedTitleNorm ||
+          (importedTitleNorm.includes('marte') && a.id.includes('marte')) ||
+          ((importedTitleNorm.includes('salto') || importedTitleNorm.includes('fette')) &&
+            a.id.includes('fette'))
+      );
+
+      // Pool of all known reference tracks for smart matching
+      const refTracksPool: Track[] = allReferenceAlbums.flatMap((a) => a.tracks || []);
+
+      const darkPalette = ['#2c1520', '#0c2340', '#862e9c', '#d9480f', '#1e3a8a', '#093e19', '#701a75', '#9c174d'];
+      const lightPalette = ['#f8f9fa', '#e6f0fa', '#faf5ff', '#fff9db', '#eff6ff', '#ecfdf5', '#fdf4ff', '#fff0f6'];
+
+      const mergedTracks: Track[] = data.tracks.map((st: any, idx: number) => {
+        const existingTrack =
+          (matchedRefAlbum?.tracks || []).find(
+            (t) => t.sunoId === st.sunoId || norm(t.title) === norm(st.title)
+          ) ||
+          refTracksPool.find((t) => t.sunoId === st.sunoId || norm(t.title) === norm(st.title));
+
+        return {
+          id: existingTrack?.id || `suno-track-${st.sunoId.slice(0, 8)}`,
+          number: idx + 1,
+          title: existingTrack?.title || st.title,
+          spotifyId: existingTrack?.spotifyId || '',
+          spotifyUri: existingTrack?.spotifyUri || '',
+          spotifyUrl: existingTrack?.spotifyUrl || '',
+          sunoId: st.sunoId,
+          sunoUrl: st.sunoUrl,
+          duration: existingTrack?.duration || st.duration,
+          durationSeconds: existingTrack?.durationSeconds || st.durationSeconds,
+          audioSrc: existingTrack?.audioSrc || st.audioUrl,
+          canvasVideoSrc: existingTrack?.canvasVideoSrc || st.videoUrl || undefined,
+          artworkUrl: existingTrack?.artworkUrl || st.artworkUrl || data.coverUrl,
+          mood: existingTrack?.mood || (st.tags ? st.tags.split(',').slice(0, 3).join(' • ') : 'Canzone d\'Autore • Suno LP'),
+          storyQuote:
+            existingTrack?.storyQuote ||
+            (st.lyrics
+              ? `«${st.lyrics
+                  .split('\n')
+                  .map((l: string) => l.trim())
+                  .find((l: string) => l.length > 20 && !l.startsWith('[')) || st.title}»`
+              : `«${st.title}»`),
+          colorDark: existingTrack?.colorDark || darkPalette[idx % darkPalette.length],
+          colorLight: existingTrack?.colorLight || lightPalette[idx % lightPalette.length],
+          highlight: existingTrack?.highlight ?? idx === 0,
+          lyrics: existingTrack?.lyrics || st.lyrics || ''
+        };
+      });
+
+      const albumSlug =
+        matchedRefAlbum?.id ||
+        data.title
+          .toLowerCase()
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/(^-|-$)/g, '') ||
+        `suno-album-${data.collectionId.slice(0, 8)}`;
+
+      const builtAlbum: AlbumData = {
+        id: albumSlug,
+        title: matchedRefAlbum?.title || data.title.toUpperCase(),
+        artist: matchedRefAlbum?.artist || 'ALESSANDRO ROCCHI',
+        year: matchedRefAlbum?.year || new Date().getFullYear().toString(),
+        releaseDate: matchedRefAlbum?.releaseDate || 'Ottobre 2026',
+        genre: matchedRefAlbum?.genre || 'Canzone d\'Autore / Indie',
+        spotifyAlbumId: matchedRefAlbum?.spotifyAlbumId,
+        spotifyAlbumUri: matchedRefAlbum?.spotifyAlbumUri,
+        spotifyAlbumUrl: matchedRefAlbum?.spotifyAlbumUrl,
+        spotifyArtistUrl: matchedRefAlbum?.spotifyArtistUrl,
+        sunoAlbumId: data.collectionId,
+        sunoAlbumUrl: data.sunoUrl,
+        coverUrl: matchedRefAlbum?.coverUrl || data.coverUrl,
+        canvasVideoSrc: matchedRefAlbum?.canvasVideoSrc || mergedTracks[0]?.canvasVideoSrc,
+        tagline:
+          matchedRefAlbum?.tagline ||
+          `Album pubblicato su Suno (@arocchi) • ${mergedTracks.length} tracce inedite.`,
+        synopsis:
+          matchedRefAlbum?.synopsis ||
+          `«${data.title}» è un'opera musicale di Alessandro Rocchi importata e sincronizzata direttamente da Suno (${mergedTracks.length} brani).`,
+        tracks: mergedTracks,
+        credits: matchedRefAlbum?.credits || {
+          lyricsAndMusic: 'Alessandro Rocchi',
+          production: 'Alessandro Rocchi',
+          mixAndMaster: 'Suno Studio & Mastering d\'Autore',
+          artwork: 'Suno / Alessandro Rocchi 2026',
+          label: 'Indipendente'
+        }
+      };
+
+      const existsInActive = albums.some((a) => a.id === builtAlbum.id || a.sunoAlbumId === data.collectionId);
+      const nextAlbums = existsInActive
+        ? albums.map((a) => (a.id === builtAlbum.id || a.sunoAlbumId === data.collectionId ? builtAlbum : a))
+        : [...albums, builtAlbum];
+
+      setAlbums(nextAlbums);
+      setSelectedAlbumId(builtAlbum.id);
+      setSelectedTrackIndex(0);
+      setSunoAlbumImportUrl('');
+      showNotification(
+        `${existsInActive ? 'Sincronizzato' : 'Importato'} album Suno «${builtAlbum.title}» (${mergedTracks.length} brani)! Clicca "Salva" per confermare.`,
+        'success'
+      );
+    } catch (err: any) {
+      showNotification(`Errore importazione album Suno: ${err.message}`, 'error');
+    } finally {
+      setIsImportingSunoAlbum(false);
     }
   };
 
@@ -1507,6 +1805,191 @@ export const BackofficeView: React.FC<BackofficeViewProps> = ({
                   className="w-full p-3.5 rounded-xl bg-black/40 border border-white/10 text-white font-mono text-xs focus:border-amber-400 outline-none resize-none"
                 />
               </div>
+
+              <div className="sm:col-span-2 space-y-1.5">
+                <label className="text-[11px] font-mono text-white/60 uppercase">Link Ufficiale Album / Playlist Suno</label>
+                <div className="flex flex-wrap gap-2">
+                  <input
+                    type="text"
+                    value={currentAlbum.sunoAlbumUrl || ''}
+                    onChange={(e) => updateCurrentAlbum('sunoAlbumUrl', e.target.value)}
+                    placeholder="https://suno.com/album/e941c273-3558-4fa6-8768-d37a6a123f84"
+                    className="flex-1 min-w-[220px] px-3.5 py-2 rounded-xl bg-black/40 border border-white/10 text-white font-mono text-xs focus:border-purple-400 outline-none"
+                  />
+                  {currentAlbum.sunoAlbumUrl && (
+                    <>
+                      <button
+                        type="button"
+                        disabled={isImportingSunoAlbum}
+                        onClick={() => handleImportSunoAlbum(currentAlbum.sunoAlbumUrl)}
+                        className="px-3.5 py-2 rounded-xl bg-purple-600/25 hover:bg-purple-600/40 border border-purple-500/40 text-purple-200 font-mono text-xs font-bold flex items-center gap-1.5 transition-all disabled:opacity-40"
+                        title="Sincronizza tracce, testi e metadati da questo Album/Playlist Suno"
+                      >
+                        <RefreshCw className={`w-3.5 h-3.5 ${isImportingSunoAlbum ? 'animate-spin' : ''}`} />
+                        <span>Sincronizza da Suno</span>
+                      </button>
+                      <a
+                        href={currentAlbum.sunoAlbumUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-white font-mono text-xs flex items-center gap-1.5 transition-all"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5 text-purple-400" />
+                        <span>Apri su Suno</span>
+                      </a>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* ─────────────────────────────────────────────────────────────
+                SEZIONE SUNO CLOUD (@arocchi) — ALBUM & PLAYLIST LIVE
+                ───────────────────────────────────────────────────────────── */}
+            <div className="pt-6 border-t border-white/10 space-y-4">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <h3 className="text-sm font-mono font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-purple-400" />
+                    <span>I Tuoi Album & Playlist su Suno (@arocchi)</span>
+                  </h3>
+                  <p className="text-xs font-mono text-white/50 mt-1">
+                    Rilevati in tempo reale dal tuo profilo Suno. Importa un nuovo album o sincronizza brani e testi con 1 click.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={fetchSunoProfile}
+                    disabled={isLoadingSunoProfile}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-mono text-white/80 hover:text-white transition-all"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 text-purple-400 ${isLoadingSunoProfile ? 'animate-spin' : ''}`} />
+                    <span>Aggiorna da Suno</span>
+                  </button>
+                  <a
+                    href="https://suno.com/@arocchi"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-500/15 hover:bg-purple-500/25 border border-purple-500/30 text-xs font-mono text-purple-200 transition-all"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    <span>@arocchi</span>
+                  </a>
+                </div>
+              </div>
+
+              {/* Manual URL Import Bar */}
+              <div className="p-3 rounded-2xl bg-black/40 border border-purple-500/25 flex flex-col sm:flex-row items-center gap-2">
+                <span className="text-xs font-mono text-purple-300 font-bold shrink-0 px-1">
+                  Importa da Link:
+                </span>
+                <input
+                  type="text"
+                  value={sunoAlbumImportUrl}
+                  onChange={(e) => setSunoAlbumImportUrl(e.target.value)}
+                  placeholder="Incolla link Album o Playlist Suno (es. https://suno.com/album/e941c273-...)"
+                  className="flex-1 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-white font-mono text-xs focus:border-purple-400 outline-none w-full"
+                />
+                <button
+                  type="button"
+                  disabled={isImportingSunoAlbum || !sunoAlbumImportUrl.trim()}
+                  onClick={() => handleImportSunoAlbum()}
+                  className="px-4 py-1.5 rounded-xl font-mono text-xs font-bold bg-purple-600 hover:bg-purple-500 disabled:opacity-40 text-white transition-all flex items-center gap-1.5 shrink-0 shadow-sm"
+                >
+                  {isImportingSunoAlbum ? (
+                    <>
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      <span>Importazione...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Download className="w-3.5 h-3.5" />
+                      <span>Importa / Sincronizza Album</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {/* Cards Grid of Live Suno Albums & Playlists */}
+              {(sunoProfileAlbums.length > 0 || sunoProfilePlaylists.length > 0) && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {[...sunoProfileAlbums, ...sunoProfilePlaylists].map((item) => {
+                    const isAlreadyLinked = albums.some(
+                      (a) =>
+                        a.sunoAlbumId === item.id ||
+                        (item.name.toLowerCase().includes('marte') && a.id.includes('marte')) ||
+                        ((item.name.toLowerCase().includes('salto') || item.name.toLowerCase().includes('fette')) &&
+                          a.id.includes('fette'))
+                    );
+                    return (
+                      <div
+                        key={`${item.type}-${item.id}`}
+                        className="p-3.5 rounded-2xl bg-black/40 border border-white/10 hover:border-purple-500/40 flex items-center justify-between gap-3 transition-all"
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <img
+                            src={item.imageUrl}
+                            alt={item.name}
+                            className="w-12 h-12 rounded-xl object-cover border border-white/15 shrink-0"
+                          />
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-1.5">
+                              <span
+                                className={`text-[9px] font-mono font-bold uppercase px-1.5 py-0.5 rounded ${
+                                  item.type === 'album'
+                                    ? 'bg-amber-400/20 text-amber-300 border border-amber-400/30'
+                                    : 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
+                                }`}
+                              >
+                                {item.type === 'album' ? 'ALBUM LP' : 'PLAYLIST'}
+                              </span>
+                              {isAlreadyLinked && (
+                                <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300">
+                                  Attivo
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-xs font-mono font-bold text-white truncate mt-1" title={item.name}>
+                              {item.name}
+                            </div>
+                            <div className="text-[10px] font-mono text-white/40">
+                              {item.songCount} brani • ID: {item.id.slice(0, 8)}…
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <button
+                            type="button"
+                            disabled={isImportingSunoAlbum}
+                            onClick={() => handleImportSunoAlbum(item.url, item.type)}
+                            className="px-2.5 py-1.5 rounded-xl bg-purple-500/20 hover:bg-purple-500/35 border border-purple-500/30 text-purple-200 font-mono text-[11px] font-bold flex items-center gap-1 transition-all disabled:opacity-40"
+                            title={
+                              isAlreadyLinked
+                                ? 'Sincronizza brani e testi con Suno'
+                                : 'Importa questo album/playlist nella discografia'
+                            }
+                          >
+                            <RefreshCw className={`w-3 h-3 ${isImportingSunoAlbum ? 'animate-spin' : ''}`} />
+                            <span>{isAlreadyLinked ? 'Sincronizza' : 'Importa'}</span>
+                          </button>
+                          <a
+                            href={item.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="p-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-white/60 hover:text-white transition-all"
+                            title="Apri su Suno"
+                          >
+                            <ExternalLink className="w-3.5 h-3.5" />
+                          </a>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
             {/* Sezione Backup & Esportazione */}
