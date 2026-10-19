@@ -899,81 +899,81 @@ export const EPKView: React.FC<EPKViewProps> = ({ onBackToPlayer, onSelectAlbumA
                 {/* Active Press Release Reader */}
                 {activePr && (
                   <div
-                className={`p-6 sm:p-10 rounded-3xl border space-y-6 ${
-                  isLightMode ? 'bg-white border-black/10 shadow-lg' : 'bg-white/[0.03] border-white/15 shadow-2xl'
-                }`}
-              >
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-white/10">
-                  <div>
-                    <span className="text-[10px] font-mono uppercase tracking-widest text-amber-400 font-bold block mb-1">
-                      COMUNICATO STAMPA UFFICIALE • {pr.date}
-                    </span>
-                    <h3 className="text-xl sm:text-2xl font-black uppercase tracking-tight">{pr.title}</h3>
-                    <p className="text-xs sm:text-sm font-sans italic opacity-75 mt-0.5">{pr.subtitle}</p>
-                  </div>
-
-                  <button
-                    onClick={() => handleCopyPressRelease(pr)}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-mono text-xs font-bold bg-amber-500 hover:bg-amber-400 text-black transition-all shadow-md shrink-0 self-start sm:self-auto"
+                    className={`p-6 sm:p-10 rounded-3xl border space-y-6 ${
+                      isLightMode ? 'bg-white border-black/10 shadow-lg' : 'bg-white/[0.03] border-white/15 shadow-2xl'
+                    }`}
                   >
-                    {isCopied ? <Check className="w-4 h-4 stroke-[3]" /> : <Copy className="w-4 h-4" />}
-                    <span>{isCopied ? 'COMUNICATO COPIATO!' : 'COPIA COMUNICATO'}</span>
-                  </button>
-                </div>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-white/10">
+                      <div>
+                        <span className="text-[10px] font-mono uppercase tracking-widest text-amber-400 font-bold block mb-1">
+                          COMUNICATO STAMPA UFFICIALE • {activePr.date}
+                        </span>
+                        <h3 className="text-xl sm:text-2xl font-black uppercase tracking-tight">{activePr.title}</h3>
+                        <p className="text-xs sm:text-sm font-sans italic opacity-75 mt-0.5">{activePr.subtitle}</p>
+                      </div>
 
-                <div className="space-y-4 text-sm sm:text-base leading-relaxed opacity-85 font-sans">
-                  {pr.body.map((p, i) => (
-                    <p key={i}>{p}</p>
-                  ))}
-                </div>
+                      <button
+                        onClick={() => handleCopyPressRelease(activePr)}
+                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-mono text-xs font-bold bg-amber-500 hover:bg-amber-400 text-black transition-all shadow-md shrink-0 self-start sm:self-auto"
+                      >
+                        {isCopied ? <Check className="w-4 h-4 stroke-[3]" /> : <Copy className="w-4 h-4" />}
+                        <span>{isCopied ? 'COMUNICATO COPIATO!' : 'COPIA COMUNICATO'}</span>
+                      </button>
+                    </div>
 
-                {/* Track by track breakdown */}
-                {pr.trackByTrack && pr.trackByTrack.length > 0 && (
-                  <div className="pt-6 border-t border-white/10 space-y-3">
-                    <h4 className="text-xs font-mono uppercase tracking-widest text-amber-400 font-bold flex items-center justify-between">
-                      <span>GUIDA ALL'ASCOLTO & PITCH DEI BRANI</span>
-                      <span className="text-[10px] opacity-60 font-normal">CLICCA UN BRANO PER VEDERNE L'ARTWORK & PITCH</span>
-                    </h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      {pr.trackByTrack.map((item, i) => (
-                        <div
-                          key={i}
-                          onClick={() => {
-                            const album = discography.find((a) => a.id === pr.albumId) || discography[0];
-                            setActiveAlbumTab(album.id);
-                            const track = album.tracks[i] || album.tracks[0];
-                            setSelectedTrackId(track.id);
-                            setVisualMode('track');
-                            document.getElementById('discografia')?.scrollIntoView({ behavior: 'smooth' });
-                          }}
-                          className={`p-3.5 rounded-xl border text-xs font-sans cursor-pointer transition-all duration-200 group ${
-                            isLightMode
-                              ? 'bg-black/[0.02] hover:bg-amber-500/[0.08] hover:border-amber-400 border-black/5 shadow-sm'
-                              : 'bg-white/[0.02] hover:bg-amber-400/[0.08] hover:border-amber-400/50 border-white/5'
-                          }`}
-                          role="button"
-                          tabIndex={0}
-                          title="Clicca per aprire la scheda e l'artwork di questo brano"
-                        >
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="font-bold font-mono text-[11px] group-hover:text-amber-400 transition-colors">
-                              {item.title}
-                            </span>
-                            <span className="text-[9px] font-mono uppercase opacity-50 group-hover:opacity-100 group-hover:text-amber-400 flex items-center gap-0.5">
-                              Vedi Pitch & Artwork →
-                            </span>
-                          </div>
-                          <span className="opacity-75 leading-relaxed block italic">{item.notes}</span>
-                        </div>
+                    <div className="space-y-4 text-sm sm:text-base leading-relaxed opacity-85 font-sans">
+                      {activePr.body.map((p, i) => (
+                        <p key={i}>{p}</p>
                       ))}
                     </div>
+
+                    {/* Track by track breakdown */}
+                    {activePr.trackByTrack && activePr.trackByTrack.length > 0 && (
+                      <div className="pt-6 border-t border-white/10 space-y-3">
+                        <h4 className="text-xs font-mono uppercase tracking-widest text-amber-400 font-bold flex items-center justify-between">
+                          <span>GUIDA ALL'ASCOLTO & PITCH DEI BRANI</span>
+                          <span className="text-[10px] opacity-60 font-normal">CLICCA UN BRANO PER VEDERNE L'ARTWORK & PITCH</span>
+                        </h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {activePr.trackByTrack.map((item, i) => (
+                            <div
+                              key={i}
+                              onClick={() => {
+                                const album = discography.find((a) => a.id === activePr.albumId) || discography[0];
+                                setActiveAlbumTab(album.id);
+                                const track = album.tracks[i] || album.tracks[0];
+                                setSelectedTrackId(track.id);
+                                setVisualMode('track');
+                                document.getElementById('discografia')?.scrollIntoView({ behavior: 'smooth' });
+                              }}
+                              className={`p-3.5 rounded-xl border text-xs font-sans cursor-pointer transition-all duration-200 group ${
+                                isLightMode
+                                  ? 'bg-black/[0.02] hover:bg-amber-500/[0.08] hover:border-amber-400 border-black/5 shadow-sm'
+                                  : 'bg-white/[0.02] hover:bg-amber-400/[0.08] hover:border-amber-400/50 border-white/5'
+                              }`}
+                              role="button"
+                              tabIndex={0}
+                              title="Clicca per aprire la scheda e l'artwork di questo brano"
+                            >
+                              <div className="flex items-center justify-between mb-1">
+                                <span className="font-bold font-mono text-[11px] group-hover:text-amber-400 transition-colors">
+                                  {item.title}
+                                </span>
+                                <span className="text-[9px] font-mono uppercase opacity-50 group-hover:opacity-100 group-hover:text-amber-400 flex items-center gap-0.5">
+                                  Vedi Pitch & Artwork →
+                                </span>
+                              </div>
+                              <span className="opacity-75 leading-relaxed block italic">{item.notes}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
-              </div>
-            )}
-          </>
-        );
-      })()}
+              </>
+            );
+          })()}
         </section>
 
         {/* SEZIONE 5: RASSEGNA STAMPA & CITAZIONI */}

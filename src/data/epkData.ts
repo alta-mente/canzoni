@@ -192,6 +192,30 @@ export const EPK_DATA: EPKData = {
       ]
     },
     {
+      id: "pr-galla",
+      title: "«LE COSE CHE TORNANO A GALLA»: IL NUOVO ALBUM DI ALESSANDRO ROCCHI",
+      subtitle: "10 tracce tra canzone d'autore, atmosfere noir e memorie che riemergono dal silenzio.",
+      date: "18 Ottobre 2026",
+      albumId: "le-cose-che-tornano-a-galla",
+      body: [
+        "Con «Le Cose Che Tornano A Galla», il cantautore e paroliere pesarese Alessandro Rocchi firma il suo secondo album ufficiale: un viaggio intimo e notturno di 10 brani inediti.",
+        "Dal respiro internazionale e sospeso di «Shanghai» e «Io e Te» fino alla title-track e alle schegge emotive di «C'è posto qui con me», «Pezzi di vetro» e «Fette Biscottate e Marmellata», il disco esplora tutto ciò che il tempo non riesce a cancellare.",
+        "«Ci sono giorni in cui il mare restituisce ciò che credevi perduto per sempre: parole, volti, promesse rimaste a metà. Queste dieci canzoni sono nate per dare una casa a quelle memorie», racconta l'autore."
+      ],
+      trackByTrack: [
+        { title: "01. Shanghai", notes: "«Un manifesto lucido e visionario dove la distanza geografica diventa specchio delle contraddizioni del nostro tempo.»" },
+        { title: "02. Io e Te", notes: "«Due solitudini che si riconoscono nel rumore del mondo e scelgono di restare.»" },
+        { title: "03. Le cose che tornano a galla", notes: "«Ci sono giorni in cui il mare restituisce ciò che credevi perduto per sempre.»" },
+        { title: "04. C'è posto qui con me", notes: "«Mi hai lasciato a metà tra una parola e un'emozione.»" },
+        { title: "05. Pezzi di vetro", notes: "«Attento a dove cammini a piedi nudi in salotto: a volte le parole si rompono sul pavimento.»" },
+        { title: "06. Quel salto nel vuoto", notes: "«Non c'è una meta, non serve una mappa: conta soltanto chi resta e chi scappa.»" },
+        { title: "07. Fette Biscottate e Marmellata", notes: "«Sorrido quando serve, poi mi dimentico di togliermelo dal viso.»" },
+        { title: "08. Resta ancora un po'", notes: "«Mi racconti una cosa che non avevi mai detto, io rido nel punto sbagliato e tu fai lo stesso.»" },
+        { title: "09. Restiamo a guardare", notes: "«Lascia le scarpe vicino all'ingresso, dimmi che il mondo fa schifo lo stesso.»" },
+        { title: "10. Tienimi giù", notes: "«Ci feriamo con parole appena sotto la pelle, ma abbastanza a fondo per dover ricucire.»" }
+      ]
+    },
+    {
       id: "pr-fette",
       title: "«QUEL SALTO NEL VUOTO»: IL NOIR METROPOLITANO DI ALESSANDRO ROCCHI",
       subtitle: "14 tracce di dolcezza amara, ombre urbane e ritmiche notturne.",
