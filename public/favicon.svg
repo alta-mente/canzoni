@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <radialGradient id="vinylGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#1e2028" />
+      <stop offset="55%" stop-color="#0d0f14" />
+      <stop offset="85%" stop-color="#171922" />
+      <stop offset="100%" stop-color="#050608" />
+    </radialGradient>
+    <linearGradient id="sheen" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0" />
+      <stop offset="44%" stop-color="#ffffff" stop-opacity="0.03" />
+      <stop offset="50%" stop-color="#ffffff" stop-opacity="0.18" />
+      <stop offset="56%" stop-color="#ffffff" stop-opacity="0.03" />
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+    </linearGradient>
+    <radialGradient id="labelGrad" cx="35%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#ff5e3a" />
+      <stop offset="55%" stop-color="#e11d48" />
+      <stop offset="100%" stop-color="#881337" />
+    </radialGradient>
+  </defs>
+
+  <!-- Outer Vinyl Disc -->
+  <circle cx="32" cy="32" r="30" fill="url(#vinylGrad)" stroke="#2e323f" stroke-width="1.2" />
+  <circle cx="32" cy="32" r="29.4" fill="url(#sheen)" />
+
+  <!-- Concentric Grooves -->
+  <circle cx="32" cy="32" r="26" fill="none" stroke="#ffffff" stroke-opacity="0.08" stroke-width="0.6" />
+  <circle cx="32" cy="32" r="23" fill="none" stroke="#ffffff" stroke-opacity="0.06" stroke-width="0.6" />
+  <circle cx="32" cy="32" r="20" fill="none" stroke="#ffffff" stroke-opacity="0.09" stroke-width="0.6" />
+  <circle cx="32" cy="32" r="17" fill="none" stroke="#ffffff" stroke-opacity="0.06" stroke-width="0.6" />
+
+  <!-- Center Vinyl Label -->
+  <circle cx="32" cy="32" r="12.5" fill="url(#labelGrad)" stroke="#fda4af" stroke-opacity="0.35" stroke-width="0.8" />
+  <circle cx="32" cy="32" r="9.8" fill="none" stroke="#ffffff" stroke-opacity="0.22" stroke-width="0.5" />
+
+  <!-- Center Spindle Hole -->
+  <circle cx="32" cy="32" r="2.8" fill="#050608" stroke="#ffffff" stroke-opacity="0.25" stroke-width="0.6" />
+</svg>
