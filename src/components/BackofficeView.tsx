@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { AlbumData, Track, DISCOGRAPHY } from '../data/albumData';
 import albumsAllJson from '../data/albums.all.json';
 
-const STORAGE_KEY = 'antigravity_discography_v5';
+const STORAGE_KEY = 'antigravity_discography_v6';
 import { 
   ArrowLeft, 
   Save, 

@@ -48,12 +48,13 @@
     <script>
       (function () {
         try {
-          var BUILD_VER = '2026-10-18-v5';
+          var BUILD_VER = '2026-10-30-v6';
           if (localStorage.getItem('antigravity_build_version') !== BUILD_VER) {
             localStorage.removeItem('antigravity_discography_custom');
             localStorage.removeItem('antigravity_discography_v2');
             localStorage.removeItem('antigravity_discography_v3');
             localStorage.removeItem('antigravity_discography_v4');
+            localStorage.removeItem('antigravity_discography_v5');
             localStorage.setItem('antigravity_build_version', BUILD_VER);
             if ('caches' in window) {
               caches.keys().then(function (names) {

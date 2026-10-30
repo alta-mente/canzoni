@@ -167,6 +167,22 @@ export const EPK_DATA: EPKData = {
   ],
   pressReleases: [
     {
+      id: "pr-vertigine",
+      title: "«UNA VERTIGINE»: IL NUOVO CAPITOLO DI ALESSANDRO ROCCHI",
+      subtitle: "Due tracce inedite («Dirti addio» e «Una vertigine») sospese tra l'assenza e il magnetismo notturno.",
+      date: "30 Ottobre 2026",
+      albumId: "una-vertigine",
+      body: [
+        "Esce «Una Vertigine», il nuovo progetto discografico del cantautore e paroliere pesarese Alessandro Rocchi, guidato dai due singoli inediti «Dirti addio» e «Una vertigine».",
+        "In «Dirti addio», una ballata indie rock dal crescendo emotivo intenso, l'autore fotografa l'istante in cui una stanza diventa una trincea dopo un addio rimasto senza parole. In «Una vertigine», atmosfere late-night neo-soul e alternative R&B accompagnano il racconto di una caduta libera emotiva a gravità zero.",
+        "«Sono due canzoni che parlano dell'equilibrio perduto: quando qualcuno scivola via come una crepa sul vetro e quando un incontro ti toglie il pavimento da sotto i piedi», racconta Alessandro Rocchi."
+      ],
+      trackByTrack: [
+        { title: "01. Dirti addio", notes: "«Non ho fatto in tempo a salutare, a dirti resta o almeno guarda indietro: sei scivolato via senza parlare, come una crepa che attraversa il vetro.»" },
+        { title: "02. Una vertigine", notes: "«Sei l'unico traffico che ho nella testa, e mi chiedo se è il caso di spingermi oltre, se farti vedere la faccia più onesta.»" }
+      ]
+    },
+    {
       id: "pr-mars",
       title: "ALESSANDRO ROCCHI PRESENTA «NON C'È VITA SU MARTE»",
       subtitle: "Dalla poesia d'autore all'odissea sonora: la forza evocativa della parola scritta.",
