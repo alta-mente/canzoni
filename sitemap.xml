@@ -21,12 +21,27 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://alta-mente.github.io/canzoni/testo/dirti-addio/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://alta-mente.github.io/canzoni/brano/una-vertigine/</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://alta-mente.github.io/canzoni/testo/una-vertigine/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://alta-mente.github.io/canzoni/brano/non-mi-puoi-piu-chiamare/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://alta-mente.github.io/canzoni/testo/non-mi-puoi-piu-chiamare/</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -41,7 +56,17 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://alta-mente.github.io/canzoni/testo/non-c-e-vita-su-marte/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://alta-mente.github.io/canzoni/brano/perche-sei-dovuto-andare-via/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://alta-mente.github.io/canzoni/testo/perche-sei-dovuto-andare-via/</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -51,7 +76,17 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://alta-mente.github.io/canzoni/testo/rumore/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://alta-mente.github.io/canzoni/brano/non-sono-piu-niente/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://alta-mente.github.io/canzoni/testo/non-sono-piu-niente/</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -61,7 +96,17 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://alta-mente.github.io/canzoni/testo/quello-che-resta/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://alta-mente.github.io/canzoni/brano/tu-sai-come-si-consola/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://alta-mente.github.io/canzoni/testo/tu-sai-come-si-consola/</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -71,7 +116,17 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://alta-mente.github.io/canzoni/testo/mi-viene-da-ridere/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://alta-mente.github.io/canzoni/brano/non-respiro-piu/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://alta-mente.github.io/canzoni/testo/non-respiro-piu/</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -81,7 +136,17 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://alta-mente.github.io/canzoni/testo/sognando-di-essere-sveglio/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://alta-mente.github.io/canzoni/brano/balla-la-polvere/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://alta-mente.github.io/canzoni/testo/balla-la-polvere/</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -96,7 +161,17 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://alta-mente.github.io/canzoni/testo/shanghai/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://alta-mente.github.io/canzoni/brano/io-e-te/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://alta-mente.github.io/canzoni/testo/io-e-te/</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -106,7 +181,17 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://alta-mente.github.io/canzoni/testo/le-cose-che-tornano-a-galla/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://alta-mente.github.io/canzoni/brano/c-e-posto-qui-con-me/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://alta-mente.github.io/canzoni/testo/c-e-posto-qui-con-me/</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -116,7 +201,17 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://alta-mente.github.io/canzoni/testo/pezzi-di-vetro/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://alta-mente.github.io/canzoni/brano/quel-salto-nel-vuoto/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://alta-mente.github.io/canzoni/testo/quel-salto-nel-vuoto/</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -126,7 +221,17 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://alta-mente.github.io/canzoni/testo/fette-biscottate-e-marmellata/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://alta-mente.github.io/canzoni/brano/resta-ancora-un-po/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://alta-mente.github.io/canzoni/testo/resta-ancora-un-po/</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -136,7 +241,17 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://alta-mente.github.io/canzoni/testo/restiamo-a-guardare/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://alta-mente.github.io/canzoni/brano/tienimi-giu/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://alta-mente.github.io/canzoni/testo/tienimi-giu/</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
