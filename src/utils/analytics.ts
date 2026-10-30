@@ -4,6 +4,7 @@ const CLOUD_NAMESPACE = 'arocchi-canzoni-prod-2026';
 const CLOUD_BASE_URL = 'https://abacus.jasoncameron.dev';
 const STORAGE_KEY = 'antigravity_analytics_v1';
 const GA_STORAGE_KEY = 'antigravity_ga_measurement_id';
+const DEFAULT_GA_MEASUREMENT_ID = 'G-0V5SMDS418';
 
 export type AnalyticsEventType =
   | 'site_visit'
@@ -66,7 +67,7 @@ const getEmptySnapshot = (): AnalyticsSnapshot => ({
   totalCompletes: 0,
   tracks: {},
   recentEvents: [],
-  gaMeasurementId: localStorage.getItem(GA_STORAGE_KEY) || '',
+  gaMeasurementId: localStorage.getItem(GA_STORAGE_KEY) || DEFAULT_GA_MEASUREMENT_ID,
   lastUpdated: new Date().toISOString(),
 });
 
@@ -78,7 +79,10 @@ export const loadLocalAnalytics = (): AnalyticsSnapshot => {
       return {
         ...getEmptySnapshot(),
         ...parsed,
-        gaMeasurementId: localStorage.getItem(GA_STORAGE_KEY) || parsed.gaMeasurementId || '',
+        gaMeasurementId:
+          localStorage.getItem(GA_STORAGE_KEY) ||
+          parsed.gaMeasurementId ||
+          DEFAULT_GA_MEASUREMENT_ID,
       };
     }
   } catch (e) {
@@ -97,9 +101,9 @@ export const saveLocalAnalytics = (snapshot: AnalyticsSnapshot): void => {
 
 export const getGaMeasurementId = (): string => {
   try {
-    return localStorage.getItem(GA_STORAGE_KEY) || '';
+    return localStorage.getItem(GA_STORAGE_KEY) || DEFAULT_GA_MEASUREMENT_ID;
   } catch {
-    return '';
+    return DEFAULT_GA_MEASUREMENT_ID;
   }
 };
 
