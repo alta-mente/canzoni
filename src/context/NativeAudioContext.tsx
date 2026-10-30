@@ -27,6 +27,17 @@ export const NativeAudioProvider: React.FC<{ children: ReactNode; albums?: Album
   const activeDiscography = albums && albums.length > 0 ? albums : DISCOGRAPHY;
 
   const [currentTrack, setCurrentTrack] = useState<Track>(() => {
+    const initialRoute = (typeof window !== 'undefined' && (window as any).__INITIAL_SEO_ROUTE__) || null;
+    if (initialRoute?.trackId) {
+      for (const alb of activeDiscography) {
+        const found = alb.tracks?.find((t) => t.id === initialRoute.trackId);
+        if (found) return found;
+      }
+    }
+    if (initialRoute?.albumId) {
+      const foundAlbum = activeDiscography.find((a) => a.id === initialRoute.albumId);
+      if (foundAlbum?.tracks?.length) return foundAlbum.tracks[0];
+    }
     const firstAlbum = activeDiscography[0] || ALBUM_DATA;
     return firstAlbum.tracks && firstAlbum.tracks.length > 0
       ? firstAlbum.tracks[0]

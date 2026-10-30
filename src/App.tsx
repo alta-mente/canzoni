@@ -22,9 +22,14 @@ const WidgetEmbedView = lazy(() =>
 );
 
 export const App: React.FC = () => {
-  const [currentView, setCurrentView] = useState<'player' | 'epk' | 'admin' | 'widget'>('player');
+  const initialRoute = (typeof window !== 'undefined' && (window as any).__INITIAL_SEO_ROUTE__) || null;
+  const [currentView, setCurrentView] = useState<'player' | 'epk' | 'admin' | 'widget'>(
+    initialRoute?.view === 'epk' ? 'epk' : 'player'
+  );
   const [isShareOpen, setIsShareOpen] = useState(false);
-  const [selectedAlbumId, setSelectedAlbumId] = useState<string | null>(null);
+  const [selectedAlbumId, setSelectedAlbumId] = useState<string | null>(
+    initialRoute?.albumId || null
+  );
   const [albums, setAlbums] = useState<AlbumData[]>(() => {
     try {
       localStorage.removeItem('antigravity_discography_custom');
