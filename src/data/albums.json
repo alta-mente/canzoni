@@ -12,8 +12,8 @@
     "spotifyArtistUrl": "https://open.spotify.com/artist/4ofkSpzwPAOaANkHl42aMs",
     "coverUrl": "/images/albums/una-vertigine-cover.jpeg",
     "canvasVideoSrc": "/video/una-vertigine.mp4",
-    "tagline": "Due racconti sospesi nel vuoto: l'istante esatto prima dell'impatto e il peso delle parole non dette.",
-    "synopsis": "«Una Vertigine» apre un nuovo capitolo nel percorso cantautorale di Alessandro Rocchi: il contrasto tra l'assenza improvvisa di «Dirti addio» e la caduta magnetica e notturna della title-track «Una vertigine». Due brani viscerali in cui la scrittura d'autore incontra sonorità intime, calde e contemporanee.",
+    "tagline": "Tre racconti sospesi nel vuoto: l'istante esatto prima dell'impatto e il peso delle parole non dette.",
+    "synopsis": "«Una Vertigine» apre un nuovo capitolo nel percorso cantautorale di Alessandro Rocchi: un trittico viscerale composto da «Dirti addio», «Una vertigine» e «Non mi puoi più chiamare», in cui la scrittura d'autore incontra sonorità intime, calde e contemporanee.",
     "tracks": [
       {
         "id": "uv-track-1",
@@ -56,6 +56,27 @@
         "colorLight": "#e2e8f0",
         "highlight": true,
         "lyrics": "Sono come appena atterrato\nsull'altra faccia della luna,\nper poco non finivo stecchito,\nnon so se questo è ciò che chiamano fortuna.\nMi gira la testa a furia di fissarti\nda questo lato della stanza,\nnon riesco a distrarmi, vorrei decifrarti:\nsei un'interessante dissonanza.\n\nNon so che piega prenderà stasera,\nma mi ci butto, se ti butti anche tu.\nCerco di leggere ogni tuo movimento\nper fare la mossa che non ti aspetti più.\n\nDimmi lo senti, lo senti il boato?\nLa senti la scossa così come me?\nLo senti il contatto, il respiro bloccato?\nLo senti che trema così come me?\nSei l'unico traffico che ho nella testa\ne mi chiedo se è il caso di spingermi oltre,\nse farti vedere la faccia più onesta.\n\nSe io ti mostrassi per un solo momento\nesattamente tutto quello che sento,\nspero che mi tiri su se tocco il fondale:\nio non ti farei mai e poi mai del male,\nio non ti lascerei cadere giù.\n\nNon so che piega prenderà stasera,\nma mi ci butto, se ti butti anche tu.\nCerco di leggere ogni tuo movimento\nper fare la mossa che non ti aspetti più.\n\nDimmi lo senti, lo senti il boato?\nLa senti la scossa così come me?\nLo senti il contatto, il respiro bloccato?\nLo senti che trema così come me?\nSei l'unico traffico che ho nella testa\ne mi chiedo se è il caso di spingermi oltre,\nse farti vedere la faccia più onesta.\n\nSe io ti mostrassi per un solo momento...\nE spero che mi salvi se affogo,\ne spero che mi salvi se affogo,\nio non ti lascerei cadere mai.\n\nSto finendo in coma, sei una vertigine,\nuna botta al cervello, una vertigine.\nSì, sei una vertigine.\nUna vertigine."
+      },
+      {
+        "id": "uv-track-3",
+        "number": 3,
+        "title": "Non mi puoi più chiamare",
+        "spotifyId": "",
+        "spotifyUri": "",
+        "spotifyUrl": "",
+        "sunoId": "f0863900-8cb4-421b-b29e-99034515b996",
+        "sunoUrl": "https://suno.com/song/f0863900-8cb4-421b-b29e-99034515b996",
+        "duration": "3:43",
+        "durationSeconds": 223,
+        "mood": "Indie Rock / Alternative R&B • Distacco & Verità",
+        "storyQuote": "«Sono a un passo dal dimenticarti, dalla voglia di ricominciare, a un passo da una vita in cui non mi puoi più chiamare.»",
+        "audioSrc": "/audio/non-mi-puoi-piu-chiamare.m4a",
+        "canvasVideoSrc": "/video/non-mi-puoi-piu-chiamare.mp4",
+        "artworkUrl": "/images/artwork/non-mi-puoi-piu-chiamare.jpeg",
+        "colorDark": "#0f172a",
+        "colorLight": "#e2e8f0",
+        "highlight": true,
+        "lyrics": "Ci scambiamo profili, cuori e fotografie,\npoi ognuno riprende con le proprie bugie.\nSappiamo chi ha vinto, chi ha perso e chi mente,\nchi ha fatto discorsi per non dire niente.\n\nTi avvicini quando il mondo ti va storto,\npoi ritorni alla tua vita e io mi scordo.\nQuando prendi a respirare te ne vai,\ncome se non fosse successo mai.\n\nÈ sincero:\nsiamo qui perché ti manco davvero?\nSiamo qui perché sei stanco,\noppure è vero che ti manco?\n\nSono a un passo dal dimenticarti,\ndalla voglia di ricominciare,\na un passo da una vita in cui\nnon mi puoi più chiamare.\n\nMa quando la notte ci chiede chi siamo,\ne si spegne il tremore di fondo,\ntroviamo una voce dall'altra parte del mondo.\n\nUn tizio alla radio oggi promette una svolta,\nun esperto che spiega, una cosa alla volta.\nLa benzina aumenta a causa del vento\ne dovrei dopotutto ritenermi contento.\n\nTi avvicini quando il mondo ti va storto,\npoi riprendi la tua vita e io mi scordo.\nQuando torni a respirare te ne vai,\ncome se non fosse successo mai.\n\nÈ sincero:\nsono un rifugio o qualcosa di vero?\nSiamo qui perché sei stanco,\no siamo qui perché ti manco?\n\nSono a un passo dal dimenticarti,\ndalla voglia di ricominciare,\na un passo da una vita in cui\nnon mi puoi più chiamare.\n\nMa quando la notte ci chiede chi siamo\ne smettiamo di girarci in tondo,\ntroviamo una voce\ndall'altra parte del mondo.\n\nE se bastasse fermarsi,\nlasciare da parte chi ha ragione?\nSe ascoltarsi davvero\nfosse la soluzione?\n\nSono a un passo dal dimenticarti,\ndalla voglia di scappare,\na un passo da una vita in cui\nnon devo più aspettare.\n\nMa quando la notte ci chiede chi siamo\ne si spegne il rumore di fondo,\ncerchiamo una voce\ndall'altra parte del mondo.\n\nCi mostriamo felici almeno in fotografia,\npoi ognuno riprende con la propria bugia."
       }
     ],
     "credits": {
