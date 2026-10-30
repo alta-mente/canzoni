@@ -66,8 +66,12 @@ function backofficeApiPlugin(): Plugin {
                 return;
               }
 
-              // Sanitize targetFolder (avoid traversal)
-              const safeFolder = targetFolder.replace(/[^a-zA-Z0-9_-]/g, '');
+              // Sanitize targetFolder (allow subdirectories like images/artwork, prevent traversal)
+              const safeFolder = String(targetFolder || 'uploads')
+                .split('/')
+                .map((seg) => seg.replace(/[^a-zA-Z0-9_-]/g, ''))
+                .filter(Boolean)
+                .join('/');
               const publicDir = path.resolve(__dirname, 'public', safeFolder);
               if (!fs.existsSync(publicDir)) {
                 fs.mkdirSync(publicDir, { recursive: true });

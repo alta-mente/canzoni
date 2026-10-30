@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { AlbumData, Track, DISCOGRAPHY } from '../data/albumData';
+import { AlbumData, Track, DISCOGRAPHY, resolveAssetUrl, normalizeAlbum } from '../data/albumData';
 import albumsAllJson from '../data/albums.all.json';
 import {
   AnalyticsSnapshot,
@@ -622,16 +622,52 @@ export const BackofficeView: React.FC<BackofficeViewProps> = ({
     }
   };
 
-  // Upload file helper
+  // Compress image to compact JPEG data URL for static hosting (GitHub Pages) fallback
+  const compressImageToDataUrl = (file: File, maxDim = 900, quality = 0.85): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        let { width, height } = img;
+        if (width > maxDim || height > maxDim) {
+          if (width >= height) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          } else {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          reject(new Error('Canvas context unavailable'));
+          return;
+        }
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        reject(new Error('Impossibile decodificare immagine'));
+      };
+      img.src = url;
+    });
+  };
+
+  // Upload file helper (works both with local Vite server /api/upload and online on GitHub Pages)
   const handleFileUpload = async (
-    file: File, 
-    targetFolder: 'audio' | 'audio-fette' | 'video' | 'images' | 'uploads'
+    file: File,
+    targetFolder: string
   ): Promise<string | null> => {
     return new Promise((resolve) => {
       const reader = new FileReader();
       reader.onload = async () => {
+        const base64Data = reader.result as string;
         try {
-          const base64Data = reader.result as string;
           const res = await fetch('/api/upload', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -645,7 +681,7 @@ export const BackofficeView: React.FC<BackofficeViewProps> = ({
           if (res.ok && contentType.includes('application/json')) {
             const result = await res.json();
             if (result.success) {
-              showNotification(`File "${result.filename}" caricato in ${targetFolder}!`, 'success');
+              showNotification(`File "${result.filename}" salvato in public/${targetFolder}!`, 'success');
               fetchMediaFiles();
               resolve(result.url);
               return;
@@ -655,19 +691,55 @@ export const BackofficeView: React.FC<BackofficeViewProps> = ({
               return;
             }
           }
-          showNotification('Upload file su disco disponibile solo in locale con server attivo (npm run dev)', 'info');
-          resolve(null);
+        } catch {
+          // Static host fallback below
+        }
+
+        // Fallback when /api/upload is not available (e.g. GitHub Pages static site)
+        try {
+          if (file.type.startsWith('image/')) {
+            const compressedDataUrl = await compressImageToDataUrl(file);
+            showNotification(`Immagine "${file.name}" caricata e applicata!`, 'success');
+            resolve(compressedDataUrl);
+            return;
+          }
+          const blobUrl = URL.createObjectURL(file);
+          showNotification(
+            `File "${file.name}" caricato in anteprima attiva! (Per salvarlo su GitHub usa il server locale o inviamelo in chat)`,
+            'success'
+          );
+          resolve(blobUrl);
         } catch (err: any) {
-          showNotification(`Errore upload: ${err.message}`, 'error');
+          showNotification(`Errore caricamento file: ${err.message}`, 'error');
           resolve(null);
         }
+      };
+      reader.onerror = () => {
+        showNotification('Errore nella lettura del file selezionato', 'error');
+        resolve(null);
       };
       reader.readAsDataURL(file);
     });
   };
 
+  const persistAlbumsImmediately = (updatedAlbums: AlbumData[]) => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedAlbums));
+    } catch (e) {
+      console.warn('Could not save to localStorage:', e);
+    }
+    if (onAlbumsUpdated) {
+      onAlbumsUpdated(updatedAlbums.map(normalizeAlbum));
+    }
+    fetch('/api/albums', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updatedAlbums)
+    }).catch(() => {});
+  };
+
   // Track modification helper
-  const updateCurrentTrack = (field: keyof Track, value: any) => {
+  const updateCurrentTrack = (field: keyof Track, value: any, autoPersist = false) => {
     if (!currentAlbum || selectedTrackIndex === undefined) return;
     const updatedAlbums = albums.map((alb) => {
       if (alb.id !== currentAlbum.id) return alb;
@@ -679,16 +751,22 @@ export const BackofficeView: React.FC<BackofficeViewProps> = ({
       return { ...alb, tracks: updatedTracks };
     });
     setAlbums(updatedAlbums);
+    if (autoPersist) {
+      persistAlbumsImmediately(updatedAlbums);
+    }
   };
 
   // Album modification helper
-  const updateCurrentAlbum = (field: keyof AlbumData, value: any) => {
+  const updateCurrentAlbum = (field: keyof AlbumData, value: any, autoPersist = false) => {
     if (!currentAlbum) return;
     const updatedAlbums = albums.map((alb) => {
       if (alb.id !== currentAlbum.id) return alb;
       return { ...alb, [field]: value };
     });
     setAlbums(updatedAlbums);
+    if (autoPersist) {
+      persistAlbumsImmediately(updatedAlbums);
+    }
   };
 
   // Check which backup albums (e.g. Quel Salto Nel Vuoto) can be restored
@@ -1087,7 +1165,7 @@ export const BackofficeView: React.FC<BackofficeViewProps> = ({
                         : 'text-white/60 hover:text-white hover:bg-white/5 border border-transparent'
                     }`}
                   >
-                    <img src={alb.coverUrl} className="w-5 h-5 rounded-[2px] object-cover" />
+                    <img src={resolveAssetUrl(alb.coverUrl)} className="w-5 h-5 rounded-[2px] object-cover" />
                     <span>{alb.title}</span>
                     <span className="text-[10px] opacity-60">({alb.tracks.length})</span>
                   </button>
@@ -1174,7 +1252,7 @@ export const BackofficeView: React.FC<BackofficeViewProps> = ({
                         
                         <div className="relative w-8 h-8 rounded-lg overflow-hidden shrink-0 bg-black/40 border border-white/10">
                           <img
-                            src={track.artworkUrl || currentAlbum.coverUrl}
+                            src={resolveAssetUrl(track.artworkUrl || currentAlbum.coverUrl)}
                             alt=""
                             className="w-full h-full object-cover"
                           />
@@ -1377,10 +1455,11 @@ export const BackofficeView: React.FC<BackofficeViewProps> = ({
                           className="hidden"
                           onChange={async (e) => {
                             const file = e.target.files?.[0];
+                            e.target.value = '';
                             if (file) {
                               const targetDir = currentAlbum.id.includes('fette') ? 'audio-fette' : 'audio';
                               const url = await handleFileUpload(file, targetDir);
-                              if (url) updateCurrentTrack('audioSrc', url);
+                              if (url) updateCurrentTrack('audioSrc', url, true);
                             }
                           }}
                         />
@@ -1418,10 +1497,11 @@ export const BackofficeView: React.FC<BackofficeViewProps> = ({
                           className="hidden"
                           onChange={async (e) => {
                             const file = e.target.files?.[0];
+                            e.target.value = '';
                             if (file) {
                               const targetDir = currentAlbum.id.includes('fette') ? 'video-fette' : 'video';
                               const url = await handleFileUpload(file, targetDir);
-                              if (url) updateCurrentTrack('canvasVideoSrc', url);
+                              if (url) updateCurrentTrack('canvasVideoSrc', url, true);
                             }
                           }}
                         />
@@ -1433,7 +1513,7 @@ export const BackofficeView: React.FC<BackofficeViewProps> = ({
                       <div className="relative rounded-xl overflow-hidden aspect-video max-h-40 bg-black/60 border border-white/15 mt-2">
                         <video
                           key={activeTrack.canvasVideoSrc}
-                          src={activeTrack.canvasVideoSrc}
+                          src={resolveAssetUrl(activeTrack.canvasVideoSrc)}
                           autoPlay
                           loop
                           muted
@@ -1446,7 +1526,7 @@ export const BackofficeView: React.FC<BackofficeViewProps> = ({
                         </div>
                         <button
                           type="button"
-                          onClick={() => updateCurrentTrack('canvasVideoSrc', '')}
+                          onClick={() => updateCurrentTrack('canvasVideoSrc', '', true)}
                           className="absolute top-2 right-2 px-2 py-0.5 rounded-md bg-black/80 hover:bg-red-600/80 text-[10px] font-mono text-white/80 hover:text-white transition-all border border-white/20"
                           title="Rimuovi video specifico per tornare al video di default dell'album"
                         >
@@ -1463,8 +1543,8 @@ export const BackofficeView: React.FC<BackofficeViewProps> = ({
                         <ImageIcon className="w-4 h-4 text-cyan-400" />
                         <span className="text-xs font-mono font-bold text-white">Artwork Traccia (JPG / PNG)</span>
                       </div>
-                      <span className="text-[10px] font-mono text-white/40">
-                        {activeTrack.artworkUrl || 'Usa copertina album'}
+                      <span className="text-[10px] font-mono text-white/40 truncate max-w-[200px]">
+                        {activeTrack.artworkUrl ? 'Artwork specifico attivo' : 'Usa copertina album'}
                       </span>
                     </div>
 
@@ -1486,15 +1566,37 @@ export const BackofficeView: React.FC<BackofficeViewProps> = ({
                           className="hidden"
                           onChange={async (e) => {
                             const file = e.target.files?.[0];
+                            e.target.value = '';
                             if (file) {
                               const targetDir = currentAlbum.id.includes('fette') ? 'images/artwork-fette' : 'images/artwork';
-                              const url = await handleFileUpload(file, targetDir as any);
-                              if (url) updateCurrentTrack('artworkUrl', url);
+                              const url = await handleFileUpload(file, targetDir);
+                              if (url) updateCurrentTrack('artworkUrl', url, true);
                             }
                           }}
                         />
                       </label>
                     </div>
+
+                    {/* Live Image Preview Box */}
+                    {(activeTrack.artworkUrl || currentAlbum.coverUrl) && (
+                      <div className="relative rounded-xl overflow-hidden h-36 w-36 bg-black/60 border border-white/15 mt-2">
+                        <img
+                          src={resolveAssetUrl(activeTrack.artworkUrl || currentAlbum.coverUrl)}
+                          alt={activeTrack.title}
+                          className="w-full h-full object-cover"
+                        />
+                        {activeTrack.artworkUrl && (
+                          <button
+                            type="button"
+                            onClick={() => updateCurrentTrack('artworkUrl', '', true)}
+                            className="absolute top-1.5 right-1.5 px-2 py-0.5 rounded-md bg-black/80 hover:bg-red-600/80 text-[10px] font-mono text-white/80 hover:text-white transition-all border border-white/20"
+                            title="Rimuovi artwork traccia e usa copertina album"
+                          >
+                            Rimuovi
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   {/* 4. Colori di Sfondo Dinamici */}
@@ -1666,7 +1768,7 @@ export const BackofficeView: React.FC<BackofficeViewProps> = ({
             {/* Header & Album Management Bar */}
             <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-white/10">
               <div className="flex items-center gap-3">
-                <img src={currentAlbum.coverUrl} className="w-14 h-14 rounded-xl shadow-lg border border-white/20 object-cover" />
+                <img src={resolveAssetUrl(currentAlbum.coverUrl)} className="w-14 h-14 rounded-xl shadow-lg border border-white/20 object-cover" />
                 <div>
                   <span className="text-[10px] font-mono uppercase tracking-widest text-amber-400 font-bold">
                     Scheda Album ({albums.findIndex(a => a.id === currentAlbum.id) + 1} di {albums.length})
@@ -1774,9 +1876,10 @@ export const BackofficeView: React.FC<BackofficeViewProps> = ({
                       className="hidden"
                       onChange={async (e) => {
                         const file = e.target.files?.[0];
+                        e.target.value = '';
                         if (file) {
-                          const url = await handleFileUpload(file, 'images');
-                          if (url) updateCurrentAlbum('coverUrl', url);
+                          const url = await handleFileUpload(file, 'images/albums');
+                          if (url) updateCurrentAlbum('coverUrl', url, true);
                         }
                       }}
                     />
@@ -1803,10 +1906,11 @@ export const BackofficeView: React.FC<BackofficeViewProps> = ({
                       className="hidden"
                       onChange={async (e) => {
                         const file = e.target.files?.[0];
+                        e.target.value = '';
                         if (file) {
                           const targetDir = currentAlbum.id.includes('fette') ? 'video-fette' : 'video';
                           const url = await handleFileUpload(file, targetDir);
-                          if (url) updateCurrentAlbum('canvasVideoSrc', url);
+                          if (url) updateCurrentAlbum('canvasVideoSrc', url, true);
                         }
                       }}
                     />
@@ -1816,7 +1920,7 @@ export const BackofficeView: React.FC<BackofficeViewProps> = ({
                   <div className="relative rounded-xl overflow-hidden aspect-video max-h-44 bg-black/60 border border-white/15 mt-2">
                     <video
                       key={currentAlbum.canvasVideoSrc}
-                      src={currentAlbum.canvasVideoSrc}
+                      src={resolveAssetUrl(currentAlbum.canvasVideoSrc)}
                       autoPlay
                       loop
                       muted
@@ -2204,13 +2308,13 @@ export const BackofficeView: React.FC<BackofficeViewProps> = ({
                   {/* Preview snippet */}
                   {file.type === 'image' && (
                     <div className="w-full h-24 rounded-xl overflow-hidden bg-black/40 border border-white/5">
-                      <img src={file.url} alt="" className="w-full h-full object-cover" />
+                      <img src={resolveAssetUrl(file.url)} alt="" className="w-full h-full object-cover" />
                     </div>
                   )}
 
                   {file.type === 'video' && (
                     <div className="w-full h-24 rounded-xl overflow-hidden bg-black/40 border border-white/5">
-                      <video src={file.url} muted playsInline className="w-full h-full object-cover" />
+                      <video src={resolveAssetUrl(file.url)} muted playsInline className="w-full h-full object-cover" />
                     </div>
                   )}
 
@@ -2467,7 +2571,7 @@ export const BackofficeView: React.FC<BackofficeViewProps> = ({
                     <div className="p-5 border-b border-white/10 flex flex-wrap items-center justify-between gap-4 bg-black/20">
                       <div className="flex items-center gap-3.5">
                         <img
-                          src={alb.coverUrl}
+                          src={resolveAssetUrl(alb.coverUrl)}
                           alt={alb.title}
                           className="w-12 h-12 rounded-xl object-cover border border-white/15"
                         />
@@ -2517,7 +2621,7 @@ export const BackofficeView: React.FC<BackofficeViewProps> = ({
                               </span>
                               {track.artworkUrl && (
                                 <img
-                                  src={track.artworkUrl}
+                                  src={resolveAssetUrl(track.artworkUrl)}
                                   alt={track.title}
                                   className="w-8 h-8 rounded-lg object-cover border border-white/10 shrink-0"
                                 />
