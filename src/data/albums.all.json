@@ -12,8 +12,8 @@
     "spotifyArtistUrl": "https://open.spotify.com/artist/4ofkSpzwPAOaANkHl42aMs",
     "coverUrl": "/images/albums/una-vertigine-cover.jpeg",
     "canvasVideoSrc": "/video/una-vertigine.mp4",
-    "tagline": "Tre racconti sospesi nel vuoto: l'istante esatto prima dell'impatto e il peso delle parole non dette.",
-    "synopsis": "«Una Vertigine» apre un nuovo capitolo nel percorso cantautorale di Alessandro Rocchi: un trittico viscerale composto da «Dirti addio», «Una vertigine» e «Non mi puoi più chiamare», in cui la scrittura d'autore incontra sonorità intime, calde e contemporanee.",
+    "tagline": "Quattro racconti sospesi nel vuoto: l'istante esatto prima dell'impatto e il peso delle parole non dette.",
+    "synopsis": "«Una Vertigine» apre un nuovo capitolo nel percorso cantautorale di Alessandro Rocchi: quattro brani viscerali («Dirti addio», «Una vertigine», «Non mi puoi più chiamare» e «Sepolto nel tuo gelo») in cui la scrittura d'autore incontra sonorità intime, acustiche e contemporanee.",
     "tracks": [
       {
         "id": "uv-track-1",
@@ -77,6 +77,27 @@
         "colorLight": "#e2e8f0",
         "highlight": true,
         "lyrics": "Ci scambiamo profili, cuori e fotografie,\npoi ognuno riprende con le proprie bugie.\nSappiamo chi ha vinto, chi ha perso e chi mente,\nchi ha fatto discorsi per non dire niente.\n\nTi avvicini quando il mondo ti va storto,\npoi ritorni alla tua vita e io mi scordo.\nQuando prendi a respirare te ne vai,\ncome se non fosse successo mai.\n\nÈ sincero:\nsiamo qui perché ti manco davvero?\nSiamo qui perché sei stanco,\noppure è vero che ti manco?\n\nSono a un passo dal dimenticarti,\ndalla voglia di ricominciare,\na un passo da una vita in cui\nnon mi puoi più chiamare.\n\nMa quando la notte ci chiede chi siamo,\ne si spegne il tremore di fondo,\ntroviamo una voce dall'altra parte del mondo.\n\nUn tizio alla radio oggi promette una svolta,\nun esperto che spiega, una cosa alla volta.\nLa benzina aumenta a causa del vento\ne dovrei dopotutto ritenermi contento.\n\nTi avvicini quando il mondo ti va storto,\npoi riprendi la tua vita e io mi scordo.\nQuando torni a respirare te ne vai,\ncome se non fosse successo mai.\n\nÈ sincero:\nsono un rifugio o qualcosa di vero?\nSiamo qui perché sei stanco,\no siamo qui perché ti manco?\n\nSono a un passo dal dimenticarti,\ndalla voglia di ricominciare,\na un passo da una vita in cui\nnon mi puoi più chiamare.\n\nMa quando la notte ci chiede chi siamo\ne smettiamo di girarci in tondo,\ntroviamo una voce\ndall'altra parte del mondo.\n\nE se bastasse fermarsi,\nlasciare da parte chi ha ragione?\nSe ascoltarsi davvero\nfosse la soluzione?\n\nSono a un passo dal dimenticarti,\ndalla voglia di scappare,\na un passo da una vita in cui\nnon devo più aspettare.\n\nMa quando la notte ci chiede chi siamo\ne si spegne il rumore di fondo,\ncerchiamo una voce\ndall'altra parte del mondo.\n\nCi mostriamo felici almeno in fotografia,\npoi ognuno riprende con la propria bugia."
+      },
+      {
+        "id": "uv-track-4",
+        "number": 4,
+        "title": "Sepolto nel tuo gelo",
+        "spotifyId": "",
+        "spotifyUri": "",
+        "spotifyUrl": "",
+        "sunoId": "048418ee-bd18-4499-8e74-f1889435859a",
+        "sunoUrl": "https://suno.com/song/048418ee-bd18-4499-8e74-f1889435859a",
+        "duration": "3:03",
+        "durationSeconds": 183,
+        "mood": "Indie Folk / Acoustic Ballad • Gelo & Brace",
+        "storyQuote": "«Su in cima alla montagna dove il freddo morde i denti, mi hai sepolto nel tuo gelo finché il sole è filtrato.»",
+        "audioSrc": "/audio/sepolto-nel-tuo-gelo.m4a",
+        "canvasVideoSrc": "/video/sepolto-nel-tuo-gelo.mp4",
+        "artworkUrl": "/images/artwork/sepolto-nel-tuo-gelo.jpeg",
+        "colorDark": "#1e293b",
+        "colorLight": "#f1f5f9",
+        "highlight": true,
+        "lyrics": "Respiro il fondo del tuo profumo\ncome vapore che resta sul fiore.\nNon ero il tipo da tenerti:\nriprendilo, lascialo scivolare,\nriprendilo, che il buio ti prenda.\n\nTi muovevi come argento sulla marea,\nun bastimento che mi sfugge di mano.\nLe tue dita scrivevano, poi più niente.\nFerma, ferma,\nche la notte si avvicina.\n\nFerma, ferma,\nche la notte si avvicina.\nSu in cima alla montagna,\ndove il freddo morde i denti,\nmi hai sepolto nel tuo gelo\nfinché il sole è filtrato.\nGiù in fondo alla vallata,\ndove il canyon tiene il fiato,\nera una scintilla per te,\nma adesso la brace dorme.\n\nMi amavi muta,\nfuori portata,\nun sermone che sfuma\nperso nel salto.\nQuesta strada tracciata in linee fragili,\nquesta strada tracciata in linee fragili,\nquesta strada tracciata in linee fragili.\n\nSu in cima alla montagna,\ndove il freddo morde i denti,\nmi hai sepolto nel tuo gelo\nfinché il sole è filtrato.\nGiù in fondo alla vallata,\ndove il canyon tiene il fiato,\nera una scintilla per te,\nma adesso la brace dorme."
       }
     ],
     "credits": {

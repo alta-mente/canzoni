@@ -180,7 +180,8 @@ export const EPK_DATA: EPKData = {
       trackByTrack: [
         { title: "01. Dirti addio", notes: "«Non ho fatto in tempo a salutare, a dirti resta o almeno guarda indietro: sei scivolato via senza parlare, come una crepa che attraversa il vetro.»" },
         { title: "02. Una vertigine", notes: "«Sei l'unico traffico che ho nella testa, e mi chiedo se è il caso di spingermi oltre, se farti vedere la faccia più onesta.»" },
-        { title: "03. Non mi puoi più chiamare", notes: "«Sono a un passo dal dimenticarti, dalla voglia di ricominciare, a un passo da una vita in cui non mi puoi più chiamare.»" }
+        { title: "03. Non mi puoi più chiamare", notes: "«Sono a un passo dal dimenticarti, dalla voglia di ricominciare, a un passo da una vita in cui non mi puoi più chiamare.»" },
+        { title: "04. Sepolto nel tuo gelo", notes: "«Su in cima alla montagna dove il freddo morde i denti, mi hai sepolto nel tuo gelo finché il sole è filtrato.»" }
       ]
     },
     {
