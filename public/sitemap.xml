@@ -1,30 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://alta-mente.github.io/canzoni/</loc>
-    <lastmod>2026-10-30</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
-    <image:image>
-      <image:loc>https://alta-mente.github.io/canzoni/images/albums/una-vertigine-cover.jpeg</image:loc>
-      <image:title>Alessandro Rocchi — Una Vertigine (Cover Ufficiale)</image:title>
-    </image:image>
-    <image:image>
-      <image:loc>https://alta-mente.github.io/canzoni/images/artwork/dirti-addio.jpeg</image:loc>
-      <image:title>Alessandro Rocchi — Dirti addio</image:title>
-    </image:image>
-    <image:image>
-      <image:loc>https://alta-mente.github.io/canzoni/images/artwork/non-mi-puoi-piu-chiamare.jpeg</image:loc>
-      <image:title>Alessandro Rocchi — Non mi puoi più chiamare</image:title>
-    </image:image>
-    <image:image>
-      <image:loc>https://i.scdn.co/image/ab67616d0000b273c0e02085128d6003e58aea55</image:loc>
-      <image:title>Alessandro Rocchi — Non C'è Vita Su Marte</image:title>
-    </image:image>
-    <image:image>
-      <image:loc>https://alta-mente.github.io/canzoni/images/albums/le-cose-che-tornano-a-galla-cover.jpeg</image:loc>
-      <image:title>Alessandro Rocchi — Le Cose Che Tornano A Galla</image:title>
-    </image:image>
   </url>
 </urlset>
