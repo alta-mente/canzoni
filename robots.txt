@@ -2,3 +2,4 @@ User-agent: *
 Allow: /
 
 Sitemap: https://alta-mente.github.io/canzoni/sitemap.xml
+Sitemap: https://alta-mente.github.io/canzoni/sitemap.txt
