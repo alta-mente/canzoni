@@ -3,6 +3,7 @@ import { ThemeProvider } from './context/ThemeContext';
 import { NativeAudioProvider } from './context/NativeAudioContext';
 import { VinylOdysseyView } from './components/VinylOdysseyView';
 import { AlbumData, DISCOGRAPHY, normalizeAlbum } from './data/albumData';
+import { trackSiteVisit, trackEpkView, trackShareOpen } from './utils/analytics';
 
 const EPKView = lazy(() =>
   import('./components/EPKView').then((m) => ({ default: m.EPKView }))
@@ -67,11 +68,13 @@ export const App: React.FC = () => {
 
   // Sync with URL hash (e.g. #epk, #admin, #backoffice) for direct linking
   useEffect(() => {
+    trackSiteVisit();
     const handleHash = () => {
       const hash = window.location.hash.toLowerCase();
       const epkHashes = ['#epk', '#bio', '#discografia', '#media-kit', '#comunicati', '#live', '#contatti'];
       if (epkHashes.some((h) => hash.startsWith(h))) {
         setCurrentView('epk');
+        trackEpkView();
       } else if (hash.startsWith('#admin') || hash.startsWith('#backoffice')) {
         setCurrentView('admin');
       } else if (hash.startsWith('#widget') || hash.startsWith('#embed')) {
@@ -173,8 +176,14 @@ export const App: React.FC = () => {
             <VinylOdysseyView
               albums={albums}
               initialAlbumId={selectedAlbumId}
-              onOpenShare={() => setIsShareOpen(true)}
-              onOpenEPK={() => navigateTo('epk')}
+              onOpenShare={() => {
+                trackShareOpen();
+                setIsShareOpen(true);
+              }}
+              onOpenEPK={() => {
+                trackEpkView();
+                navigateTo('epk');
+              }}
               onOpenBackoffice={() => navigateTo('admin')}
             />
           )}

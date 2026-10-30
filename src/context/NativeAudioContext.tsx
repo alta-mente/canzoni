@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback, useMemo, ReactNode } from 'react';
 import { ALBUM_DATA, AlbumData, Track, DISCOGRAPHY, resolveAssetUrl } from '../data/albumData';
+import { trackSongPlay, trackSongStream30s, trackSongComplete } from '../utils/analytics';
 
 interface AudioContextType {
   currentTrack: Track;
@@ -39,11 +40,25 @@ export const NativeAudioProvider: React.FC<{ children: ReactNode; albums?: Album
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const currentTrackRef = useRef<Track>(currentTrack);
+  const activeDiscographyRef = useRef<AlbumData[]>(activeDiscography);
+  const playedSessionKeyRef = useRef<string>('');
+  const streamed30KeyRef = useRef<string>('');
+  const playInstanceCounterRef = useRef<number>(0);
   const nextTrackRef = useRef<() => void>(() => {});
 
   useEffect(() => {
     currentTrackRef.current = currentTrack;
   }, [currentTrack]);
+
+  useEffect(() => {
+    activeDiscographyRef.current = activeDiscography;
+  }, [activeDiscography]);
+
+  const findAlbumTitle = (trackId?: string): string => {
+    if (!trackId) return '';
+    const found = activeDiscographyRef.current.find((a) => a.tracks.some((t) => t.id === trackId));
+    return found?.title || '';
+  };
 
   useEffect(() => {
     const audio = new Audio();
@@ -53,6 +68,14 @@ export const NativeAudioProvider: React.FC<{ children: ReactNode; albums?: Album
 
     const onTimeUpdate = () => {
       setCurrentTime(audio.currentTime);
+      const track = currentTrackRef.current;
+      if (track?.id && audio.currentTime >= 30) {
+        const key = `${track.id}#${playInstanceCounterRef.current}`;
+        if (streamed30KeyRef.current !== key) {
+          streamed30KeyRef.current = key;
+          trackSongStream30s(track, findAlbumTitle(track.id));
+        }
+      }
     };
 
     const onLoadedMetadata = () => {
@@ -62,12 +85,26 @@ export const NativeAudioProvider: React.FC<{ children: ReactNode; albums?: Album
     };
 
     const onEnded = () => {
+      const track = currentTrackRef.current;
+      if (track?.id) {
+        trackSongComplete(track, findAlbumTitle(track.id));
+      }
       if (nextTrackRef.current) {
         nextTrackRef.current();
       }
     };
 
-    const onPlay = () => setIsPlaying(true);
+    const onPlay = () => {
+      setIsPlaying(true);
+      const track = currentTrackRef.current;
+      if (track?.id) {
+        const key = `${track.id}#${playInstanceCounterRef.current}`;
+        if (playedSessionKeyRef.current !== key) {
+          playedSessionKeyRef.current = key;
+          trackSongPlay(track, findAlbumTitle(track.id));
+        }
+      }
+    };
     const onPause = () => setIsPlaying(false);
     const onError = (e: Event) => {
       console.warn('NativeAudio error on source:', audio.src, e);
@@ -111,6 +148,7 @@ export const NativeAudioProvider: React.FC<{ children: ReactNode; albums?: Album
   }, []);
 
   const playTrack = useCallback((track: Track) => {
+    playInstanceCounterRef.current += 1;
     setCurrentTrack(track);
     currentTrackRef.current = track;
     setCurrentTime(0);

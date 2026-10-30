@@ -1,6 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { AlbumData, Track, DISCOGRAPHY } from '../data/albumData';
 import albumsAllJson from '../data/albums.all.json';
+import {
+  AnalyticsSnapshot,
+  fetchMergedAnalytics,
+  loadLocalAnalytics,
+  getGaMeasurementId,
+  setGaMeasurementId,
+} from '../utils/analytics';
 
 const STORAGE_KEY = 'antigravity_discography_v6';
 import { 
@@ -31,7 +38,10 @@ import {
   Lock,
   RotateCcw,
   FileJson,
-  Code
+  Code,
+  BarChart3,
+  TrendingUp,
+  Activity
 } from 'lucide-react';
 
 interface BackofficeViewProps {
@@ -75,11 +85,14 @@ export const BackofficeView: React.FC<BackofficeViewProps> = ({
     return DISCOGRAPHY;
   });
   const [selectedAlbumId, setSelectedAlbumId] = useState<string>(initialAlbums?.[0]?.id || DISCOGRAPHY[0]?.id || '');
-  const [activeTab, setActiveTab] = useState<'albums' | 'tracks' | 'lyrics' | 'media'>('tracks');
+  const [activeTab, setActiveTab] = useState<'albums' | 'tracks' | 'lyrics' | 'media' | 'stats'>('tracks');
   const [selectedTrackIndex, setSelectedTrackIndex] = useState<number>(0);
   const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([]);
   const [mediaFilter, setMediaFilter] = useState<'all' | 'audio' | 'video' | 'image'>('all');
   const [mediaSearch, setMediaSearch] = useState<string>('');
+  const [analyticsData, setAnalyticsData] = useState<AnalyticsSnapshot>(() => loadLocalAnalytics());
+  const [isLoadingAnalytics, setIsLoadingAnalytics] = useState<boolean>(false);
+  const [gaInputId, setGaInputId] = useState<string>(() => getGaMeasurementId());
   
   // Status states
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -135,11 +148,24 @@ export const BackofficeView: React.FC<BackofficeViewProps> = ({
   const currentAlbum = albums.find((a) => a.id === selectedAlbumId) || albums[0];
   const activeTrack: Track | undefined = currentAlbum?.tracks[selectedTrackIndex] || currentAlbum?.tracks[0];
 
+  const refreshAnalytics = async (currentAlbums = albums) => {
+    setIsLoadingAnalytics(true);
+    try {
+      const merged = await fetchMergedAnalytics(currentAlbums);
+      setAnalyticsData(merged);
+    } catch (e) {
+      console.warn('Analytics refresh error:', e);
+    } finally {
+      setIsLoadingAnalytics(false);
+    }
+  };
+
   // Fetch albums, media & Suno profile on mount
   useEffect(() => {
     fetchAlbums();
     fetchMediaFiles();
     fetchSunoProfile();
+    refreshAnalytics(albums);
   }, []);
 
   const showNotification = (text: string, type: 'success' | 'error' | 'info' = 'success') => {
@@ -913,6 +939,21 @@ export const BackofficeView: React.FC<BackofficeViewProps> = ({
           >
             <FolderOpen className="w-3.5 h-3.5" />
             <span>Libreria File</span>
+          </button>
+
+          <button
+            onClick={() => {
+              setActiveTab('stats');
+              refreshAnalytics(albums);
+            }}
+            className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold flex items-center gap-2 transition-all ${
+              activeTab === 'stats'
+                ? 'bg-emerald-400 text-black shadow'
+                : 'text-emerald-300/80 hover:text-emerald-200 hover:bg-emerald-500/10'
+            }`}
+          >
+            <BarChart3 className="w-3.5 h-3.5" />
+            <span>Statistiche & Play</span>
           </button>
         </nav>
 
@@ -2217,6 +2258,352 @@ export const BackofficeView: React.FC<BackofficeViewProps> = ({
               ))}
             </div>
 
+          </div>
+        )}
+
+        {/* ═════════════════════════════════════════════════════════════
+            TAB 5: STATISTICHE & PLAY (Visite, Ascolti, GA4 Integration)
+            ═════════════════════════════════════════════════════════════ */}
+        {activeTab === 'stats' && (
+          <div className="max-w-6xl mx-auto w-full space-y-6">
+            {/* Top Bar */}
+            <div className="bg-[#151621] border border-white/10 rounded-2xl p-6 flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  <BarChart3 className="w-5 h-5 text-emerald-400" />
+                  <h2 className="text-lg font-mono font-bold text-white uppercase tracking-wider">
+                    Statistiche Visite & Ascolti Live
+                  </h2>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                    Cloud Counter + Local Sync
+                  </span>
+                </div>
+                <p className="text-xs text-white/60 mt-1">
+                  Monitoraggio in tempo reale di visite al player, play avviati, ascolti certificati (&gt;30 secondi), brani completati e aperture testi.
+                </p>
+              </div>
+
+              <button
+                onClick={() => refreshAnalytics(albums)}
+                disabled={isLoadingAnalytics}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-mono text-xs font-bold transition-all shadow-lg shadow-emerald-500/20 disabled:opacity-50"
+              >
+                <RefreshCw className={`w-4 h-4 ${isLoadingAnalytics ? 'animate-spin' : ''}`} />
+                <span>{isLoadingAnalytics ? 'Aggiornamento...' : 'Aggiorna Contatori Live'}</span>
+              </button>
+            </div>
+
+            {/* KPI Summary Cards */}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+              <div className="bg-[#151621] border border-white/10 rounded-2xl p-4 space-y-1">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-white/50 block">
+                  Visite Sito
+                </span>
+                <div className="text-2xl sm:text-3xl font-mono font-black text-white">
+                  {analyticsData.siteVisits}
+                </div>
+                <span className="text-[10px] font-mono text-emerald-400 block">
+                  Sessioni Player 3D
+                </span>
+              </div>
+
+              <div className="bg-[#151621] border border-amber-500/30 rounded-2xl p-4 space-y-1">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-amber-300/80 block">
+                  Play Totali
+                </span>
+                <div className="text-2xl sm:text-3xl font-mono font-black text-amber-400">
+                  {analyticsData.totalPlays}
+                </div>
+                <span className="text-[10px] font-mono text-white/50 block">
+                  Riproduzioni avviate
+                </span>
+              </div>
+
+              <div className="bg-[#151621] border border-emerald-500/30 rounded-2xl p-4 space-y-1">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-emerald-300/80 block">
+                  Stream &gt; 30s
+                </span>
+                <div className="text-2xl sm:text-3xl font-mono font-black text-emerald-400">
+                  {analyticsData.totalStreams30s}
+                </div>
+                <span className="text-[10px] font-mono text-white/50 block">
+                  Standard Spotify
+                </span>
+              </div>
+
+              <div className="bg-[#151621] border border-indigo-500/30 rounded-2xl p-4 space-y-1">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-indigo-300/80 block">
+                  Ascolti 100%
+                </span>
+                <div className="text-2xl sm:text-3xl font-mono font-black text-indigo-400">
+                  {analyticsData.totalCompletes}
+                </div>
+                <span className="text-[10px] font-mono text-white/50 block">
+                  Fino a fine brano
+                </span>
+              </div>
+
+              <div className="bg-[#151621] border border-purple-500/30 rounded-2xl p-4 space-y-1">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-purple-300/80 block">
+                  Aperture Testi
+                </span>
+                <div className="text-2xl sm:text-3xl font-mono font-black text-purple-400">
+                  {analyticsData.lyricsOpens}
+                </div>
+                <span className="text-[10px] font-mono text-white/50 block">
+                  Libretto Lyrics
+                </span>
+              </div>
+
+              <div className="bg-[#151621] border border-white/10 rounded-2xl p-4 space-y-1">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-white/50 block">
+                  Visite BIO / EPK
+                </span>
+                <div className="text-2xl sm:text-3xl font-mono font-black text-white">
+                  {analyticsData.epkViews}
+                </div>
+                <span className="text-[10px] font-mono text-white/50 block">
+                  Condivisioni: {analyticsData.shareOpens}
+                </span>
+              </div>
+            </div>
+
+            {/* Per-Album & Per-Track Breakdown */}
+            <div className="space-y-6">
+              {albums.map((alb) => {
+                const albumPlays = alb.tracks.reduce(
+                  (acc, t) => acc + (analyticsData.tracks[t.id]?.plays || 0),
+                  0
+                );
+                const albumStreams30 = alb.tracks.reduce(
+                  (acc, t) => acc + (analyticsData.tracks[t.id]?.streams30s || 0),
+                  0
+                );
+                const albumCompletes = alb.tracks.reduce(
+                  (acc, t) => acc + (analyticsData.tracks[t.id]?.completes || 0),
+                  0
+                );
+                const maxTrackPlay = Math.max(
+                  1,
+                  ...alb.tracks.map((t) => analyticsData.tracks[t.id]?.plays || 0)
+                );
+
+                return (
+                  <div
+                    key={alb.id}
+                    className="bg-[#151621] border border-white/10 rounded-2xl overflow-hidden"
+                  >
+                    <div className="p-5 border-b border-white/10 flex flex-wrap items-center justify-between gap-4 bg-black/20">
+                      <div className="flex items-center gap-3.5">
+                        <img
+                          src={alb.coverUrl}
+                          alt={alb.title}
+                          className="w-12 h-12 rounded-xl object-cover border border-white/15"
+                        />
+                        <div>
+                          <span className="text-[10px] font-mono uppercase tracking-widest text-amber-400 font-bold block">
+                            ALBUM • {alb.tracks.length} BRANI
+                          </span>
+                          <h3 className="text-base font-mono font-bold text-white uppercase">
+                            {alb.title}
+                          </h3>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-6 font-mono text-xs">
+                        <div className="text-right">
+                          <span className="text-[10px] text-white/40 uppercase block">Play Album</span>
+                          <span className="text-base font-black text-amber-400">{albumPlays}</span>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-[10px] text-white/40 uppercase block">&gt; 30s</span>
+                          <span className="text-base font-black text-emerald-400">{albumStreams30}</span>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-[10px] text-white/40 uppercase block">Completati</span>
+                          <span className="text-base font-black text-indigo-400">{albumCompletes}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="divide-y divide-white/5">
+                      {alb.tracks.map((track) => {
+                        const st = analyticsData.tracks[track.id] || {
+                          plays: 0,
+                          streams30s: 0,
+                          completes: 0,
+                          lyricsOpens: 0,
+                        };
+                        const barWidth = st.plays > 0 ? Math.max(6, Math.round((st.plays / maxTrackPlay) * 100)) : 0;
+                        return (
+                          <div
+                            key={track.id}
+                            className="px-5 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-white/[0.02] transition-colors"
+                          >
+                            <div className="flex items-center gap-3 min-w-0 flex-1">
+                              <span className="font-mono text-xs text-white/40 w-6 shrink-0">
+                                #{String(track.number).padStart(2, '0')}
+                              </span>
+                              {track.artworkUrl && (
+                                <img
+                                  src={track.artworkUrl}
+                                  alt={track.title}
+                                  className="w-8 h-8 rounded-lg object-cover border border-white/10 shrink-0"
+                                />
+                              )}
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-mono text-xs font-bold text-white truncate">
+                                    {track.title}
+                                  </span>
+                                  <span className="text-[10px] font-mono text-white/40">
+                                    {track.duration}
+                                  </span>
+                                </div>
+                                <div className="w-full max-w-xs h-1.5 bg-white/5 rounded-full overflow-hidden mt-1.5">
+                                  <div
+                                    className="h-full bg-gradient-to-r from-amber-400 to-emerald-400 rounded-full transition-all duration-500"
+                                    style={{ width: `${barWidth}%` }}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-5 font-mono text-xs shrink-0 self-end sm:self-center">
+                              <div className="text-center min-w-[54px]">
+                                <span className="text-[9px] text-white/40 uppercase block">Play</span>
+                                <span className="font-bold text-amber-400">{st.plays}</span>
+                              </div>
+                              <div className="text-center min-w-[54px]">
+                                <span className="text-[9px] text-white/40 uppercase block">&gt;30s</span>
+                                <span className="font-bold text-emerald-400">{st.streams30s}</span>
+                              </div>
+                              <div className="text-center min-w-[54px]">
+                                <span className="text-[9px] text-white/40 uppercase block">100%</span>
+                                <span className="font-bold text-indigo-400">{st.completes}</span>
+                              </div>
+                              <div className="text-center min-w-[54px]">
+                                <span className="text-[9px] text-white/40 uppercase block">Testo</span>
+                                <span className="font-bold text-purple-300">{st.lyricsOpens || 0}</span>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Bottom Grid: Google Analytics 4 Setup + Recent Activity Feed */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Google Analytics 4 Integration Box */}
+              <div className="bg-[#151621] border border-white/10 rounded-2xl p-6 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4 text-amber-400" />
+                    <h3 className="text-sm font-mono font-bold uppercase tracking-wider text-white">
+                      Collegamento Google Analytics 4 (GA4)
+                    </h3>
+                  </div>
+                  {analyticsData.gaMeasurementId && (
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                      Attivo: {analyticsData.gaMeasurementId}
+                    </span>
+                  )}
+                </div>
+
+                <p className="text-xs text-white/60 leading-relaxed">
+                  Inserisci qui il tuo ID di misurazione <strong>Google Analytics 4</strong> (formato <code>G-XXXXXXXXXX</code>) oppure invialo in chat per integrarlo direttamente nel codice sorgente. Tutti gli eventi (<code>song_play</code>, <code>song_stream_30s</code>, <code>song_complete</code>, <code>lyrics_open</code>, <code>epk_view</code>) vengono inoltrati automaticamente a GA4.
+                </p>
+
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={gaInputId}
+                    onChange={(e) => setGaInputId(e.target.value)}
+                    placeholder="G-XXXXXXXXXX"
+                    className="flex-1 bg-black/50 border border-white/15 rounded-xl px-3.5 py-2 text-xs font-mono text-white focus:outline-none focus:border-amber-400"
+                  />
+                  <button
+                    onClick={() => {
+                      setGaMeasurementId(gaInputId);
+                      setAnalyticsData(loadLocalAnalytics());
+                      showNotification(
+                        gaInputId.trim()
+                          ? `Google Analytics 4 (${gaInputId.trim().toUpperCase()}) attivato!`
+                          : 'ID Google Analytics rimosso.',
+                        'success'
+                      );
+                    }}
+                    className="px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-black font-mono text-xs font-bold transition-all"
+                  >
+                    Salva GA4
+                  </button>
+                </div>
+              </div>
+
+              {/* Recent Activity Feed */}
+              <div className="bg-[#151621] border border-white/10 rounded-2xl p-6 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Activity className="w-4 h-4 text-emerald-400" />
+                    <h3 className="text-sm font-mono font-bold uppercase tracking-wider text-white">
+                      Ultimi Eventi Registrati (Sessione Locale)
+                    </h3>
+                  </div>
+                  <span className="text-[10px] font-mono text-white/40">
+                    Ultimi {analyticsData.recentEvents?.length || 0} eventi
+                  </span>
+                </div>
+
+                <div className="max-h-56 overflow-y-auto space-y-1.5 pr-1">
+                  {(!analyticsData.recentEvents || analyticsData.recentEvents.length === 0) ? (
+                    <p className="text-xs font-mono text-white/40 py-6 text-center">
+                      Nessun evento locale ancora registrato in questa sessione.
+                    </p>
+                  ) : (
+                    analyticsData.recentEvents.slice(0, 25).map((ev) => (
+                      <div
+                        key={ev.id}
+                        className="px-3 py-2 rounded-xl bg-black/30 border border-white/5 flex items-center justify-between text-xs font-mono"
+                      >
+                        <div className="flex items-center gap-2 truncate">
+                          <span
+                            className={`w-2 h-2 rounded-full shrink-0 ${
+                              ev.type === 'track_play'
+                                ? 'bg-amber-400'
+                                : ev.type === 'track_stream_30s'
+                                ? 'bg-emerald-400'
+                                : ev.type === 'track_complete'
+                                ? 'bg-indigo-400'
+                                : 'bg-purple-400'
+                            }`}
+                          />
+                          <span className="text-white/90 truncate">
+                            {ev.type === 'site_visit' && 'Visita al Player 3D'}
+                            {ev.type === 'epk_view' && 'Apertura pagina BIO / EPK'}
+                            {ev.type === 'share_open' && 'Apertura Condividi / Widget'}
+                            {ev.type === 'lyrics_open' && `Lettura testo: ${ev.trackTitle || ''}`}
+                            {ev.type === 'track_play' && `Play: ${ev.trackTitle || ''}`}
+                            {ev.type === 'track_stream_30s' && `Stream >30s: ${ev.trackTitle || ''}`}
+                            {ev.type === 'track_complete' && `Ascolto 100%: ${ev.trackTitle || ''}`}
+                          </span>
+                        </div>
+                        <span className="text-[10px] text-white/40 shrink-0 ml-2">
+                          {new Date(ev.timestamp).toLocaleTimeString('it-IT', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            second: '2-digit',
+                          })}
+                        </span>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
         )}
 

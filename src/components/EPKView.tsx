@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { EPK_DATA, PressPhoto, PressRelease } from '../data/epkData';
 import { DISCOGRAPHY, AlbumData, Track } from '../data/albumData';
+import { trackLyricsOpen } from '../utils/analytics';
 import { useTheme } from '../context/ThemeContext';
 import { useAudio } from '../context/NativeAudioContext';
 import {
@@ -622,7 +623,10 @@ export const EPKView: React.FC<EPKViewProps> = ({ onBackToPlayer, onSelectAlbumA
 
                             {activeTrack.lyrics && (
                               <button
-                                onClick={() => setSelectedLyricsTrack({ track: activeTrack, albumTitle: album.title })}
+                                onClick={() => {
+                                  trackLyricsOpen(activeTrack, album.title);
+                                  setSelectedLyricsTrack({ track: activeTrack, albumTitle: album.title });
+                                }}
                                 className={`px-3 py-1.5 rounded-xl font-bold flex items-center gap-1.5 transition-all ${
                                   isLightMode
                                     ? 'bg-purple-600 text-white hover:bg-purple-700 shadow-sm'

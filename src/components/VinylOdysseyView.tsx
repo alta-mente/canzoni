@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback, Suspense, lazy } from 'react';
 import { AlbumData, DISCOGRAPHY } from '../data/albumData';
+import { trackLyricsOpen } from '../utils/analytics';
 import { useAudio, useAudioTime } from '../context/NativeAudioContext';
 import { useTheme } from '../context/ThemeContext';
 import { VinylCarousel } from './VinylCarousel';
@@ -176,6 +177,12 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
     setCurrentIndex(0);
     playTrack(album.tracks[0]);
   }, [playTrack]);
+
+  useEffect(() => {
+    if (showLyricsModal && activeTrack?.lyrics) {
+      trackLyricsOpen(activeTrack, currentAlbum.title);
+    }
+  }, [showLyricsModal, activeTrack, currentAlbum.title]);
 
   const handleCopyLyrics = useCallback(() => {
     if (activeTrack.lyrics) {
