@@ -147,7 +147,10 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
   const [showCanvasBackground, setShowCanvasBackground] = useState<boolean>(true);
   const [showTracklist, setShowTracklist] = useState<boolean>(false);
   const [showSettingsMenu, setShowSettingsMenu] = useState<boolean>(false);
-  const [showLyricsModal, setShowLyricsModal] = useState<boolean>(false);
+  const [showLyricsModal, setShowLyricsModal] = useState<boolean>(() => {
+    const initialRoute = (typeof window !== 'undefined' && (window as any).__INITIAL_SEO_ROUTE__) || null;
+    return Boolean(initialRoute?.openLyrics);
+  });
   const [copiedLyrics, setCopiedLyrics] = useState<boolean>(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const isPlayingRef = useRef<boolean>(isPlaying);

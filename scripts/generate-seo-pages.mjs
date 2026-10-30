@@ -34,7 +34,7 @@ function resolveFullUrl(assetPath) {
 
 const albums = JSON.parse(fs.readFileSync(path.join(rootDir, 'src/data/albums.json'), 'utf8'));
 
-// Build list of all 28 URLs
+// Build list of all 51 URLs (1 Home + 1 Bio + 3 Albums + 23 Songs + 23 Lyrics pages)
 const urls = [`${SITE_URL}/`, `${SITE_URL}/bio/`];
 
 const albumEntries = [];
@@ -54,8 +54,10 @@ for (const album of albums) {
     }
     usedTrackSlugs.add(trackSlug);
     const trackUrl = `${SITE_URL}/brano/${trackSlug}/`;
+    const lyricsUrl = `${SITE_URL}/testo/${trackSlug}/`;
     urls.push(trackUrl);
-    trackEntries.push({ track, album, albumSlug, trackSlug, trackUrl });
+    urls.push(lyricsUrl);
+    trackEntries.push({ track, album, albumSlug, trackSlug, trackUrl, lyricsUrl });
   }
 }
 
@@ -204,7 +206,7 @@ if (fs.existsSync(distDir)) {
         <p>${escapeHtml(album.subtitle || '')} (${escapeHtml(album.releaseYear || '2026')})</p>
         <h2>Tracklist e Testi</h2>
         <ol>
-${tracksForAlbum.map((t) => `          <li><a href="${t.trackUrl}">${escapeHtml(t.track.title)}</a> (${escapeHtml(t.track.duration || '')})</li>`).join('\n')}
+${tracksForAlbum.map((t) => `          <li><a href="${t.trackUrl}">${escapeHtml(t.track.title)}</a> — <a href="${t.lyricsUrl}">Testo / Lyrics</a> (${escapeHtml(t.track.duration || '')})</li>`).join('\n')}
         </ol>
         <p><a href="${SITE_URL}/">Discografia completa di Alessandro Rocchi</a> | <a href="${SITE_URL}/bio/">Biografia & EPK</a></p>
       </main>`,
@@ -212,67 +214,89 @@ ${tracksForAlbum.map((t) => `          <li><a href="${t.trackUrl}">${escapeHtml(
     fs.writeFileSync(path.join(dir, 'index.html'), albumHtml, 'utf8');
   }
 
-  // 4. Generate /brano/<slug>/index.html for each of the 23 tracks
-  for (const { track, album, albumSlug, trackSlug, trackUrl } of trackEntries) {
-    const dir = path.join(distDir, 'brano', trackSlug);
-    fs.mkdirSync(dir, { recursive: true });
+  // 4. Generate /brano/<slug>/index.html AND /testo/<slug>/index.html for each of the 23 tracks
+  for (const { track, album, albumSlug, trackSlug, trackUrl, lyricsUrl } of trackEntries) {
+    const branoDir = path.join(distDir, 'brano', trackSlug);
+    const testoDir = path.join(distDir, 'testo', trackSlug);
+    fs.mkdirSync(branoDir, { recursive: true });
+    fs.mkdirSync(testoDir, { recursive: true });
+
     const imageUrl = resolveFullUrl(track.coverImage || album.coverArt);
     const lyricsSnippet = track.lyrics
       ? track.lyrics.replace(/\s+/g, ' ').trim().slice(0, 140) + '...'
       : '';
-    const desc = `Ascolta "${track.title}" di Alessandro Rocchi (dall'album "${album.title}") e leggi il testo ufficiale. ${lyricsSnippet}`.trim();
 
+    const sharedJsonLd = {
+      '@context': 'https://schema.org',
+      '@type': 'MusicRecording',
+      name: track.title,
+      url: trackUrl,
+      image: imageUrl,
+      inAlbum: {
+        '@type': 'MusicAlbum',
+        name: album.title,
+        url: `${SITE_URL}/album/${albumSlug}/`,
+      },
+      byArtist: {
+        '@type': 'MusicGroup',
+        name: 'Alessandro Rocchi',
+        url: `${SITE_URL}/`,
+      },
+      ...(track.lyrics
+        ? {
+            recordingOf: {
+              '@type': 'MusicComposition',
+              name: track.title,
+              composer: { '@type': 'Person', name: 'Alessandro Rocchi' },
+              lyrics: {
+                '@type': 'CreativeWork',
+                text: track.lyrics,
+              },
+            },
+          }
+        : {}),
+    };
+
+    const staticBody = `      <main style="color:#f5f5f7;background:#030407;padding:2rem;font-family:sans-serif;">
+        <article>
+          <h1>${escapeHtml(track.title)} — Alessandro Rocchi (Testo e Audio Ufficiale)</h1>
+          <p>Brano tratto dall'album <a href="${SITE_URL}/album/${albumSlug}/">${escapeHtml(album.title)}</a> (${escapeHtml(album.releaseYear || '2026')}) — Durata: ${escapeHtml(track.duration || '')}</p>
+          ${track.lyrics ? `<h2>Testo (Lyrics) di ${escapeHtml(track.title)}</h2>\n          <pre style="white-space:pre-wrap;font-family:inherit;">${escapeHtml(track.lyrics)}</pre>` : ''}
+          <p><a href="${trackUrl}">Ascolta ${escapeHtml(track.title)}</a> | <a href="${lyricsUrl}">Leggi Testo / Lyrics</a> | <a href="${SITE_URL}/album/${albumSlug}/">Album ${escapeHtml(album.title)}</a> | <a href="${SITE_URL}/">Discografia Completa</a></p>
+        </article>
+      </main>`;
+
+    // /brano/<slug>/
     const trackHtml = buildPageHtml({
-      title: `${track.title} — Alessandro Rocchi (Testo e Audio Ufficiale | ${album.title})`,
-      description: desc,
+      title: `${track.title} — Alessandro Rocchi (Ascolta Brano e Testo | ${album.title})`,
+      description: `Ascolta "${track.title}" di Alessandro Rocchi (dall'album "${album.title}") e leggi il testo ufficiale. ${lyricsSnippet}`.trim(),
       canonicalUrl: trackUrl,
       imageUrl,
-      jsonLd: {
-        '@context': 'https://schema.org',
-        '@type': 'MusicRecording',
-        name: track.title,
-        url: trackUrl,
-        image: imageUrl,
-        inAlbum: {
-          '@type': 'MusicAlbum',
-          name: album.title,
-          url: `${SITE_URL}/album/${albumSlug}/`,
-        },
-        byArtist: {
-          '@type': 'MusicGroup',
-          name: 'Alessandro Rocchi',
-          url: `${SITE_URL}/`,
-        },
-        ...(track.lyrics
-          ? {
-              recordingOf: {
-                '@type': 'MusicComposition',
-                name: track.title,
-                composer: { '@type': 'Person', name: 'Alessandro Rocchi' },
-                lyrics: {
-                  '@type': 'CreativeWork',
-                  text: track.lyrics,
-                },
-              },
-            }
-          : {}),
-      },
-      routeConfig: { view: 'player', albumId: album.id, trackId: track.id },
-      staticBodyHtml: `      <main style="color:#f5f5f7;background:#030407;padding:2rem;font-family:sans-serif;">
-        <article>
-          <h1>${escapeHtml(track.title)} — Alessandro Rocchi</h1>
-          <p>Brano tratto dall'album <a href="${SITE_URL}/album/${albumSlug}/">${escapeHtml(album.title)}</a> (${escapeHtml(album.releaseYear || '2026')}) — Durata: ${escapeHtml(track.duration || '')}</p>
-          ${track.lyrics ? `<h2>Testo di ${escapeHtml(track.title)}</h2>\n          <pre style="white-space:pre-wrap;font-family:inherit;">${escapeHtml(track.lyrics)}</pre>` : ''}
-          <p><a href="${SITE_URL}/album/${albumSlug}/">Torna all'album ${escapeHtml(album.title)}</a> | <a href="${SITE_URL}/">Discografia Completa</a></p>
-        </article>
-      </main>`,
+      jsonLd: sharedJsonLd,
+      routeConfig: { view: 'player', albumId: album.id, trackId: track.id, openLyrics: false },
+      staticBodyHtml: staticBody,
     });
-    fs.writeFileSync(path.join(dir, 'index.html'), trackHtml, 'utf8');
+    fs.writeFileSync(path.join(branoDir, 'index.html'), trackHtml, 'utf8');
+
+    // /testo/<slug>/ (automatically opens Lyrics Modal in React player!)
+    const lyricsHtml = buildPageHtml({
+      title: `Testo ${track.title} — Alessandro Rocchi (Lyrics Ufficiali | ${album.title})`,
+      description: `Testo ufficiale (lyrics) di "${track.title}", canzone di Alessandro Rocchi tratta dall'album "${album.title}". ${lyricsSnippet}`.trim(),
+      canonicalUrl: lyricsUrl,
+      imageUrl,
+      jsonLd: {
+        ...sharedJsonLd,
+        url: lyricsUrl,
+      },
+      routeConfig: { view: 'player', albumId: album.id, trackId: track.id, openLyrics: true },
+      staticBodyHtml: staticBody,
+    });
+    fs.writeFileSync(path.join(testoDir, 'index.html'), lyricsHtml, 'utf8');
   }
 
-  // 5. Update root dist/index.html static fallback with links to all albums, tracks, and bio
+  // 5. Update root dist/index.html static fallback with links to all albums, tracks, lyrics, and bio
   const rootLinksHtml = `      <main style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;">
-        <h1>Alessandro Rocchi — Discografia Ufficiale, Canzoni, Testi e Bio</h1>
+        <h1>Alessandro Rocchi — Discografia Ufficiale, Canzoni, Testi (Lyrics) e Bio</h1>
         <p><a href="${SITE_URL}/bio/">Biografia ed Electronic Press Kit (EPK) di Alessandro Rocchi</a></p>
 ${albumEntries
   .map(({ album, albumUrl }) => {
@@ -280,7 +304,7 @@ ${albumEntries
     return `        <section>
           <h2><a href="${albumUrl}">${escapeHtml(album.title)} (${escapeHtml(album.releaseYear || '2026')})</a></h2>
           <ul>
-${tList.map((t) => `            <li><a href="${t.trackUrl}">${escapeHtml(t.track.title)} — Testo e Audio</a></li>`).join('\n')}
+${tList.map((t) => `            <li><a href="${t.trackUrl}">${escapeHtml(t.track.title)}</a> — <a href="${t.lyricsUrl}">Testo (Lyrics) di ${escapeHtml(t.track.title)}</a></li>`).join('\n')}
           </ul>
         </section>`;
   })
@@ -294,4 +318,4 @@ ${tList.map((t) => `            <li><a href="${t.trackUrl}">${escapeHtml(t.track
   fs.writeFileSync(path.join(distDir, 'index.html'), updatedRootHtml, 'utf8');
 }
 
-console.log(`Generated SEO sitemap with ${urls.length} URLs (${albumEntries.length} albums, ${trackEntries.length} tracks).`);
+console.log(`Generated SEO sitemap with ${urls.length} URLs (${albumEntries.length} albums, ${trackEntries.length} tracks + ${trackEntries.length} lyrics pages).`);
