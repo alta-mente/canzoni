@@ -7,6 +7,8 @@ import {
   loadLocalAnalytics,
   getGaMeasurementId,
   setGaMeasurementId,
+  isOwnerTrackingExcluded,
+  setOwnerTrackingExcluded,
 } from '../utils/analytics';
 
 const STORAGE_KEY = 'antigravity_discography_v6';
@@ -93,6 +95,7 @@ export const BackofficeView: React.FC<BackofficeViewProps> = ({
   const [analyticsData, setAnalyticsData] = useState<AnalyticsSnapshot>(() => loadLocalAnalytics());
   const [isLoadingAnalytics, setIsLoadingAnalytics] = useState<boolean>(false);
   const [gaInputId, setGaInputId] = useState<string>(() => getGaMeasurementId());
+  const [excludeMyPlays, setExcludeMyPlays] = useState<boolean>(() => isOwnerTrackingExcluded());
   
   // Status states
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -2291,6 +2294,74 @@ export const BackofficeView: React.FC<BackofficeViewProps> = ({
                 <RefreshCw className={`w-4 h-4 ${isLoadingAnalytics ? 'animate-spin' : ''}`} />
                 <span>{isLoadingAnalytics ? 'Aggiornamento...' : 'Aggiorna Contatori Live'}</span>
               </button>
+            </div>
+
+            {/* Owner Exclusion Banner (Non tracciare i miei ascolti) */}
+            <div
+              className={`rounded-2xl p-5 border flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all ${
+                excludeMyPlays
+                  ? 'bg-emerald-500/10 border-emerald-500/40'
+                  : 'bg-amber-500/10 border-amber-500/40'
+              }`}
+            >
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <Lock className={`w-4 h-4 ${excludeMyPlays ? 'text-emerald-400' : 'text-amber-400'}`} />
+                  <h3 className="text-sm font-mono font-bold uppercase tracking-wider text-white">
+                    Filtro Proprietario: {excludeMyPlays ? 'I tuoi ascolti NON vengono conteggiati' : 'Tracciamento attivo anche per te'}
+                  </h3>
+                  <span
+                    className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${
+                      excludeMyPlays
+                        ? 'bg-emerald-400 text-black'
+                        : 'bg-amber-400 text-black'
+                    }`}
+                  >
+                    {excludeMyPlays ? 'PROTETTO (ESCLUSO)' : 'CONTEGGIATO'}
+                  </span>
+                </div>
+                <p className="text-xs text-white/70 leading-relaxed">
+                  Quando sei entrato nel Backoffice (o usi il link con <code>?notrack=1</code> su iPhone/iPad), questo browser viene escluso automaticamente sia dai <strong>Contatori Cloud</strong> sia da <strong>Google Analytics 4</strong> (<code>G-0V5SMDS418</code>), così le tue prove non gonfiano le statistiche.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const url = `${window.location.origin}${window.location.pathname}?notrack=1`;
+                    navigator.clipboard.writeText(url);
+                    showNotification('Link "?notrack=1" copiato! Aprilo una volta sul tuo smartphone per escludere anche il telefono.', 'info');
+                  }}
+                  className="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-xs font-mono font-bold text-white flex items-center gap-1.5 transition-all"
+                  title="Copia link da aprire una volta su iPhone/iPad per non tracciare il tuo telefono"
+                >
+                  <Copy className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Copia Link per tuo Telefono (?notrack=1)</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    const next = !excludeMyPlays;
+                    setOwnerTrackingExcluded(next);
+                    setExcludeMyPlays(next);
+                    showNotification(
+                      next
+                        ? 'Filtro attivato: i tuoi ascolti su questo dispositivo NON verranno tracciati.'
+                        : 'Filtro disattivato: ora anche i tuoi ascolti vengono conteggiati (utile per fare un test).',
+                      'success'
+                    );
+                  }}
+                  className={`px-4 py-2 rounded-xl font-mono text-xs font-bold transition-all ${
+                    excludeMyPlays
+                      ? 'bg-white/10 hover:bg-white/20 text-white border border-white/15'
+                      : 'bg-emerald-400 hover:bg-emerald-300 text-black shadow-lg'
+                  }`}
+                >
+                  {excludeMyPlays ? 'Riattiva per Test' : 'Escludi i miei ascolti'}
+                </button>
+              </div>
             </div>
 
             {/* KPI Summary Cards */}

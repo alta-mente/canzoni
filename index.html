@@ -5,6 +5,26 @@
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-0V5SMDS418"></script>
     <script>
+      (function () {
+        try {
+          var search = window.location.search || '';
+          var hash = window.location.hash || '';
+          if (search.indexOf('notrack=1') !== -1 || hash.indexOf('notrack=1') !== -1 || hash === '#notrack') {
+            localStorage.setItem('antigravity_exclude_my_plays', 'true');
+          } else if (search.indexOf('notrack=0') !== -1) {
+            localStorage.setItem('antigravity_exclude_my_plays', 'false');
+          }
+          var pref = localStorage.getItem('antigravity_exclude_my_plays');
+          var isAdmin =
+            localStorage.getItem('canzoni_admin_authenticated') === 'true' ||
+            sessionStorage.getItem('canzoni_admin_authenticated') === 'true';
+          var isLocal =
+            window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+          if (pref === 'true' || (pref !== 'false' && (isAdmin || isLocal))) {
+            window['ga-disable-G-0V5SMDS418'] = true;
+          }
+        } catch (e) {}
+      })();
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());

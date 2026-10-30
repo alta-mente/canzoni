@@ -87,6 +87,10 @@ export const BackofficeAuthGate: React.FC<BackofficeAuthGateProps> = ({ onBackTo
         } else {
           sessionStorage.setItem(AUTH_KEY, 'true');
         }
+        if (localStorage.getItem('antigravity_exclude_my_plays') !== 'false') {
+          localStorage.setItem('antigravity_exclude_my_plays', 'true');
+          (window as any)['ga-disable-G-0V5SMDS418'] = true;
+        }
         setIsAuthenticated(true);
         setFailedAttempts(0);
       } else {

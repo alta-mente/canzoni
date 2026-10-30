@@ -5,6 +5,40 @@ const CLOUD_BASE_URL = 'https://abacus.jasoncameron.dev';
 const STORAGE_KEY = 'antigravity_analytics_v1';
 const GA_STORAGE_KEY = 'antigravity_ga_measurement_id';
 const DEFAULT_GA_MEASUREMENT_ID = 'G-0V5SMDS418';
+const EXCLUDE_OWNER_KEY = 'antigravity_exclude_my_plays';
+
+export const isOwnerTrackingExcluded = (): boolean => {
+  if (typeof window === 'undefined') return false;
+  try {
+    const pref = localStorage.getItem(EXCLUDE_OWNER_KEY);
+    if (pref === 'true') return true;
+    if (pref === 'false') return false;
+    const isAdmin =
+      localStorage.getItem('canzoni_admin_authenticated') === 'true' ||
+      sessionStorage.getItem('canzoni_admin_authenticated') === 'true';
+    const isLocal =
+      window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    if (isAdmin) {
+      localStorage.setItem(EXCLUDE_OWNER_KEY, 'true');
+      return true;
+    }
+    return isLocal;
+  } catch {
+    return false;
+  }
+};
+
+export const setOwnerTrackingExcluded = (excluded: boolean): void => {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(EXCLUDE_OWNER_KEY, excluded ? 'true' : 'false');
+    const gaId = getGaMeasurementId();
+    (window as any)[`ga-disable-${gaId}`] = excluded;
+    (window as any)[`ga-disable-${DEFAULT_GA_MEASUREMENT_ID}`] = excluded;
+  } catch {
+    // ignore
+  }
+};
 
 export type AnalyticsEventType =
   | 'site_visit'
@@ -238,6 +272,7 @@ const recordEvent = (
 
 export const trackSiteVisit = (): void => {
   if (typeof window === 'undefined') return;
+  if (isOwnerTrackingExcluded()) return;
   if (sessionStorage.getItem('antigravity_visited_session') === '1') return;
   sessionStorage.setItem('antigravity_visited_session', '1');
 
@@ -248,18 +283,21 @@ export const trackSiteVisit = (): void => {
 };
 
 export const trackEpkView = (): void => {
+  if (isOwnerTrackingExcluded()) return;
   recordEvent('epk_view');
   hitCloudCounter('epk_views');
   sendGaEvent('epk_view', { page_title: 'EPK & Biografia' });
 };
 
 export const trackShareOpen = (): void => {
+  if (isOwnerTrackingExcluded()) return;
   recordEvent('share_open');
   hitCloudCounter('share_opens');
   sendGaEvent('share_open');
 };
 
 export const trackLyricsOpen = (track: Track, albumTitle?: string): void => {
+  if (isOwnerTrackingExcluded()) return;
   recordEvent('lyrics_open', track, albumTitle);
   hitCloudCounter('lyrics_opens');
   hitCloudCounter(`lyrics_${track.id}`);
@@ -271,7 +309,7 @@ export const trackLyricsOpen = (track: Track, albumTitle?: string): void => {
 };
 
 export const trackSongPlay = (track: Track, albumTitle?: string): void => {
-  if (!track?.id) return;
+  if (!track?.id || isOwnerTrackingExcluded()) return;
   recordEvent('track_play', track, albumTitle);
   hitCloudCounter('total_plays');
   hitCloudCounter(`play_${track.id}`);
@@ -283,7 +321,7 @@ export const trackSongPlay = (track: Track, albumTitle?: string): void => {
 };
 
 export const trackSongStream30s = (track: Track, albumTitle?: string): void => {
-  if (!track?.id) return;
+  if (!track?.id || isOwnerTrackingExcluded()) return;
   recordEvent('track_stream_30s', track, albumTitle);
   hitCloudCounter('total_streams_30s');
   hitCloudCounter(`stream30_${track.id}`);
@@ -295,7 +333,7 @@ export const trackSongStream30s = (track: Track, albumTitle?: string): void => {
 };
 
 export const trackSongComplete = (track: Track, albumTitle?: string): void => {
-  if (!track?.id) return;
+  if (!track?.id || isOwnerTrackingExcluded()) return;
   recordEvent('track_complete', track, albumTitle);
   hitCloudCounter('total_completes');
   hitCloudCounter(`complete_${track.id}`);
