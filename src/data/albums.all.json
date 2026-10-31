@@ -12,8 +12,8 @@
     "spotifyArtistUrl": "https://open.spotify.com/artist/4ofkSpzwPAOaANkHl42aMs",
     "coverUrl": "/images/albums/una-vertigine-cover.jpeg",
     "canvasVideoSrc": "/video/una-vertigine.mp4",
-    "tagline": "Quattro racconti sospesi nel vuoto: l'istante esatto prima dell'impatto e il peso delle parole non dette.",
-    "synopsis": "«Una Vertigine» apre un nuovo capitolo nel percorso cantautorale di Alessandro Rocchi: quattro brani viscerali («Dirti addio», «Una vertigine», «Non mi puoi più chiamare» e «Sepolto nel tuo gelo») in cui la scrittura d'autore incontra sonorità intime, acustiche e contemporanee.",
+    "tagline": "Cinque racconti sospesi nel vuoto: l'istante esatto prima dell'impatto e il peso delle parole non dette.",
+    "synopsis": "«Una Vertigine» apre un nuovo capitolo nel percorso cantautorale di Alessandro Rocchi: cinque brani viscerali («Dirti addio», «Una vertigine», «Non mi puoi più chiamare», «Sepolto nel tuo gelo» e «Odio questa fase») in cui la scrittura d'autore incontra sonorità intime, acustiche e contemporanee.",
     "tracks": [
       {
         "id": "uv-track-1",
@@ -98,6 +98,27 @@
         "colorLight": "#f1f5f9",
         "highlight": true,
         "lyrics": "Respiro il fondo del tuo profumo\ncome vapore che resta sul fiore.\nNon ero il tipo da tenerti:\nriprendilo, lascialo scivolare,\nriprendilo, che il buio ti prenda.\n\nTi muovevi come argento sulla marea,\nun bastimento che mi sfugge di mano.\nLe tue dita scrivevano, poi più niente.\nFerma, ferma,\nche la notte si avvicina.\n\nFerma, ferma,\nche la notte si avvicina.\nSu in cima alla montagna,\ndove il freddo morde i denti,\nmi hai sepolto nel tuo gelo\nfinché il sole è filtrato.\nGiù in fondo alla vallata,\ndove il canyon tiene il fiato,\nera una scintilla per te,\nma adesso la brace dorme.\n\nMi amavi muta,\nfuori portata,\nun sermone che sfuma\nperso nel salto.\nQuesta strada tracciata in linee fragili,\nquesta strada tracciata in linee fragili,\nquesta strada tracciata in linee fragili.\n\nSu in cima alla montagna,\ndove il freddo morde i denti,\nmi hai sepolto nel tuo gelo\nfinché il sole è filtrato.\nGiù in fondo alla vallata,\ndove il canyon tiene il fiato,\nera una scintilla per te,\nma adesso la brace dorme."
+      },
+      {
+        "id": "uv-track-5",
+        "number": 5,
+        "title": "Odio questa fase",
+        "spotifyId": "",
+        "spotifyUri": "",
+        "spotifyUrl": "",
+        "sunoId": "8e6f71ad-d79c-4f3b-8f68-43b180bb5f2f",
+        "sunoUrl": "https://suno.com/song/8e6f71ad-d79c-4f3b-8f68-43b180bb5f2f",
+        "duration": "2:42",
+        "durationSeconds": 162,
+        "mood": "Indie Rock / Alternative R&B • In Bilico",
+        "storyQuote": "«Odio questa fase, questo restare a metà: con un piede sulla porta, che freddo in città.»",
+        "audioSrc": "/audio/odio-questa-fase.m4a",
+        "canvasVideoSrc": "/video/odio-questa-fase.mp4",
+        "artworkUrl": "/images/artwork/odio-questa-fase.jpeg",
+        "colorDark": "#1e293b",
+        "colorLight": "#f1f5f9",
+        "highlight": true,
+        "lyrics": "Odio questa fase,\nquesto restare a metà.\nPosso richiamarti?\nNon so cosa ti va.\nMi deludi sempre,\nho inseguito il brivido:\nforse è ora di cambiare strada,\ndi smetterla col fisico.\n\nOdio questa fase,\nquesto restare a metà,\ntra le luci dei lampioni vago per la città.\nCosa prendi?\nQualcosa di caldo.\nRimani seduta,\nrestiamo più a lungo.\nCosa lasci\ncadere per terra?\nUn volo con schianto in Inghilterra.\nNon abbiamo risolto,\nmi chiedi cosa provo:\nnon so che dire,\nti lascio finire.\n\nOdio questa fase,\nquesto restare a metà:\ncon un piede sulla porta ascolto le tue verità.\nTu non cambi niente,\npunti tutto sul brivido:\nforse è ora di cambiare strada,\ndi smetterla col fisico.\n\nOdio questa fase,\nquesto restare a metà:\ncon un piede sulla porta, che freddo in città.\nCosa siamo?\nRispondimi onesta,\nsiediti più vicino,\nnon fuggire, resta.\nCosa abbiamo?\nBisogna ancora dirci le solite cose?\nMeglio non sentirci,\nnon abbiamo risolto.\nMi chiedi cosa provo:\nnon so che dire,\nti lascio finire.\n\nLe tazze sono vuote, fuori è ancora lunedì:\nnon abbiamo detto niente e siamo rimasti qui.\n\nOdio questa fase,\nquesto restare a metà:\nnon so se chiamarti,\nnon so cosa ti va."
       }
     ],
     "credits": {
