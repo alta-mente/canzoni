@@ -12,7 +12,7 @@ import {
   setOwnerTrackingExcluded,
 } from '../utils/analytics';
 
-const STORAGE_KEY = 'antigravity_discography_v10';
+const STORAGE_KEY = 'antigravity_discography_v11';
 import { 
   ArrowLeft, 
   Save, 

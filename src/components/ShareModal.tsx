@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
-import { AlbumData, DISCOGRAPHY, ALBUM_DATA } from '../data/albumData';
+import React, { useState, useEffect } from 'react';
+import { AlbumData, Track, DISCOGRAPHY, ALBUM_DATA, resolveAssetUrl } from '../data/albumData';
+import { useAudio } from '../context/NativeAudioContext';
+import { trackOutboundClick } from '../utils/analytics';
 import { 
   X, 
   Check, 
@@ -8,11 +10,12 @@ import {
   Share2, 
   Code, 
   Disc, 
-  Sparkles, 
+  Music,
+  FileText,
   Eye, 
   Layers,
-  Sliders,
-  Move
+  Move,
+  Quote
 } from 'lucide-react';
 
 interface ShareModalProps {
@@ -21,48 +24,144 @@ interface ShareModalProps {
   albums?: AlbumData[];
 }
 
+function slugify(str: string): string {
+  return String(str || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
 export const ShareModal: React.FC<ShareModalProps> = ({ 
   isOpen, 
   onClose,
   albums = DISCOGRAPHY 
 }) => {
+  const { currentTrack } = useAudio();
+
   const [activeTab, setActiveTab] = useState<'link' | 'widget'>('link');
+  const [shareTargetMode, setShareTargetMode] = useState<'track' | 'lyrics' | 'album'>('track');
   const [copiedLink, setCopiedLink] = useState(false);
+  const [copiedQuote, setCopiedQuote] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
 
-  // Widget customizer states
-  const [selectedAlbumId, setSelectedAlbumId] = useState<string>(albums[0]?.id || 'non-ce-vita-su-marte');
-  const [selectedTrackIndex, setSelectedTrackIndex] = useState<number | 'all'>('all');
+  // Find album and track matching the currently active track in player
+  const findInitialAlbumAndTrack = () => {
+    if (currentTrack?.id) {
+      for (const alb of albums) {
+        const tIdx = alb.tracks.findIndex((t) => t.id === currentTrack.id);
+        if (tIdx !== -1) {
+          return { albumId: alb.id, trackIndex: tIdx };
+        }
+      }
+    }
+    return { albumId: albums[0]?.id || 'una-vertigine', trackIndex: 0 };
+  };
+
+  const initialSelection = findInitialAlbumAndTrack();
+
+  // Share & Widget customizer states
+  const [selectedAlbumId, setSelectedAlbumId] = useState<string>(initialSelection.albumId);
+  const [selectedShareTrackIdx, setSelectedShareTrackIdx] = useState<number>(initialSelection.trackIndex);
+  const [selectedTrackIndex, setSelectedTrackIndex] = useState<number | 'all'>(initialSelection.trackIndex);
   const [displayMode, setDisplayMode] = useState<'floating' | 'inpage'>('floating');
   const [floatingStyle, setFloatingStyle] = useState<'floating' | 'pill'>('floating');
   const [widgetStyle, setWidgetStyle] = useState<'card' | 'compact' | 'playlist'>('card');
-  const [widgetTheme, setWidgetTheme] = useState<'dark' | 'light'>('dark');
+  const [widgetTheme] = useState<'dark' | 'light'>('dark');
   const [codeType, setCodeType] = useState<'iframe' | 'script'>('iframe');
+
+  // Sync with current playing/selected track whenever modal opens
+  useEffect(() => {
+    if (isOpen) {
+      const sel = findInitialAlbumAndTrack();
+      setSelectedAlbumId(sel.albumId);
+      setSelectedShareTrackIdx(sel.trackIndex);
+      setSelectedTrackIndex(sel.trackIndex);
+    }
+  }, [isOpen, currentTrack?.id]);
 
   if (!isOpen) return null;
 
   const currentAlbum = albums.find((a) => a.id === selectedAlbumId) || albums[0] || ALBUM_DATA;
-  const currentUrl = typeof window !== 'undefined' ? window.location.href.split('#')[0] : 'https://alta-mente.github.io/canzoni/';
+  const activeShareTrack: Track =
+    currentAlbum.tracks[selectedShareTrackIdx] || currentAlbum.tracks[0];
+
   const baseSiteUrl = 'https://alta-mente.github.io/canzoni/';
-  const shareText = `Ascolta «${currentAlbum.title}», il nuovo album di ${currentAlbum.artist}!`;
+  const albumSlug = slugify(currentAlbum.id || currentAlbum.title);
+  const trackSlug = slugify(activeShareTrack?.title || '');
+
+  // Dedicated SEO URLs with Open Graph previews for each track, lyrics, or album
+  const shareUrl =
+    shareTargetMode === 'track'
+      ? `${baseSiteUrl}brano/${trackSlug}/`
+      : shareTargetMode === 'lyrics'
+      ? `${baseSiteUrl}testo/${trackSlug}/`
+      : `${baseSiteUrl}album/${albumSlug}/`;
+
+  const shareText =
+    shareTargetMode === 'track'
+      ? `Ascolta «${activeShareTrack.title}» di ${currentAlbum.artist} (dall'album «${currentAlbum.title}»)`
+      : shareTargetMode === 'lyrics'
+      ? `Leggi il testo e ascolta «${activeShareTrack.title}» di ${currentAlbum.artist}`
+      : `Ascolta l'album «${currentAlbum.title}» di ${currentAlbum.artist}`;
+
+  const cleanQuote = activeShareTrack?.storyQuote
+    ? activeShareTrack.storyQuote.replace(/^[«"]|[»"]$/g, '').trim()
+    : '';
+
+  const shareTextWithQuote = cleanQuote
+    ? `«${cleanQuote}» — ${activeShareTrack.title} (${currentAlbum.artist})\n${shareUrl}`
+    : `${shareText} ${shareUrl}`;
 
   const handleCopyLink = () => {
-    navigator.clipboard.writeText(currentUrl);
+    navigator.clipboard.writeText(shareUrl);
     setCopiedLink(true);
     setTimeout(() => setCopiedLink(false), 2000);
   };
 
+  const handleCopyQuoteAndLink = () => {
+    navigator.clipboard.writeText(shareTextWithQuote);
+    setCopiedQuote(true);
+    setTimeout(() => setCopiedQuote(false), 2200);
+  };
+
+  const handleNativeShare = async () => {
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      try {
+        await navigator.share({
+          title:
+            shareTargetMode === 'album'
+              ? `${currentAlbum.title} — ${currentAlbum.artist}`
+              : `${activeShareTrack.title} — ${currentAlbum.artist}`,
+          text: cleanQuote ? `«${cleanQuote}» — ${ shareText }` : shareText,
+          url: shareUrl,
+        });
+      } catch {
+        // user cancelled share sheet
+      }
+    } else {
+      handleCopyLink();
+    }
+  };
+
+  const canNativeShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
+
   const shareToWhatsapp = `https://api.whatsapp.com/send?text=${encodeURIComponent(
-    shareText + ' ' + currentUrl
+    shareText + (cleanQuote && shareTargetMode !== 'album' ? `\n«${cleanQuote}»` : '') + '\n' + shareUrl
   )}`;
 
   const shareToTwitter = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
     shareText
-  )}&url=${encodeURIComponent(currentUrl)}`;
+  )}&url=${encodeURIComponent(shareUrl)}`;
 
   const shareToTelegram = `https://t.me/share/url?url=${encodeURIComponent(
-    currentUrl
+    shareUrl
   )}&text=${encodeURIComponent(shareText)}`;
+
+  const shareToFacebook = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
+    shareUrl
+  )}`;
 
   // Compute widget target URL
   const effectiveStyle = displayMode === 'floating' ? floatingStyle : widgetStyle;
@@ -99,6 +198,22 @@ export const ShareModal: React.FC<ShareModalProps> = ({
     setTimeout(() => setCopiedCode(false), 2200);
   };
 
+  const previewArtwork = resolveAssetUrl(
+    shareTargetMode === 'album'
+      ? currentAlbum.coverUrl
+      : activeShareTrack?.artworkUrl || currentAlbum.coverUrl
+  );
+
+  const directSpotifyUrl =
+    shareTargetMode === 'album'
+      ? currentAlbum.spotifyAlbumUrl
+      : activeShareTrack?.spotifyUrl || currentAlbum.spotifyAlbumUrl;
+
+  const directSunoUrl =
+    shareTargetMode === 'album'
+      ? currentAlbum.sunoAlbumUrl
+      : activeShareTrack?.sunoUrl || currentAlbum.sunoAlbumUrl;
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/75 backdrop-blur-md animate-fadeIn">
       {/* Click outside to close */}
@@ -106,7 +221,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({
 
       {/* Modal Dialog */}
       <div className={`relative glass-panel rounded-3xl p-5 sm:p-7 w-full border border-white/20 shadow-2xl transition-all duration-300 max-h-[92vh] overflow-y-auto ${
-        activeTab === 'widget' ? 'max-w-2xl' : 'max-w-md'
+        activeTab === 'widget' ? 'max-w-2xl' : 'max-w-lg'
       }`}>
         {/* Close Button */}
         <button
@@ -127,7 +242,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({
             }`}
           >
             <Share2 className="w-3.5 h-3.5" />
-            <span>Condividi Link</span>
+            <span>Condividi Brano / Album</span>
           </button>
 
           <button
@@ -139,51 +254,157 @@ export const ShareModal: React.FC<ShareModalProps> = ({
             }`}
           >
             <Code className="w-3.5 h-3.5" />
-            <span>Widget per Siti Esterni</span>
-            <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-white/10 text-white/90 border border-white/20">
-              NEW
-            </span>
+            <span>Widget per Siti</span>
           </button>
         </div>
 
         {/* ─────────────────────────────────────────────────────────────
-            TAB 1: CONDIVIDI LINK (CLASSIC)
+            TAB 1: CONDIVIDI SINGOLO BRANO, TESTO O ALBUM
             ───────────────────────────────────────────────────────────── */}
         {activeTab === 'link' && (
-          <div className="space-y-6">
-            {/* Header */}
-            <div className="flex items-center space-x-4">
-              <div className="w-16 h-16 rounded-xl overflow-hidden border border-white/20 shadow-lg shrink-0">
-                <img src={currentAlbum.coverUrl} alt={currentAlbum.title} className="w-full h-full object-cover" />
-              </div>
+          <div className="space-y-4">
+            {/* 1. Target Mode Selector: Singolo Brano vs Testo vs Intero Album */}
+            <div className="grid grid-cols-3 gap-1.5 p-1 bg-white/5 rounded-2xl border border-white/10 font-mono text-xs">
+              <button
+                type="button"
+                onClick={() => setShareTargetMode('track')}
+                className={`flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl transition-all ${
+                  shareTargetMode === 'track'
+                    ? 'bg-amber-400 text-black font-bold shadow'
+                    : 'text-white/65 hover:text-white'
+                }`}
+              >
+                <Music className="w-3.5 h-3.5 shrink-0" />
+                <span>Singolo Brano</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShareTargetMode('lyrics')}
+                className={`flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl transition-all ${
+                  shareTargetMode === 'lyrics'
+                    ? 'bg-amber-400 text-black font-bold shadow'
+                    : 'text-white/65 hover:text-white'
+                }`}
+              >
+                <FileText className="w-3.5 h-3.5 shrink-0" />
+                <span>Con Testo</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShareTargetMode('album')}
+                className={`flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl transition-all ${
+                  shareTargetMode === 'album'
+                    ? 'bg-amber-400 text-black font-bold shadow'
+                    : 'text-white/65 hover:text-white'
+                }`}
+              >
+                <Disc className="w-3.5 h-3.5 shrink-0" />
+                <span>Intero Album</span>
+              </button>
+            </div>
+
+            {/* 2. Quick Selector for Album & Song */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs font-mono">
               <div>
-                <span className="text-[10px] font-mono text-white/60 uppercase tracking-wider block">
-                  Condividi Album
+                <label className="text-[10px] text-white/50 uppercase tracking-wider block mb-1">
+                  Album
+                </label>
+                <select
+                  value={selectedAlbumId}
+                  onChange={(e) => {
+                    setSelectedAlbumId(e.target.value);
+                    setSelectedShareTrackIdx(0);
+                    setSelectedTrackIndex(0);
+                  }}
+                  className="w-full bg-black/50 border border-white/15 rounded-xl px-3 py-2 text-white outline-none focus:border-amber-400"
+                >
+                  {albums.map((alb) => (
+                    <option key={alb.id} value={alb.id}>
+                      {alb.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {shareTargetMode !== 'album' && (
+                <div>
+                  <label className="text-[10px] text-white/50 uppercase tracking-wider block mb-1">
+                    Canzone da condividere
+                  </label>
+                  <select
+                    value={selectedShareTrackIdx}
+                    onChange={(e) => {
+                      const idx = Number(e.target.value);
+                      setSelectedShareTrackIdx(idx);
+                      setSelectedTrackIndex(idx);
+                    }}
+                    className="w-full bg-black/50 border border-white/15 rounded-xl px-3 py-2 text-white outline-none focus:border-amber-400"
+                  >
+                    {currentAlbum.tracks.map((tr, idx) => (
+                      <option key={tr.id || idx} value={idx}>
+                        {String(tr.number).padStart(2, '0')}. {tr.title}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </div>
+
+            {/* 3. Rich Card Preview (Come appare su WhatsApp / Social) */}
+            <div className="p-3.5 rounded-2xl bg-white/[0.04] border border-white/15 flex items-center gap-3.5">
+              <div className="w-16 h-16 rounded-xl overflow-hidden border border-white/20 shadow-lg shrink-0 bg-black/40">
+                <img
+                  src={previewArtwork}
+                  alt={shareTargetMode === 'album' ? currentAlbum.title : activeShareTrack.title}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="min-w-0 flex-1">
+                <span className="text-[10px] font-mono text-amber-400 uppercase tracking-wider font-bold block">
+                  {shareTargetMode === 'track'
+                    ? `BRANO #${String(activeShareTrack.number).padStart(2, '0')} • ${currentAlbum.title}`
+                    : shareTargetMode === 'lyrics'
+                    ? `TESTO UFFICIALE • ${currentAlbum.title}`
+                    : `ALBUM COMPLETO (${currentAlbum.tracks.length} BRANI)`}
                 </span>
-                <h3 className="text-lg font-bold text-white leading-tight">
-                  {currentAlbum.title}
+                <h3 className="text-base font-bold text-white truncate mt-0.5">
+                  {shareTargetMode === 'album' ? currentAlbum.title : activeShareTrack.title}
                 </h3>
-                <p className="text-xs text-white/60">{currentAlbum.artist}</p>
+                {cleanQuote && shareTargetMode !== 'album' ? (
+                  <p className="text-[11px] text-white/65 italic line-clamp-2 mt-0.5">
+                    «{cleanQuote}»
+                  </p>
+                ) : (
+                  <p className="text-xs text-white/60 truncate">{currentAlbum.artist}</p>
+                )}
               </div>
             </div>
 
-            {/* Copy Link Input */}
-            <div className="space-y-2">
-              <label className="text-xs font-mono text-white/70 block">
-                Link del sito / streaming
+            {/* 4. Copy Dedicated Link Input */}
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-mono text-white/70 flex items-center justify-between">
+                <span>
+                  {shareTargetMode === 'track'
+                    ? 'Link diretto a questa canzone (con anteprima copertina)'
+                    : shareTargetMode === 'lyrics'
+                    ? 'Link diretto con apertura automatica del Testo'
+                    : "Link diretto all'album"}
+                </span>
               </label>
               <div className="flex items-center space-x-2">
                 <input
                   type="text"
                   readOnly
-                  value={currentUrl}
-                  className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white/80 font-mono focus:outline-none"
+                  value={shareUrl}
+                  className="flex-1 bg-white/5 border border-white/15 rounded-xl px-3.5 py-2.5 text-xs text-white/90 font-mono focus:outline-none select-all"
                 />
                 <button
                   onClick={handleCopyLink}
-                  className={`px-4 py-2.5 rounded-xl font-medium text-xs flex items-center space-x-1.5 transition-all duration-200 ${
+                  className={`px-4 py-2.5 rounded-xl font-mono text-xs flex items-center space-x-1.5 transition-all duration-200 shrink-0 ${
                     copiedLink
-                      ? 'bg-emerald-500 text-white'
+                      ? 'bg-emerald-500 text-black font-bold'
                       : 'bg-white hover:bg-neutral-200 text-black font-bold'
                   }`}
                 >
@@ -195,68 +416,135 @@ export const ShareModal: React.FC<ShareModalProps> = ({
                   ) : (
                     <>
                       <Copy className="w-3.5 h-3.5" />
-                      <span>Copia</span>
+                      <span>Copia Link</span>
                     </>
                   )}
                 </button>
               </div>
             </div>
 
-            {/* Quick Share Buttons */}
+            {/* 5. Copy Quote + Link (for Instagram / Stories / WhatsApp Status) */}
+            {cleanQuote && shareTargetMode !== 'album' && (
+              <button
+                type="button"
+                onClick={handleCopyQuoteAndLink}
+                className={`w-full py-2.5 px-3.5 rounded-xl border font-mono text-xs flex items-center justify-center gap-2 transition-all ${
+                  copiedQuote
+                    ? 'bg-emerald-500/20 border-emerald-400 text-emerald-300 font-bold'
+                    : 'bg-white/[0.04] hover:bg-white/[0.09] border-white/15 text-white/85 hover:text-white'
+                }`}
+              >
+                {copiedQuote ? (
+                  <>
+                    <Check className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>Citazione + Link copiati negli appunti!</span>
+                  </>
+                ) : (
+                  <>
+                    <Quote className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                    <span className="truncate">Copia Citazione del Brano + Link per Social/Storie</span>
+                  </>
+                )}
+              </button>
+            )}
+
+            {/* 6. Quick Share Buttons (Native Share + WhatsApp, Telegram, X, Facebook) */}
             <div className="space-y-2">
-              <label className="text-xs font-mono text-white/70 block">
-                Condividi velocemente
+              <label className="text-[11px] font-mono text-white/70 block">
+                Invia subito su
               </label>
-              <div className="grid grid-cols-3 gap-2 text-xs">
+
+              {canNativeShare && (
+                <button
+                  type="button"
+                  onClick={handleNativeShare}
+                  className="w-full py-2.5 px-4 rounded-xl bg-amber-400 hover:bg-amber-300 text-black font-mono font-bold text-xs flex items-center justify-center gap-2 shadow-lg transition-all mb-2"
+                >
+                  <Share2 className="w-4 h-4" />
+                  <span>Condividi con App del Dispositivo (AirDrop, Instagram, Messaggi...)</span>
+                </button>
+              )}
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
                 <a
                   href={shareToWhatsapp}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="glass-card hover:bg-[#25D366]/20 border border-white/10 hover:border-[#25D366]/40 p-2.5 rounded-xl text-center text-white/90 hover:text-white transition-all font-mono"
+                  className="glass-card hover:bg-[#25D366]/20 border border-white/10 hover:border-[#25D366]/40 p-2.5 rounded-xl text-center text-white/90 hover:text-white transition-all font-mono font-bold"
                 >
                   WhatsApp
-                </a>
-                <a
-                  href={shareToTwitter}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="glass-card hover:bg-[#1DA1F2]/20 border border-white/10 hover:border-[#1DA1F2]/40 p-2.5 rounded-xl text-center text-white/90 hover:text-white transition-all font-mono"
-                >
-                  X / Twitter
                 </a>
                 <a
                   href={shareToTelegram}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="glass-card hover:bg-[#0088cc]/20 border border-white/10 hover:border-[#0088cc]/40 p-2.5 rounded-xl text-center text-white/90 hover:text-white transition-all font-mono"
+                  className="glass-card hover:bg-[#0088cc]/20 border border-white/10 hover:border-[#0088cc]/40 p-2.5 rounded-xl text-center text-white/90 hover:text-white transition-all font-mono font-bold"
                 >
                   Telegram
+                </a>
+                <a
+                  href={shareToTwitter}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="glass-card hover:bg-[#1DA1F2]/20 border border-white/10 hover:border-[#1DA1F2]/40 p-2.5 rounded-xl text-center text-white/90 hover:text-white transition-all font-mono font-bold"
+                >
+                  X / Twitter
+                </a>
+                <a
+                  href={shareToFacebook}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="glass-card hover:bg-[#1877F2]/20 border border-white/10 hover:border-[#1877F2]/40 p-2.5 rounded-xl text-center text-white/90 hover:text-white transition-all font-mono font-bold"
+                >
+                  Facebook
                 </a>
               </div>
             </div>
 
-            {/* Direct Spotify Button */}
-            {currentAlbum.spotifyAlbumUrl && (
-              <a
-                href={currentAlbum.spotifyAlbumUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center space-x-2 w-full py-3 rounded-xl bg-[#1DB954] hover:bg-[#1ed760] text-black font-semibold text-xs transition-colors shadow-lg shadow-emerald-500/20"
-              >
-                <span>Ascolta su Spotify</span>
-                <ExternalLink className="w-4 h-4" />
-              </a>
+            {/* 7. Direct Streaming Links (Spotify Track/Album + Suno) */}
+            {(directSpotifyUrl || directSunoUrl) && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                {directSpotifyUrl && (
+                  <a
+                    href={directSpotifyUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => trackOutboundClick('spotify', shareTargetMode === 'album' ? currentAlbum.title : activeShareTrack.title)}
+                    className="flex items-center justify-center space-x-2 w-full py-2.5 px-3 rounded-xl bg-[#1DB954] hover:bg-[#1ed760] text-black font-mono font-bold text-xs transition-colors shadow-lg shadow-emerald-500/20"
+                  >
+                    <span>
+                      {shareTargetMode !== 'album' && activeShareTrack?.spotifyUrl
+                        ? 'Brano su Spotify'
+                        : 'Album su Spotify'}
+                    </span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                )}
+
+                {directSunoUrl && (
+                  <a
+                    href={directSunoUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => trackOutboundClick('suno', shareTargetMode === 'album' ? currentAlbum.title : activeShareTrack.title)}
+                    className="flex items-center justify-center space-x-2 w-full py-2.5 px-3 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-white font-mono font-bold text-xs transition-colors"
+                  >
+                    <span>Ascolta su Suno</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                )}
+              </div>
             )}
 
             {/* EPK Link for Journalists & Curators */}
             <div className="pt-3 border-t border-white/10 flex items-center justify-between text-xs font-mono">
-              <span className="text-white/60">Cartella Stampa Ufficiale:</span>
+              <span className="text-white/60">Cartella Stampa &amp; Biografia:</span>
               <a
                 href="#epk"
                 onClick={onClose}
-                className="font-bold text-white hover:text-white/80 hover:underline flex items-center gap-1"
+                className="font-bold text-white hover:text-amber-300 hover:underline flex items-center gap-1"
               >
-                <span>Apri EPK</span>
+                <span>Apri BIO / EPK</span>
                 <span>→</span>
               </a>
             </div>

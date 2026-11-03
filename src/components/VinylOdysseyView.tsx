@@ -320,6 +320,17 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
                     )}
                   </button>
                   <button
+                    onClick={() => {
+                      setShowLyricsModal(false);
+                      onOpenShare();
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-mono text-[11px] font-bold transition-all shadow-sm bg-black/5 hover:bg-black/10 text-gray-800"
+                    title="Condividi questo brano o testo"
+                  >
+                    <Share2 className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">CONDIVIDI</span>
+                  </button>
+                  <button
                     onClick={() => setShowLyricsModal(false)}
                     className="p-2 rounded-xl hover:bg-black/5 opacity-70 hover:opacity-100 transition-opacity"
                     title="Chiudi (ESC)"
@@ -1062,6 +1073,24 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
                       <span className="hidden sm:inline">COPIA TESTO</span>
                     </>
                   )}
+                </button>
+
+                {/* Share Song/Lyrics Button */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowLyricsModal(false);
+                    onOpenShare();
+                  }}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full font-mono text-[11px] font-bold transition-all border ${
+                    isLightMode
+                      ? 'bg-black/5 hover:bg-black/10 text-gray-900 border-black/10'
+                      : 'bg-white/10 hover:bg-white/20 text-white border-white/15'
+                  }`}
+                  title="Condividi questo brano o testo"
+                >
+                  <Share2 className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">CONDIVIDI</span>
                 </button>
 
                 {/* Close Button */}
