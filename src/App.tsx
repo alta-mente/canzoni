@@ -20,11 +20,23 @@ const ShareModal = lazy(() =>
 const WidgetEmbedView = lazy(() =>
   import('./components/WidgetEmbedView').then((m) => ({ default: m.WidgetEmbedView }))
 );
+const StatsView = lazy(() =>
+  import('./components/StatsView').then((m) => ({ default: m.StatsView }))
+);
 
 export const App: React.FC = () => {
   const initialRoute = (typeof window !== 'undefined' && (window as any).__INITIAL_SEO_ROUTE__) || null;
-  const [currentView, setCurrentView] = useState<'player' | 'epk' | 'admin' | 'widget'>(
-    initialRoute?.view === 'epk' ? 'epk' : 'player'
+  const isInitialStatsPath =
+    typeof window !== 'undefined' &&
+    (/\/(stats|statistiche)\/?$/i.test(window.location.pathname) ||
+      window.location.hash.toLowerCase().startsWith('#stats') ||
+      window.location.hash.toLowerCase().startsWith('#statistiche'));
+  const [currentView, setCurrentView] = useState<'player' | 'epk' | 'admin' | 'widget' | 'stats'>(
+    initialRoute?.view === 'stats' || isInitialStatsPath
+      ? 'stats'
+      : initialRoute?.view === 'epk'
+      ? 'epk'
+      : 'player'
   );
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [selectedAlbumId, setSelectedAlbumId] = useState<string | null>(
@@ -83,6 +95,8 @@ export const App: React.FC = () => {
       if (epkHashes.some((h) => hash.startsWith(h))) {
         setCurrentView('epk');
         trackEpkView();
+      } else if (hash.startsWith('#stats') || hash.startsWith('#statistiche')) {
+        setCurrentView('stats');
       } else if (hash.startsWith('#admin') || hash.startsWith('#backoffice')) {
         setCurrentView('admin');
       } else if (hash.startsWith('#widget') || hash.startsWith('#embed')) {
@@ -133,12 +147,14 @@ export const App: React.FC = () => {
     };
   }, [currentView]);
 
-  const navigateTo = (view: 'player' | 'epk' | 'admin') => {
+  const navigateTo = (view: 'player' | 'epk' | 'admin' | 'stats') => {
     setCurrentView(view);
     if (view === 'epk') {
       window.location.hash = 'epk';
     } else if (view === 'admin') {
       window.location.hash = 'admin';
+    } else if (view === 'stats') {
+      window.location.hash = 'stats';
     } else {
       if (window.location.hash) {
         history.pushState('', document.title, window.location.pathname + window.location.search);
@@ -159,7 +175,13 @@ export const App: React.FC = () => {
     <ThemeProvider>
       <NativeAudioProvider albums={albums}>
         <Suspense fallback={<div className="min-h-screen bg-[#030407]" />}>
-          {currentView === 'epk' ? (
+          {currentView === 'stats' ? (
+            <StatsView
+              albums={albums}
+              onBackToPlayer={() => navigateTo('player')}
+              onOpenBackoffice={() => navigateTo('admin')}
+            />
+          ) : currentView === 'epk' ? (
             <EPKView
               albums={albums}
               onBackToPlayer={() => navigateTo('player')}

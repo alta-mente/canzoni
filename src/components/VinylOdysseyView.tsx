@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback, Suspense, lazy } from 'react';
 import { AlbumData, DISCOGRAPHY } from '../data/albumData';
-import { trackLyricsOpen } from '../utils/analytics';
+import { trackLyricsOpen, trackLyricsCopy, trackDisplayModeChange, trackOutboundClick } from '../utils/analytics';
 import { useAudio, useAudioTime } from '../context/NativeAudioContext';
 import { useTheme } from '../context/ThemeContext';
 import { VinylCarousel } from './VinylCarousel';
@@ -137,6 +137,7 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
 
   const handleSetDisplayMode = useCallback((mode: 'carousel' | 'sleeve' | 'editorial') => {
     setDisplayMode(mode);
+    trackDisplayModeChange(mode);
     try {
       localStorage.setItem('canzoni_display_mode', mode);
     } catch {
@@ -190,10 +191,11 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
   const handleCopyLyrics = useCallback(() => {
     if (activeTrack.lyrics) {
       navigator.clipboard.writeText(activeTrack.lyrics);
+      trackLyricsCopy(activeTrack, currentAlbum.title);
       setCopiedLyrics(true);
       setTimeout(() => setCopiedLyrics(false), 2000);
     }
-  }, [activeTrack.lyrics]);
+  }, [activeTrack, currentAlbum.title]);
 
   // Attempt autoplay of the initial track, with clean fallback on first user interaction
   useEffect(() => {
@@ -528,7 +530,10 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
                               href={spotifyUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              onClick={(e) => e.stopPropagation()}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                trackOutboundClick('spotify', album.title);
+                              }}
                               className="inline-flex items-center gap-1 text-[#1DB954] hover:text-[#1ed760] font-semibold transition-colors cursor-pointer group/spot shrink-0"
                               title={`Apri ${album.title} su Spotify`}
                             >

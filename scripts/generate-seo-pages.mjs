@@ -294,6 +294,34 @@ ${tracksForAlbum.map((t) => `          <li><a href="${t.trackUrl}">${escapeHtml(
     fs.writeFileSync(path.join(testoDir, 'index.html'), lyricsHtml, 'utf8');
   }
 
+  // 4b. Generate /stats/index.html and /statistiche/index.html (Direct browser URLs, noindex)
+  for (const statsSlug of ['stats', 'statistiche']) {
+    const statsDir = path.join(distDir, statsSlug);
+    fs.mkdirSync(statsDir, { recursive: true });
+    let statsHtml = buildPageHtml({
+      title: 'Statistiche & Performance Studio — Alessandro Rocchi',
+      description: 'Dashboard analitica real-time di visite, ascolti, retention, funnel e telemetria per la discografia di Alessandro Rocchi.',
+      canonicalUrl: `${SITE_URL}/${statsSlug}/`,
+      imageUrl: `${SITE_URL}/images/albums/una-vertigine-cover.jpeg`,
+      jsonLd: {
+        '@context': 'https://schema.org',
+        '@type': 'WebPage',
+        name: 'Statistiche & Performance Studio — Alessandro Rocchi',
+        url: `${SITE_URL}/${statsSlug}/`,
+      },
+      routeConfig: { view: 'stats' },
+      staticBodyHtml: `      <main style="color:#f5f5f7;background:#090a10;padding:2rem;font-family:monospace;">
+        <h1>Statistiche &amp; Performance Studio — Alessandro Rocchi</h1>
+        <p>Caricamento Dashboard Analitica Live...</p>
+      </main>`,
+    });
+    statsHtml = statsHtml.replace(
+      /<meta\s+name="robots"\s+content="[^"]*"\s*\/?>/i,
+      '<meta name="robots" content="noindex, nofollow" />'
+    );
+    fs.writeFileSync(path.join(statsDir, 'index.html'), statsHtml, 'utf8');
+  }
+
   // 5. Update root dist/index.html static fallback with links to all albums, tracks, lyrics, and bio
   const rootLinksHtml = `      <main style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;">
         <h1>Alessandro Rocchi — Discografia Ufficiale, Canzoni, Testi (Lyrics) e Bio</h1>
