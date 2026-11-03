@@ -52,7 +52,8 @@ export const App: React.FC = () => {
       localStorage.removeItem('antigravity_discography_v6');
       localStorage.removeItem('antigravity_discography_v7');
       localStorage.removeItem('antigravity_discography_v8');
-      const saved = localStorage.getItem('antigravity_discography_v9');
+      localStorage.removeItem('antigravity_discography_v9');
+      const saved = localStorage.getItem('antigravity_discography_v10');
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
@@ -75,7 +76,7 @@ export const App: React.FC = () => {
       })
       .then((data) => {
         if (data && Array.isArray(data) && data.length > 0) {
-          const hasLocalCustom = !!localStorage.getItem('antigravity_discography_v9');
+          const hasLocalCustom = !!localStorage.getItem('antigravity_discography_v10');
           if (!hasLocalCustom) {
             setAlbums(data.map(normalizeAlbum));
           }

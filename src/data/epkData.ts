@@ -182,7 +182,8 @@ export const EPK_DATA: EPKData = {
         { title: "02. Una vertigine", notes: "«Sei l'unico traffico che ho nella testa, e mi chiedo se è il caso di spingermi oltre, se farti vedere la faccia più onesta.»" },
         { title: "03. Non mi puoi più chiamare", notes: "«Sono a un passo dal dimenticarti, dalla voglia di ricominciare, a un passo da una vita in cui non mi puoi più chiamare.»" },
         { title: "04. Sepolto nel tuo gelo", notes: "«Su in cima alla montagna dove il freddo morde i denti, mi hai sepolto nel tuo gelo finché il sole è filtrato.»" },
-        { title: "05. Odio questa fase", notes: "«Odio questa fase, questo restare a metà: con un piede sulla porta, che freddo in città.»" }
+        { title: "05. Odio questa fase", notes: "«Odio questa fase, questo restare a metà: con un piede sulla porta, che freddo in città.»" },
+        { title: "06. Sono la cosa migliore che hai", notes: "«Tu tieni la foto col filtro migliore, io quella sfocata, chissà chi ha ragione: sono io la cosa migliore che avrai.»" }
       ]
     },
     {

@@ -12,8 +12,8 @@
     "spotifyArtistUrl": "https://open.spotify.com/artist/4ofkSpzwPAOaANkHl42aMs",
     "coverUrl": "/images/albums/una-vertigine-cover.jpeg",
     "canvasVideoSrc": "/video/una-vertigine.mp4",
-    "tagline": "Cinque racconti sospesi nel vuoto: l'istante esatto prima dell'impatto e il peso delle parole non dette.",
-    "synopsis": "«Una Vertigine» apre un nuovo capitolo nel percorso cantautorale di Alessandro Rocchi: cinque brani viscerali («Dirti addio», «Una vertigine», «Non mi puoi più chiamare», «Sepolto nel tuo gelo» e «Odio questa fase») in cui la scrittura d'autore incontra sonorità intime, acustiche e contemporanee.",
+    "tagline": "Sei racconti sospesi nel vuoto: l’istante esatto prima dell’impatto e il peso delle parole non dette.",
+    "synopsis": "«Una Vertigine» apre un nuovo capitolo nel percorso cantautorale di Alessandro Rocchi: sei brani viscerali («Dirti addio», «Una vertigine», «Non mi puoi più chiamare», «Sepolto nel tuo gelo», «Odio questa fase» e «Sono la cosa migliore che hai») in cui la scrittura d’autore incontra sonorità intime, acustiche e contemporanee.",
     "tracks": [
       {
         "id": "uv-track-1",
@@ -119,6 +119,27 @@
         "colorLight": "#f1f5f9",
         "highlight": true,
         "lyrics": "Odio questa fase,\nquesto restare a metà.\nPosso richiamarti?\nNon so cosa ti va.\nMi deludi sempre,\nho inseguito il brivido:\nforse è ora di cambiare strada,\ndi smetterla col fisico.\n\nOdio questa fase,\nquesto restare a metà,\ntra le luci dei lampioni vago per la città.\nCosa prendi?\nQualcosa di caldo.\nRimani seduta,\nrestiamo più a lungo.\nCosa lasci\ncadere per terra?\nUn volo con schianto in Inghilterra.\nNon abbiamo risolto,\nmi chiedi cosa provo:\nnon so che dire,\nti lascio finire.\n\nOdio questa fase,\nquesto restare a metà:\ncon un piede sulla porta ascolto le tue verità.\nTu non cambi niente,\npunti tutto sul brivido:\nforse è ora di cambiare strada,\ndi smetterla col fisico.\n\nOdio questa fase,\nquesto restare a metà:\ncon un piede sulla porta, che freddo in città.\nCosa siamo?\nRispondimi onesta,\nsiediti più vicino,\nnon fuggire, resta.\nCosa abbiamo?\nBisogna ancora dirci le solite cose?\nMeglio non sentirci,\nnon abbiamo risolto.\nMi chiedi cosa provo:\nnon so che dire,\nti lascio finire.\n\nLe tazze sono vuote, fuori è ancora lunedì:\nnon abbiamo detto niente e siamo rimasti qui.\n\nOdio questa fase,\nquesto restare a metà:\nnon so se chiamarti,\nnon so cosa ti va."
+      },
+      {
+        "id": "uv-track-6",
+        "number": 6,
+        "title": "Sono la cosa migliore che hai",
+        "spotifyId": "",
+        "spotifyUri": "",
+        "spotifyUrl": "",
+        "sunoId": "f82aa1fc-42f8-441c-9872-86f265f54ed4",
+        "sunoUrl": "https://suno.com/song/f82aa1fc-42f8-441c-9872-86f265f54ed4",
+        "duration": "3:25",
+        "durationSeconds": 205,
+        "mood": "Indie Cantautorale • Lucidità & Rancore",
+        "storyQuote": "«Tu tieni la foto col filtro migliore, io quella sfocata, chissà chi ha ragione: sono io la cosa migliore che avrai.»",
+        "audioSrc": "/audio/sono-la-cosa-migliore-che-hai.m4a",
+        "canvasVideoSrc": "/video/sono-la-cosa-migliore-che-hai.mp4",
+        "artworkUrl": "/images/artwork/sono-la-cosa-migliore-che-hai.jpeg",
+        "colorDark": "#1e293b",
+        "colorLight": "#f1f5f9",
+        "highlight": true,
+        "lyrics": "Spegni l’insegna del bar qui di fronte,\nsulla cartolina non leggo più niente.\nTi vedo sorridere, lo trovo indecente:\nquel posto sul mare che avevi in mente,\nci vado da solo, tanto è pieno di gente.\nRespiro a scatti, conosco la frase\nche stai per dirmi, ti manca il fiato.\n\nMa riesci a mentirmi, allora che vita\nsenza colore, che strano rumore\ndal ventilatore: chiudi la porta,\ndue mandate, facciamo mattino,\nfarci del male.\n\nSono la cosa più importante che hai\ne questa è la peggiore delle cose che fai,\ne non ripetere di nuovo «lo sai»:\nsono io la cosa migliore che avrai.\n\nDomani dirai che esagero sempre,\nche faccio tremila processi per niente.\nDomani dirai che non so stare al mondo,\nche prendo una cosa e ci giro un po’ intorno.\nCi dividiamo persino gli amici,\nle cene saltate, le frasi infelici:\ntu tieni la foto col filtro migliore,\nio quella sfocata, chissà chi ha ragione.\n\nE allora che vita senza colore,\ntanto domani avremo un’altra versione:\nracconta alle amiche che sono impazzito,\nche sono la scheggia che ti ha ferito.\n\nSono la cosa più importante che hai\ne questa è la peggiore delle cose che fai,\ne non ripetere di nuovo «lo sai»:\nsono io la cosa migliore che avrai,\ne questa è la peggiore versione che dai.\nSono la cosa migliore che hai\ne questa è la peggiore delle cose che fai,\ne non ripetere di nuovo «lo sai»:\nsono io la cosa migliore che avrai.\n\nPerdonami adesso, domani vediamo:\nci scambiamo le colpe, le chiavi, il divano.\nTu cambi la storia e scegli il finale,\nti vedo sorridere, mi fa stare male.\n\nSono io la cosa migliore che avrai\ne questa è la peggiore delle cose che fai,\ne non ripetere di nuovo «lo sai»:\nsono io la cosa migliore che hai.\nSono la cosa migliore che hai\ne questa è la peggiore versione che dai,\ne non ripetere di nuovo «lo sai»:\nsono io la cosa migliore che avrai.\nSono la cosa più importante che hai\ne questa è la peggiore delle cose che fai,\ne non ripetere di nuovo «lo sai»:\nsono io la cosa migliore che avrai."
       }
     ],
     "credits": {
