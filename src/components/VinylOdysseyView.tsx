@@ -847,6 +847,20 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
                 <span className="inline-block transition-transform duration-200 group-hover:translate-x-0.5">→</span>
               </button>
             )}
+
+            <button
+              type="button"
+              onClick={onOpenShare}
+              className={`group inline-flex items-center gap-1 text-[11px] sm:text-xs font-mono uppercase tracking-wider underline underline-offset-4 transition-all cursor-pointer select-none shrink-0 ${
+                isLightMode
+                  ? 'text-neutral-600 hover:text-neutral-950 decoration-neutral-300 hover:decoration-neutral-900'
+                  : 'text-white/70 hover:text-white decoration-white/30 hover:decoration-white'
+              }`}
+              title={`Condividi «${activeTrack.title}»`}
+            >
+              <Share2 className="w-3 h-3 opacity-80" />
+              <span>Condividi</span>
+            </button>
           </div>
         )}
       </div>
@@ -987,6 +1001,18 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
             >
               <ListMusic className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
               <span>{String(activeTrack.number).padStart(2, '0')}&thinsp;/&thinsp;{String(currentAlbum.tracks.length).padStart(2, '0')}</span>
+            </button>
+
+            {/* Share Song Button directly in Player Bar */}
+            <button
+              onClick={onOpenShare}
+              title={`Condividi «${activeTrack.title}»`}
+              aria-label={`Condividi ${activeTrack.title}`}
+              className={`p-1.5 sm:p-2 rounded-full transition-all ${
+                isLightMode ? 'text-gray-800 hover:bg-black/10' : 'text-white/80 hover:text-white hover:bg-white/15'
+              }`}
+            >
+              <Share2 className="w-4 h-4" />
             </button>
 
             {/* Mute Button */}
