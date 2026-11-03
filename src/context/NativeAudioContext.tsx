@@ -45,7 +45,7 @@ export const NativeAudioProvider: React.FC<{ children: ReactNode; albums?: Album
   });
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [currentTime, setCurrentTime] = useState<number>(0);
-  const [duration, setDuration] = useState<number>(15);
+  const [duration, setDuration] = useState<number>(() => currentTrack?.durationSeconds || 210);
   const [volume, setVolumeState] = useState<number>(0.85);
   const [isMuted, setIsMuted] = useState<boolean>(false);
 
@@ -54,7 +54,7 @@ export const NativeAudioProvider: React.FC<{ children: ReactNode; albums?: Album
   const activeDiscographyRef = useRef<AlbumData[]>(activeDiscography);
   const playedSessionKeyRef = useRef<string>('');
   const streamed30KeyRef = useRef<string>('');
-  const playInstanceCounterRef = useRef<number>(0);
+  const playInstanceCounterRef = useRef<number>(1);
   const nextTrackRef = useRef<() => void>(() => {});
 
   useEffect(() => {
@@ -75,6 +75,9 @@ export const NativeAudioProvider: React.FC<{ children: ReactNode; albums?: Album
     const audio = new Audio();
     audio.preload = 'metadata';
     audio.volume = volume;
+    if (currentTrackRef.current?.audioSrc) {
+      audio.src = resolveAssetUrl(currentTrackRef.current.audioSrc);
+    }
     audioRef.current = audio;
 
     const onTimeUpdate = () => {
@@ -182,7 +185,7 @@ export const NativeAudioProvider: React.FC<{ children: ReactNode; albums?: Album
     const audio = audioRef.current;
     if (!audio) return;
 
-    if (isPlaying) {
+    if (isPlaying && !audio.paused) {
       audio.pause();
     } else {
       const resolvedSrc = resolveAssetUrl(currentTrack.audioSrc);

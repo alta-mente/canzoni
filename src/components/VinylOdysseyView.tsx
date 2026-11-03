@@ -154,8 +154,6 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
   });
   const [copiedLyrics, setCopiedLyrics] = useState<boolean>(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const isPlayingRef = useRef<boolean>(isPlaying);
-  isPlayingRef.current = isPlaying;
 
   const activeTrack = currentAlbum.tracks[currentIndex] || currentAlbum.tracks[0];
   // Track-specific video canvas takes precedence over album-level fallback video
@@ -196,33 +194,6 @@ export const VinylOdysseyView: React.FC<VinylOdysseyViewProps> = ({
       setTimeout(() => setCopiedLyrics(false), 2000);
     }
   }, [activeTrack, currentAlbum.title]);
-
-  // Attempt autoplay of the initial track, with clean fallback on first user interaction
-  useEffect(() => {
-    const initialTrack = currentAlbum.tracks[currentIndex] || currentAlbum.tracks[0];
-    if (!initialTrack) return;
-
-    playTrack(initialTrack);
-
-    const cleanup = () => {
-      window.removeEventListener('pointerdown', handleFirstUserGesture);
-      window.removeEventListener('keydown', handleFirstUserGesture);
-      window.removeEventListener('touchstart', handleFirstUserGesture);
-    };
-
-    const handleFirstUserGesture = () => {
-      cleanup();
-      if (!isPlayingRef.current) {
-        playTrack(initialTrack);
-      }
-    };
-
-    window.addEventListener('pointerdown', handleFirstUserGesture, { once: true });
-    window.addEventListener('keydown', handleFirstUserGesture, { once: true });
-    window.addEventListener('touchstart', handleFirstUserGesture, { once: true });
-
-    return cleanup;
-  }, []);
 
   // Synchronize visual state whenever audio track changes (e.g. auto-play next track on ended)
   useEffect(() => {
