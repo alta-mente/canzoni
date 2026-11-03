@@ -134,7 +134,10 @@
                 "name": "Le Cose Che Tornano A Galla",
                 "datePublished": "2026-10-18",
                 "image": "https://alta-mente.github.io/canzoni/images/albums/le-cose-che-tornano-a-galla-cover.jpeg",
-                "sameAs": "https://suno.com/album/8eb6a2d8-e4ab-446a-9278-d98a0e30f4d9",
+                "sameAs": [
+                  "https://open.spotify.com/album/3AqMqDA0Z1qekWfGEj788R",
+                  "https://suno.com/album/8eb6a2d8-e4ab-446a-9278-d98a0e30f4d9"
+                ],
                 "numTracks": 10,
                 "byArtist": { "@id": "https://alta-mente.github.io/canzoni/#artist" }
               }
@@ -175,8 +178,8 @@
         flex-direction: column;
       }
     </style>
-    <script type="module" crossorigin src="/canzoni/assets/index-DWLZXPoH.js"></script>
-    <link rel="stylesheet" crossorigin href="/canzoni/assets/index-BMkPUA2q.css">
+    <script type="module" crossorigin src="/canzoni/assets/index-DqoEiGoq.js"></script>
+    <link rel="stylesheet" crossorigin href="/canzoni/assets/index-DGe8msuo.css">
   </head>
   <body class="bg-[#030407] selection:bg-[#e63946] selection:text-white">
     <div id="root">
@@ -229,7 +232,7 @@
     <script>
       (function () {
         try {
-          var BUILD_VER = '2026-11-03-v10';
+          var BUILD_VER = '2026-11-03-v11';
           if (localStorage.getItem('antigravity_build_version') !== BUILD_VER) {
             localStorage.removeItem('antigravity_discography_custom');
             localStorage.removeItem('antigravity_discography_v2');
@@ -240,6 +243,7 @@
             localStorage.removeItem('antigravity_discography_v7');
             localStorage.removeItem('antigravity_discography_v8');
             localStorage.removeItem('antigravity_discography_v9');
+            localStorage.removeItem('antigravity_discography_v10');
             localStorage.setItem('antigravity_build_version', BUILD_VER);
             if ('caches' in window) {
               caches.keys().then(function (names) {
