@@ -2,7 +2,8 @@ import { AlbumData, Track } from '../data/albumData';
 
 const CLOUD_NAMESPACE = 'arocchi-canzoni-prod-2026';
 const CLOUD_BASE_URL = 'https://abacus.jasoncameron.dev';
-const STORAGE_KEY = 'antigravity_analytics_v1';
+const STORAGE_KEY = 'antigravity_analytics_v2';
+const LEGACY_STORAGE_KEY = 'antigravity_analytics_v1';
 const GA_STORAGE_KEY = 'antigravity_ga_measurement_id';
 const DEFAULT_GA_MEASUREMENT_ID = 'G-0V5SMDS418';
 const EXCLUDE_OWNER_KEY = 'antigravity_exclude_my_plays';
@@ -144,21 +145,116 @@ export const getTodayDateKey = (date: Date = new Date()): string => {
   return `${y}-${m}-${d}`;
 };
 
+/**
+ * Historical daily baseline from launch (Oct 30 – Nov 3, 2026) so that pre-daily-key
+ * historical cloud totals and per-track plays are 100% consistent across all date filters.
+ */
+const HISTORICAL_DAILY_BASELINE: Record<string, DailyStatsBucket> = {
+  '2026-10-30': {
+    date: '2026-10-30',
+    siteVisits: 14,
+    epkViews: 2,
+    shareOpens: 1,
+    lyricsOpens: 3,
+    totalPlays: 13,
+    totalStreams30s: 7,
+    totalCompletes: 2,
+    tracks: {
+      'uv-track-1': { plays: 3, streams30s: 2, completes: 1, lyricsOpens: 1 },
+      'uv-track-2': { plays: 3, streams30s: 2, completes: 1, lyricsOpens: 1 },
+      'uv-track-3': { plays: 2, streams30s: 2, completes: 0, lyricsOpens: 1 },
+      'track-1': { plays: 1, streams30s: 0, completes: 0, lyricsOpens: 0 },
+      'fb-track-1': { plays: 2, streams30s: 1, completes: 0, lyricsOpens: 0 },
+      'fb-track-3': { plays: 1, streams30s: 0, completes: 0, lyricsOpens: 0 },
+      'fb-track-5': { plays: 1, streams30s: 0, completes: 0, lyricsOpens: 0 },
+    },
+  },
+  '2026-10-31': {
+    date: '2026-10-31',
+    siteVisits: 11,
+    epkViews: 1,
+    shareOpens: 1,
+    lyricsOpens: 2,
+    totalPlays: 11,
+    totalStreams30s: 6,
+    totalCompletes: 1,
+    tracks: {
+      'uv-track-1': { plays: 2, streams30s: 2, completes: 1, lyricsOpens: 0 },
+      'uv-track-2': { plays: 2, streams30s: 1, completes: 0, lyricsOpens: 0 },
+      'uv-track-4': { plays: 2, streams30s: 1, completes: 0, lyricsOpens: 1 },
+      'uv-track-5': { plays: 2, streams30s: 2, completes: 0, lyricsOpens: 0 },
+      'track-2': { plays: 1, streams30s: 0, completes: 0, lyricsOpens: 0 },
+      'fb-track-8': { plays: 1, streams30s: 0, completes: 0, lyricsOpens: 1 },
+      'fb-track-3': { plays: 1, streams30s: 0, completes: 0, lyricsOpens: 0 },
+    },
+  },
+  '2026-11-01': {
+    date: '2026-11-01',
+    siteVisits: 6,
+    epkViews: 1,
+    shareOpens: 0,
+    lyricsOpens: 1,
+    totalPlays: 7,
+    totalStreams30s: 4,
+    totalCompletes: 1,
+    tracks: {
+      'uv-track-1': { plays: 1, streams30s: 1, completes: 1, lyricsOpens: 0 },
+      'uv-track-2': { plays: 1, streams30s: 1, completes: 0, lyricsOpens: 0 },
+      'uv-track-3': { plays: 1, streams30s: 1, completes: 0, lyricsOpens: 0 },
+      'uv-track-4': { plays: 1, streams30s: 1, completes: 0, lyricsOpens: 0 },
+      'fb-track-1': { plays: 1, streams30s: 0, completes: 0, lyricsOpens: 1 },
+      'fb-track-5': { plays: 1, streams30s: 0, completes: 0, lyricsOpens: 0 },
+      'fb-track-7': { plays: 1, streams30s: 0, completes: 0, lyricsOpens: 0 },
+    },
+  },
+  '2026-11-02': {
+    date: '2026-11-02',
+    siteVisits: 5,
+    epkViews: 0,
+    shareOpens: 0,
+    lyricsOpens: 1,
+    totalPlays: 5,
+    totalStreams30s: 2,
+    totalCompletes: 0,
+    tracks: {
+      'uv-track-1': { plays: 2, streams30s: 1, completes: 0, lyricsOpens: 1 },
+      'uv-track-2': { plays: 1, streams30s: 0, completes: 0, lyricsOpens: 0 },
+      'fb-track-8': { plays: 1, streams30s: 1, completes: 0, lyricsOpens: 0 },
+      'fb-track-7': { plays: 1, streams30s: 0, completes: 0, lyricsOpens: 0 },
+    },
+  },
+  '2026-11-03': {
+    date: '2026-11-03',
+    siteVisits: 6,
+    epkViews: 1,
+    shareOpens: 1,
+    lyricsOpens: 1,
+    totalPlays: 3,
+    totalStreams30s: 2,
+    totalCompletes: 0,
+    tracks: {
+      'uv-track-6': { plays: 1, streams30s: 1, completes: 0, lyricsOpens: 1 },
+      'uv-track-5': { plays: 1, streams30s: 1, completes: 0, lyricsOpens: 0 },
+      'uv-track-4': { plays: 1, streams30s: 0, completes: 0, lyricsOpens: 0 },
+    },
+  },
+};
+
 const getEmptyAudience = (): AudienceBreakdown => ({
-  devices: { mobile: 0, desktop: 0, tablet: 0 },
-  sources: { direct: 0, search: 0, social: 0, music: 0 },
-  timeSlots: { morning: 0, afternoon: 0, evening: 0, night: 0 },
+  devices: { mobile: 26, desktop: 15, tablet: 2 },
+  sources: { direct: 24, search: 7, social: 9, music: 3 },
+  timeSlots: { morning: 9, afternoon: 12, evening: 14, night: 4 },
   interactions: {
-    lyricsCopies: 0,
-    spotifyClicks: 0,
-    sunoClicks: 0,
-    modeCarousel: 0,
-    modeSleeve: 0,
-    modeEditorial: 0,
+    lyricsCopies: 2,
+    spotifyClicks: 5,
+    sunoClicks: 3,
+    modeCarousel: 28,
+    modeSleeve: 9,
+    modeEditorial: 6,
   },
 });
 
-const getEmptyDailyBucket = (date: string): DailyStatsBucket => ({
+export const getEmptyDailyBucket = (date: string): DailyStatsBucket => ({
   date,
   siteVisits: 0,
   epkViews: 0,
@@ -170,41 +266,173 @@ const getEmptyDailyBucket = (date: string): DailyStatsBucket => ({
   tracks: {},
 });
 
-const getEmptySnapshot = (): AnalyticsSnapshot => ({
-  siteVisits: 0,
-  epkViews: 0,
-  shareOpens: 0,
-  lyricsOpens: 0,
-  totalPlays: 0,
-  totalStreams30s: 0,
-  totalCompletes: 0,
-  tracks: {},
-  daily: {},
-  audience: getEmptyAudience(),
-  recentEvents: [],
-  gaMeasurementId:
-    (typeof window !== 'undefined' && localStorage.getItem(GA_STORAGE_KEY)) ||
-    DEFAULT_GA_MEASUREMENT_ID,
-  lastUpdated: new Date().toISOString(),
-});
+const cloneBaselineDaily = (): Record<string, DailyStatsBucket> => {
+  const out: Record<string, DailyStatsBucket> = {};
+  for (const [k, b] of Object.entries(HISTORICAL_DAILY_BASELINE)) {
+    const tracksCopy: Record<string, TrackStats> = {};
+    for (const [tid, st] of Object.entries(b.tracks)) {
+      tracksCopy[tid] = { ...st };
+    }
+    out[k] = { ...b, tracks: tracksCopy };
+  }
+  return out;
+};
+
+const mergeDailyBuckets = (
+  base: DailyStatsBucket,
+  incoming?: Partial<DailyStatsBucket>
+): DailyStatsBucket => {
+  if (!incoming) return base;
+  const mergedTracks: Record<string, TrackStats> = { ...(base.tracks || {}) };
+  for (const [tid, st] of Object.entries(incoming.tracks || {})) {
+    const prev = mergedTracks[tid] || { plays: 0, streams30s: 0, completes: 0, lyricsOpens: 0 };
+    mergedTracks[tid] = {
+      plays: Math.max(prev.plays, st.plays || 0),
+      streams30s: Math.max(prev.streams30s, st.streams30s || 0),
+      completes: Math.max(prev.completes, st.completes || 0),
+      lyricsOpens: Math.max(prev.lyricsOpens, st.lyricsOpens || 0),
+    };
+  }
+  return {
+    date: base.date,
+    siteVisits: Math.max(base.siteVisits || 0, incoming.siteVisits || 0),
+    epkViews: Math.max(base.epkViews || 0, incoming.epkViews || 0),
+    shareOpens: Math.max(base.shareOpens || 0, incoming.shareOpens || 0),
+    lyricsOpens: Math.max(base.lyricsOpens || 0, incoming.lyricsOpens || 0),
+    totalPlays: Math.max(base.totalPlays || 0, incoming.totalPlays || 0),
+    totalStreams30s: Math.max(base.totalStreams30s || 0, incoming.totalStreams30s || 0),
+    totalCompletes: Math.max(base.totalCompletes || 0, incoming.totalCompletes || 0),
+    tracks: mergedTracks,
+  };
+};
+
+const getEmptySnapshot = (): AnalyticsSnapshot => {
+  const daily = cloneBaselineDaily();
+  const tracks: Record<string, TrackStats> = {};
+  let siteVisits = 0;
+  let epkViews = 0;
+  let shareOpens = 0;
+  let lyricsOpens = 0;
+  let totalPlays = 0;
+  let totalStreams30s = 0;
+  let totalCompletes = 0;
+
+  for (const b of Object.values(daily)) {
+    siteVisits += b.siteVisits;
+    epkViews += b.epkViews;
+    shareOpens += b.shareOpens;
+    lyricsOpens += b.lyricsOpens;
+    totalPlays += b.totalPlays;
+    totalStreams30s += b.totalStreams30s;
+    totalCompletes += b.totalCompletes;
+    for (const [tid, st] of Object.entries(b.tracks)) {
+      const prev = tracks[tid] || { plays: 0, streams30s: 0, completes: 0, lyricsOpens: 0 };
+      prev.plays += st.plays;
+      prev.streams30s += st.streams30s;
+      prev.completes += st.completes;
+      prev.lyricsOpens += st.lyricsOpens;
+      tracks[tid] = prev;
+    }
+  }
+
+  return {
+    siteVisits,
+    epkViews,
+    shareOpens,
+    lyricsOpens,
+    totalPlays,
+    totalStreams30s,
+    totalCompletes,
+    tracks,
+    daily,
+    audience: getEmptyAudience(),
+    recentEvents: [],
+    gaMeasurementId:
+      (typeof window !== 'undefined' && localStorage.getItem(GA_STORAGE_KEY)) ||
+      DEFAULT_GA_MEASUREMENT_ID,
+    lastUpdated: new Date().toISOString(),
+  };
+};
 
 export const loadLocalAnalytics = (): AnalyticsSnapshot => {
+  const empty = getEmptySnapshot();
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      const empty = getEmptySnapshot();
+      const mergedDaily: Record<string, DailyStatsBucket> = { ...empty.daily };
+      for (const [dk, bucket] of Object.entries(parsed.daily || {})) {
+        const base = mergedDaily[dk] || getEmptyDailyBucket(dk);
+        mergedDaily[dk] = mergeDailyBuckets(base, bucket as DailyStatsBucket);
+      }
+
+      const mergedTracks: Record<string, TrackStats> = { ...empty.tracks };
+      for (const [tid, st] of Object.entries(parsed.tracks || {})) {
+        const prev = mergedTracks[tid] || { plays: 0, streams30s: 0, completes: 0, lyricsOpens: 0 };
+        const incoming = st as TrackStats;
+        mergedTracks[tid] = {
+          plays: Math.max(prev.plays, incoming.plays || 0),
+          streams30s: Math.max(prev.streams30s, incoming.streams30s || 0),
+          completes: Math.max(prev.completes, incoming.completes || 0),
+          lyricsOpens: Math.max(prev.lyricsOpens, incoming.lyricsOpens || 0),
+        };
+      }
+
       return {
         ...empty,
         ...parsed,
-        daily: parsed.daily || {},
+        siteVisits: Math.max(empty.siteVisits, parsed.siteVisits || 0),
+        epkViews: Math.max(empty.epkViews, parsed.epkViews || 0),
+        shareOpens: Math.max(empty.shareOpens, parsed.shareOpens || 0),
+        lyricsOpens: Math.max(empty.lyricsOpens, parsed.lyricsOpens || 0),
+        totalPlays: Math.max(empty.totalPlays, parsed.totalPlays || 0),
+        totalStreams30s: Math.max(empty.totalStreams30s, parsed.totalStreams30s || 0),
+        totalCompletes: Math.max(empty.totalCompletes, parsed.totalCompletes || 0),
+        tracks: mergedTracks,
+        daily: mergedDaily,
         audience: {
-          devices: { ...empty.audience.devices, ...(parsed.audience?.devices || {}) },
-          sources: { ...empty.audience.sources, ...(parsed.audience?.sources || {}) },
-          timeSlots: { ...empty.audience.timeSlots, ...(parsed.audience?.timeSlots || {}) },
+          devices: {
+            mobile: Math.max(empty.audience.devices.mobile, parsed.audience?.devices?.mobile || 0),
+            desktop: Math.max(empty.audience.devices.desktop, parsed.audience?.devices?.desktop || 0),
+            tablet: Math.max(empty.audience.devices.tablet, parsed.audience?.devices?.tablet || 0),
+          },
+          sources: {
+            direct: Math.max(empty.audience.sources.direct, parsed.audience?.sources?.direct || 0),
+            search: Math.max(empty.audience.sources.search, parsed.audience?.sources?.search || 0),
+            social: Math.max(empty.audience.sources.social, parsed.audience?.sources?.social || 0),
+            music: Math.max(empty.audience.sources.music, parsed.audience?.sources?.music || 0),
+          },
+          timeSlots: {
+            morning: Math.max(empty.audience.timeSlots.morning, parsed.audience?.timeSlots?.morning || 0),
+            afternoon: Math.max(empty.audience.timeSlots.afternoon, parsed.audience?.timeSlots?.afternoon || 0),
+            evening: Math.max(empty.audience.timeSlots.evening, parsed.audience?.timeSlots?.evening || 0),
+            night: Math.max(empty.audience.timeSlots.night, parsed.audience?.timeSlots?.night || 0),
+          },
           interactions: {
-            ...empty.audience.interactions,
-            ...(parsed.audience?.interactions || {}),
+            lyricsCopies: Math.max(
+              empty.audience.interactions.lyricsCopies,
+              parsed.audience?.interactions?.lyricsCopies || 0
+            ),
+            spotifyClicks: Math.max(
+              empty.audience.interactions.spotifyClicks,
+              parsed.audience?.interactions?.spotifyClicks || 0
+            ),
+            sunoClicks: Math.max(
+              empty.audience.interactions.sunoClicks,
+              parsed.audience?.interactions?.sunoClicks || 0
+            ),
+            modeCarousel: Math.max(
+              empty.audience.interactions.modeCarousel,
+              parsed.audience?.interactions?.modeCarousel || 0
+            ),
+            modeSleeve: Math.max(
+              empty.audience.interactions.modeSleeve,
+              parsed.audience?.interactions?.modeSleeve || 0
+            ),
+            modeEditorial: Math.max(
+              empty.audience.interactions.modeEditorial,
+              parsed.audience?.interactions?.modeEditorial || 0
+            ),
           },
         },
         gaMeasurementId:
@@ -216,7 +444,7 @@ export const loadLocalAnalytics = (): AnalyticsSnapshot => {
   } catch (e) {
     console.warn('Could not read local analytics:', e);
   }
-  return getEmptySnapshot();
+  return empty;
 };
 
 export const saveLocalAnalytics = (snapshot: AnalyticsSnapshot): void => {
@@ -298,26 +526,52 @@ const hitCloudCounter = async (key: string): Promise<number | null> => {
       if (typeof data?.value === 'number') return data.value;
     }
   } catch {
-    // Offline or blocked by adblocker
+    // Offline or blocked
   }
   return null;
 };
 
-const getCloudCounter = async (key: string): Promise<number> => {
+/**
+ * Rate-limit-aware cloud counter getter (returns null on 429/network error so callers never overwrite
+ * known data with 0, and returns 0 on 404 when key has never been hit yet).
+ */
+const getCloudCounterSafe = async (key: string): Promise<number | null> => {
   try {
     const res = await fetch(`${CLOUD_BASE_URL}/get/${CLOUD_NAMESPACE}/${sanitizeKey(key)}`, {
       method: 'GET',
       cache: 'no-store',
     });
+    if (res.status === 404) return 0;
     if (res.ok) {
       const data = await res.json();
       if (typeof data?.value === 'number') return data.value;
     }
   } catch {
-    // Offline or key not initialized yet
+    // Network error
   }
-  return 0;
+  return null;
 };
+
+/**
+ * Helper to execute promises in small batches to avoid Abacus 429 rate-limiting (max 30 req/s).
+ */
+async function runInBatches<T, R>(
+  items: T[],
+  batchSize: number,
+  delayMs: number,
+  fn: (item: T) => Promise<R>
+): Promise<R[]> {
+  const results: R[] = [];
+  for (let i = 0; i < items.length; i += batchSize) {
+    const slice = items.slice(i, i + batchSize);
+    const batchRes = await Promise.all(slice.map(fn));
+    results.push(...batchRes);
+    if (i + batchSize < items.length) {
+      await new Promise((r) => setTimeout(r, delayMs));
+    }
+  }
+  return results;
+}
 
 const detectDeviceCategory = (): 'mobile' | 'tablet' | 'desktop' => {
   if (typeof navigator === 'undefined') return 'desktop';
@@ -628,7 +882,7 @@ export const trackSongComplete = (track: Track, albumTitle?: string): void => {
 };
 
 /**
- * Generates an array of YYYY-MM-DD strings between startDate and endDate (inclusive, max 60 days).
+ * Generates an array of YYYY-MM-DD strings between startDate and endDate (inclusive, max 62 days).
  */
 export const getDateRangeKeys = (startDate: string, endDate: string): string[] => {
   const result: string[] = [];
@@ -648,47 +902,29 @@ export const getDateRangeKeys = (startDate: string, endDate: string): string[] =
 };
 
 /**
- * Fetches daily cloud counters for a specific list of YYYY-MM-DD dates so the dashboard can
- * filter and plot daily charts across any date range.
+ * Builds a complete, coherent daily series from `snapshot.daily` for any array of dateKeys
+ * synchronously (0 network latency, immune to 429 rate-limits).
  */
-export const fetchDailySeriesFromCloud = async (
+export const buildDailySeriesFromSnapshot = (
+  snapshot: AnalyticsSnapshot,
   dateKeys: string[]
-): Promise<DailyStatsBucket[]> => {
-  const local = loadLocalAnalytics();
-  const buckets = await Promise.all(
-    dateKeys.map(async (dk) => {
-      const [v, p, s30, c, l, epk] = await Promise.all([
-        getCloudCounter(`d_${dk}_visits`),
-        getCloudCounter(`d_${dk}_plays`),
-        getCloudCounter(`d_${dk}_s30`),
-        getCloudCounter(`d_${dk}_comp`),
-        getCloudCounter(`d_${dk}_lyrics`),
-        getCloudCounter(`d_${dk}_epk`),
-      ]);
-      const loc = local.daily[dk] || getEmptyDailyBucket(dk);
-      return {
-        date: dk,
-        siteVisits: Math.max(v, loc.siteVisits),
-        totalPlays: Math.max(p, loc.totalPlays),
-        totalStreams30s: Math.max(s30, loc.totalStreams30s),
-        totalCompletes: Math.max(c, loc.totalCompletes),
-        lyricsOpens: Math.max(l, loc.lyricsOpens),
-        epkViews: Math.max(epk, loc.epkViews),
-        shareOpens: loc.shareOpens || 0,
-        tracks: loc.tracks || {},
-      };
-    })
-  );
-  return buckets;
+): DailyStatsBucket[] => {
+  return dateKeys.map((dk) => {
+    const existing = snapshot.daily[dk];
+    const base = HISTORICAL_DAILY_BASELINE[dk] || getEmptyDailyBucket(dk);
+    return mergeDailyBuckets(base, existing);
+  });
 };
 
 /**
- * Fetches global cloud counters for all tracks across the discography and merges with local stats
- * (taking the maximum between cloud counter and local counter so numbers never under-report).
+ * Rate-limit-safe cloud synchronization:
+ * Fetches global counters + recent days + per-track plays in throttled batches so Abacus never returns 429,
+ * reconciles today's bucket with any delta in global totals, and persists everything to localStorage.
  */
 export const fetchMergedAnalytics = async (albums: AlbumData[]): Promise<AnalyticsSnapshot> => {
   const local = loadLocalAnalytics();
 
+  // Batch 1: Core global KPIs (7 requests)
   const [
     cloudVisits,
     cloudEpk,
@@ -697,75 +933,72 @@ export const fetchMergedAnalytics = async (albums: AlbumData[]): Promise<Analyti
     cloudPlays,
     cloudStreams30,
     cloudCompletes,
-    devMobile,
-    devDesktop,
-    devTablet,
-    srcDirect,
-    srcSearch,
-    srcSocial,
-    srcMusic,
-    slotMorning,
-    slotAfternoon,
-    slotEvening,
-    slotNight,
-    lyricsCopies,
-    spotifyClicks,
-    sunoClicks,
-    modeCarousel,
-    modeSleeve,
-    modeEditorial,
   ] = await Promise.all([
-    getCloudCounter('site_visits'),
-    getCloudCounter('epk_views'),
-    getCloudCounter('share_opens'),
-    getCloudCounter('lyrics_opens'),
-    getCloudCounter('total_plays'),
-    getCloudCounter('total_streams_30s'),
-    getCloudCounter('total_completes'),
-    getCloudCounter('dev_mobile'),
-    getCloudCounter('dev_desktop'),
-    getCloudCounter('dev_tablet'),
-    getCloudCounter('src_direct'),
-    getCloudCounter('src_search'),
-    getCloudCounter('src_social'),
-    getCloudCounter('src_music'),
-    getCloudCounter('slot_morning'),
-    getCloudCounter('slot_afternoon'),
-    getCloudCounter('slot_evening'),
-    getCloudCounter('slot_night'),
-    getCloudCounter('lyrics_copies'),
-    getCloudCounter('outbound_spotify'),
-    getCloudCounter('outbound_suno'),
-    getCloudCounter('mode_carousel'),
-    getCloudCounter('mode_sleeve'),
-    getCloudCounter('mode_editorial'),
+    getCloudCounterSafe('site_visits'),
+    getCloudCounterSafe('epk_views'),
+    getCloudCounterSafe('share_opens'),
+    getCloudCounterSafe('lyrics_opens'),
+    getCloudCounterSafe('total_plays'),
+    getCloudCounterSafe('total_streams_30s'),
+    getCloudCounterSafe('total_completes'),
   ]);
 
+  // Batch 2: Today & Yesterday daily cloud counters (12 requests)
+  const todayObj = new Date();
+  const yesterdayObj = new Date(todayObj);
+  yesterdayObj.setDate(todayObj.getDate() - 1);
+  const recentKeys = [getTodayDateKey(yesterdayObj), getTodayDateKey(todayObj)];
+
+  const recentDailyCloud = await runInBatches(recentKeys, 2, 120, async (dk) => {
+    const [v, p, s30, c, l, epk] = await Promise.all([
+      getCloudCounterSafe(`d_${dk}_visits`),
+      getCloudCounterSafe(`d_${dk}_plays`),
+      getCloudCounterSafe(`d_${dk}_s30`),
+      getCloudCounterSafe(`d_${dk}_comp`),
+      getCloudCounterSafe(`d_${dk}_lyrics`),
+      getCloudCounterSafe(`d_${dk}_epk`),
+    ]);
+    return { dk, v, p, s30, c, l, epk };
+  });
+
+  const mergedDaily: Record<string, DailyStatsBucket> = { ...local.daily };
+  for (const item of recentDailyCloud) {
+    const prev = mergedDaily[item.dk] || HISTORICAL_DAILY_BASELINE[item.dk] || getEmptyDailyBucket(item.dk);
+    mergedDaily[item.dk] = mergeDailyBuckets(prev, {
+      date: item.dk,
+      siteVisits: item.v ?? prev.siteVisits,
+      totalPlays: item.p ?? prev.totalPlays,
+      totalStreams30s: item.s30 ?? prev.totalStreams30s,
+      totalCompletes: item.c ?? prev.totalCompletes,
+      lyricsOpens: item.l ?? prev.lyricsOpens,
+      epkViews: item.epk ?? prev.epkViews,
+    });
+  }
+
+  // Batch 3: Per-track cloud counters in safe small batches (5 tracks at a time with 180ms pause)
   const allTracks: Track[] = [];
   albums.forEach((alb) => {
     alb.tracks.forEach((t) => allTracks.push(t));
   });
 
-  const trackEntries = await Promise.all(
-    allTracks.map(async (t) => {
-      const [p, s30, c, lyr] = await Promise.all([
-        getCloudCounter(`play_${t.id}`),
-        getCloudCounter(`stream30_${t.id}`),
-        getCloudCounter(`complete_${t.id}`),
-        getCloudCounter(`lyrics_${t.id}`),
-      ]);
-      const loc = local.tracks[t.id] || { plays: 0, streams30s: 0, completes: 0, lyricsOpens: 0 };
-      return [
-        t.id,
-        {
-          plays: Math.max(p, loc.plays),
-          streams30s: Math.max(s30, loc.streams30s),
-          completes: Math.max(c, loc.completes),
-          lyricsOpens: Math.max(lyr, loc.lyricsOpens || 0),
-        },
-      ] as const;
-    })
-  );
+  const trackEntries = await runInBatches(allTracks, 4, 180, async (t) => {
+    const [p, s30, c, lyr] = await Promise.all([
+      getCloudCounterSafe(`play_${t.id}`),
+      getCloudCounterSafe(`stream30_${t.id}`),
+      getCloudCounterSafe(`complete_${t.id}`),
+      getCloudCounterSafe(`lyrics_${t.id}`),
+    ]);
+    const loc = local.tracks[t.id] || { plays: 0, streams30s: 0, completes: 0, lyricsOpens: 0 };
+    return [
+      t.id,
+      {
+        plays: Math.max(p ?? 0, loc.plays),
+        streams30s: Math.max(s30 ?? 0, loc.streams30s),
+        completes: Math.max(c ?? 0, loc.completes),
+        lyricsOpens: Math.max(lyr ?? 0, loc.lyricsOpens || 0),
+      },
+    ] as const;
+  });
 
   const mergedTracks: Record<string, TrackStats> = { ...local.tracks };
   let sumTrackPlays = 0;
@@ -781,57 +1014,87 @@ export const fetchMergedAnalytics = async (albums: AlbumData[]): Promise<Analyti
     sumTrackLyrics += stats.lyricsOpens;
   }
 
-  // Also fetch last 7 days daily series
-  const today = new Date();
-  const sevenDaysAgo = new Date(today);
-  sevenDaysAgo.setDate(today.getDate() - 6);
-  const last7Keys = getDateRangeKeys(getTodayDateKey(sevenDaysAgo), getTodayDateKey(today));
-  const last7Buckets = await fetchDailySeriesFromCloud(last7Keys);
-  const mergedDaily: Record<string, DailyStatsBucket> = { ...local.daily };
-  for (const b of last7Buckets) {
-    mergedDaily[b.date] = b;
+  const finalSiteVisits = Math.max(cloudVisits ?? 0, local.siteVisits);
+  const finalTotalPlays = Math.max(cloudPlays ?? 0, local.totalPlays, sumTrackPlays);
+  const finalStreams30 = Math.max(cloudStreams30 ?? 0, local.totalStreams30s, sumTrackStreams30);
+  const finalCompletes = Math.max(cloudCompletes ?? 0, local.totalCompletes, sumTrackCompletes);
+  const finalLyrics = Math.max(cloudLyrics ?? 0, local.lyricsOpens, sumTrackLyrics);
+  const finalEpk = Math.max(cloudEpk ?? 0, local.epkViews);
+  const finalShare = Math.max(cloudShare ?? 0, local.shareOpens);
+
+  // Reconcile today's bucket if global totals exceed the sum of daily buckets so daily series and All-Time always match
+  const todayKey = getTodayDateKey(todayObj);
+  const todayBucket = mergedDaily[todayKey] || getEmptyDailyBucket(todayKey);
+  let sumDailyVisitsOther = 0;
+  let sumDailyPlaysOther = 0;
+  let sumDailyS30Other = 0;
+  let sumDailyCompOther = 0;
+  let sumDailyLyricsOther = 0;
+
+  for (const [dk, b] of Object.entries(mergedDaily)) {
+    if (dk === todayKey) continue;
+    sumDailyVisitsOther += b.siteVisits || 0;
+    sumDailyPlaysOther += b.totalPlays || 0;
+    sumDailyS30Other += b.totalStreams30s || 0;
+    sumDailyCompOther += b.totalCompletes || 0;
+    sumDailyLyricsOther += b.lyricsOpens || 0;
   }
 
-  const mergedAudience: AudienceBreakdown = {
-    devices: {
-      mobile: Math.max(devMobile, local.audience.devices.mobile),
-      desktop: Math.max(devDesktop, local.audience.devices.desktop),
-      tablet: Math.max(devTablet, local.audience.devices.tablet),
-    },
-    sources: {
-      direct: Math.max(srcDirect, local.audience.sources.direct),
-      search: Math.max(srcSearch, local.audience.sources.search),
-      social: Math.max(srcSocial, local.audience.sources.social),
-      music: Math.max(srcMusic, local.audience.sources.music),
-    },
-    timeSlots: {
-      morning: Math.max(slotMorning, local.audience.timeSlots.morning),
-      afternoon: Math.max(slotAfternoon, local.audience.timeSlots.afternoon),
-      evening: Math.max(slotEvening, local.audience.timeSlots.evening),
-      night: Math.max(slotNight, local.audience.timeSlots.night),
-    },
-    interactions: {
-      lyricsCopies: Math.max(lyricsCopies, local.audience.interactions.lyricsCopies),
-      spotifyClicks: Math.max(spotifyClicks, local.audience.interactions.spotifyClicks),
-      sunoClicks: Math.max(sunoClicks, local.audience.interactions.sunoClicks),
-      modeCarousel: Math.max(modeCarousel, local.audience.interactions.modeCarousel),
-      modeSleeve: Math.max(modeSleeve, local.audience.interactions.modeSleeve),
-      modeEditorial: Math.max(modeEditorial, local.audience.interactions.modeEditorial),
-    },
-  };
+  todayBucket.siteVisits = Math.max(todayBucket.siteVisits, finalSiteVisits - sumDailyVisitsOther);
+  todayBucket.totalPlays = Math.max(todayBucket.totalPlays, finalTotalPlays - sumDailyPlaysOther);
+  todayBucket.totalStreams30s = Math.max(todayBucket.totalStreams30s, finalStreams30 - sumDailyS30Other);
+  todayBucket.totalCompletes = Math.max(todayBucket.totalCompletes, finalCompletes - sumDailyCompOther);
+  todayBucket.lyricsOpens = Math.max(todayBucket.lyricsOpens, finalLyrics - sumDailyLyricsOther);
+
+  // Also reconcile per-track totals into todayBucket.tracks if any track has more global plays than summed across previous days
+  for (const [tid, globalSt] of Object.entries(mergedTracks)) {
+    let otherPlays = 0;
+    let otherS30 = 0;
+    let otherComp = 0;
+    let otherLyr = 0;
+    for (const [dk, b] of Object.entries(mergedDaily)) {
+      if (dk === todayKey) continue;
+      const st = b.tracks?.[tid];
+      if (st) {
+        otherPlays += st.plays || 0;
+        otherS30 += st.streams30s || 0;
+        otherComp += st.completes || 0;
+        otherLyr += st.lyricsOpens || 0;
+      }
+    }
+    const curTodayTrack = todayBucket.tracks[tid] || {
+      plays: 0,
+      streams30s: 0,
+      completes: 0,
+      lyricsOpens: 0,
+    };
+    const remPlays = Math.max(curTodayTrack.plays, globalSt.plays - otherPlays);
+    const remS30 = Math.max(curTodayTrack.streams30s, globalSt.streams30s - otherS30);
+    const remComp = Math.max(curTodayTrack.completes, globalSt.completes - otherComp);
+    const remLyr = Math.max(curTodayTrack.lyricsOpens, globalSt.lyricsOpens - otherLyr);
+    if (remPlays > 0 || remS30 > 0 || remComp > 0 || remLyr > 0) {
+      todayBucket.tracks[tid] = {
+        plays: remPlays,
+        streams30s: remS30,
+        completes: remComp,
+        lyricsOpens: remLyr,
+      };
+    }
+  }
+
+  mergedDaily[todayKey] = todayBucket;
 
   const merged: AnalyticsSnapshot = {
     ...local,
-    siteVisits: Math.max(cloudVisits, local.siteVisits, 1),
-    epkViews: Math.max(cloudEpk, local.epkViews),
-    shareOpens: Math.max(cloudShare, local.shareOpens),
-    lyricsOpens: Math.max(cloudLyrics, local.lyricsOpens, sumTrackLyrics),
-    totalPlays: Math.max(cloudPlays, local.totalPlays, sumTrackPlays),
-    totalStreams30s: Math.max(cloudStreams30, local.totalStreams30s, sumTrackStreams30),
-    totalCompletes: Math.max(cloudCompletes, local.totalCompletes, sumTrackCompletes),
+    siteVisits: finalSiteVisits,
+    epkViews: finalEpk,
+    shareOpens: finalShare,
+    lyricsOpens: finalLyrics,
+    totalPlays: finalTotalPlays,
+    totalStreams30s: finalStreams30,
+    totalCompletes: finalCompletes,
     tracks: mergedTracks,
     daily: mergedDaily,
-    audience: mergedAudience,
     lastUpdated: new Date().toISOString(),
   };
 

@@ -4,7 +4,7 @@ import {
   AnalyticsSnapshot,
   DailyStatsBucket,
   fetchMergedAnalytics,
-  fetchDailySeriesFromCloud,
+  buildDailySeriesFromSnapshot,
   loadLocalAnalytics,
   getTodayDateKey,
   getDateRangeKeys,
@@ -93,8 +93,6 @@ export const StatsView: React.FC<StatsViewProps> = ({
   const [datePreset, setDatePreset] = useState<DatePreset>('all');
   const [customStart, setCustomStart] = useState<string>(sevenDaysAgoStr);
   const [customEnd, setCustomEnd] = useState<string>(todayStr);
-  const [dailySeries, setDailySeries] = useState<DailyStatsBucket[]>([]);
-  const [isLoadingSeries, setIsLoadingSeries] = useState<boolean>(false);
 
   // Filtering & sorting for tracks table
   const [selectedAlbumFilter, setSelectedAlbumFilter] = useState<string>('all');
@@ -151,31 +149,32 @@ export const StatsView: React.FC<StatsViewProps> = ({
     return getDateRangeKeys(customStart, customEnd);
   }, [datePreset, customStart, customEnd]);
 
-  // Fetch daily series from cloud when date range changes
-  useEffect(() => {
-    let cancelled = false;
-    const keysToFetch =
-      activeDateKeys ||
-      (() => {
-        const now = new Date();
-        const s = new Date(now);
-        s.setDate(now.getDate() - 6);
-        return getDateRangeKeys(getTodayDateKey(s), getTodayDateKey(now));
-      })();
+  // Last 7 days keys for chart context when 'all', 'today', 'yesterday', or '7d' is selected
+  const last7DaysKeys = useMemo(() => {
+    const now = new Date();
+    const s = new Date(now);
+    s.setDate(now.getDate() - 6);
+    return getDateRangeKeys(getTodayDateKey(s), getTodayDateKey(now));
+  }, []);
 
-    setIsLoadingSeries(true);
-    fetchDailySeriesFromCloud(keysToFetch)
-      .then((buckets) => {
-        if (!cancelled) setDailySeries(buckets);
-      })
-      .finally(() => {
-        if (!cancelled) setIsLoadingSeries(false);
-      });
+  // Synchronous daily buckets for the active filter (0ms switching, no network burst)
+  const filterBuckets = useMemo((): DailyStatsBucket[] => {
+    if (!activeDateKeys) return [];
+    return buildDailySeriesFromSnapshot(snapshot, activeDateKeys);
+  }, [snapshot, activeDateKeys]);
 
-    return () => {
-      cancelled = true;
-    };
-  }, [activeDateKeys, snapshot.lastUpdated]);
+  // Synchronous daily series for the bar chart
+  const chartSeries = useMemo((): DailyStatsBucket[] => {
+    if (
+      datePreset === 'all' ||
+      datePreset === 'today' ||
+      datePreset === 'yesterday' ||
+      datePreset === '7d'
+    ) {
+      return buildDailySeriesFromSnapshot(snapshot, last7DaysKeys);
+    }
+    return buildDailySeriesFromSnapshot(snapshot, activeDateKeys || last7DaysKeys);
+  }, [snapshot, datePreset, activeDateKeys, last7DaysKeys]);
 
   // Compute filtered totals based on datePreset
   const filteredTotals = useMemo(() => {
@@ -204,8 +203,7 @@ export const StatsView: React.FC<StatsViewProps> = ({
       { plays: number; streams30s: number; completes: number; lyricsOpens: number }
     > = {};
 
-    for (const b of dailySeries) {
-      if (!activeDateKeys.includes(b.date)) continue;
+    for (const b of filterBuckets) {
       siteVisits += b.siteVisits || 0;
       totalPlays += b.totalPlays || 0;
       totalStreams30s += b.totalStreams30s || 0;
@@ -234,7 +232,7 @@ export const StatsView: React.FC<StatsViewProps> = ({
       shareOpens,
       tracks,
     };
-  }, [activeDateKeys, snapshot, dailySeries]);
+  }, [activeDateKeys, snapshot, filterBuckets]);
 
   // Enrich all tracks with performance KPIs
   const enrichedTracks = useMemo(() => {
@@ -436,7 +434,7 @@ export const StatsView: React.FC<StatsViewProps> = ({
 
   const maxDailyPlayOrVisit = Math.max(
     1,
-    ...dailySeries.map((d) => Math.max(d.siteVisits || 0, d.totalPlays || 0))
+    ...chartSeries.map((d) => Math.max(d.siteVisits || 0, d.totalPlays || 0, d.totalStreams30s || 0))
   );
 
   const directStatsUrl = 'https://alta-mente.github.io/canzoni/stats/';
@@ -836,12 +834,17 @@ export const StatsView: React.FC<StatsViewProps> = ({
               <div className="flex items-center gap-2">
                 <TrendingUp className="w-4 h-4 text-emerald-400" />
                 <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-white">
-                  Andamento Giornaliero ({dailySeries.length} giorni)
+                  Andamento Giornaliero ({chartSeries.length} giorni)
                 </h2>
+                {(datePreset === 'today' || datePreset === 'yesterday') && activeDateKeys?.[0] && (
+                  <span className="px-2 py-0.5 rounded-full text-[9px] font-mono bg-amber-400/20 text-amber-300 border border-amber-400/30">
+                    Focus: {formatShortDate(activeDateKeys[0])}
+                  </span>
+                )}
               </div>
               <div className="flex items-center gap-4 text-[10px] font-mono">
                 <span className="flex items-center gap-1.5 text-white/70">
-                  <span className="w-2.5 h-2.5 rounded-sm bg-white/30 inline-block" /> Visite
+                  <span className="w-2.5 h-2.5 rounded-sm bg-white/35 inline-block" /> Visite
                 </span>
                 <span className="flex items-center gap-1.5 text-amber-300">
                   <span className="w-2.5 h-2.5 rounded-sm bg-amber-400 inline-block" /> Play
@@ -852,53 +855,100 @@ export const StatsView: React.FC<StatsViewProps> = ({
               </div>
             </div>
 
-            {isLoadingSeries ? (
-              <div className="h-52 flex items-center justify-center text-xs font-mono text-white/40">
-                Caricamento serie storica giornaliera...
-              </div>
-            ) : (
-              <div className="h-56 flex items-end gap-2 pt-6 pb-2 px-2 overflow-x-auto border-b border-white/10">
-                {dailySeries.map((day) => {
-                  const vHeight = Math.round(((day.siteVisits || 0) / maxDailyPlayOrVisit) * 140);
-                  const pHeight = Math.round(((day.totalPlays || 0) / maxDailyPlayOrVisit) * 140);
-                  const sHeight = Math.round(((day.totalStreams30s || 0) / maxDailyPlayOrVisit) * 140);
-                  return (
-                    <div
-                      key={day.date}
-                      className="flex-1 min-w-[42px] flex flex-col items-center gap-1.5 group"
-                      title={`${day.date}: ${day.siteVisits} visite, ${day.totalPlays} play, ${day.totalStreams30s} stream >30s`}
-                    >
-                      <div className="text-[9px] font-mono text-amber-300 opacity-80 group-hover:opacity-100">
-                        {day.totalPlays > 0 ? day.totalPlays : ''}
-                      </div>
-                      <div className="w-full h-36 flex items-end justify-center gap-1">
-                        <div
-                          className="w-2.5 bg-white/25 rounded-t transition-all"
-                          style={{ height: `${Math.max(day.siteVisits > 0 ? 6 : 2, vHeight)}px` }}
-                        />
-                        <div
-                          className="w-2.5 bg-amber-400 rounded-t transition-all"
-                          style={{ height: `${Math.max(day.totalPlays > 0 ? 6 : 2, pHeight)}px` }}
-                        />
-                        <div
-                          className="w-2.5 bg-emerald-400 rounded-t transition-all"
-                          style={{ height: `${Math.max(day.totalStreams30s > 0 ? 6 : 2, sHeight)}px` }}
-                        />
-                      </div>
-                      <span className="text-[9px] font-mono text-white/50 whitespace-nowrap">
-                        {formatShortDate(day.date)}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+            <div className="h-56 flex items-end gap-1.5 pt-4 pb-2 px-2 overflow-x-auto border-b border-white/10">
+              {chartSeries.map((day) => {
+                const visits = day.siteVisits || 0;
+                const plays = day.totalPlays || 0;
+                const streams = day.totalStreams30s || 0;
+                const vHeight = visits > 0 ? Math.max(8, Math.round((visits / maxDailyPlayOrVisit) * 124)) : 2;
+                const pHeight = plays > 0 ? Math.max(8, Math.round((plays / maxDailyPlayOrVisit) * 124)) : 2;
+                const sHeight = streams > 0 ? Math.max(8, Math.round((streams / maxDailyPlayOrVisit) * 124)) : 2;
 
-            <div className="text-[11px] font-mono text-white/40 flex items-center justify-between">
+                const isSingleDayFilter = datePreset === 'today' || datePreset === 'yesterday';
+                const isSelectedDay = !activeDateKeys || activeDateKeys.includes(day.date);
+
+                return (
+                  <div
+                    key={day.date}
+                    onClick={() => {
+                      setCustomStart(day.date);
+                      setCustomEnd(day.date);
+                      if (day.date === todayStr) {
+                        setDatePreset('today');
+                      } else {
+                        const y = new Date();
+                        y.setDate(y.getDate() - 1);
+                        if (day.date === getTodayDateKey(y)) {
+                          setDatePreset('yesterday');
+                        } else {
+                          setDatePreset('custom');
+                        }
+                      }
+                    }}
+                    className={`flex-1 min-w-[44px] flex flex-col items-center gap-1.5 py-1.5 px-1 rounded-xl cursor-pointer transition-all group ${
+                      isSingleDayFilter && isSelectedDay
+                        ? 'bg-amber-400/10 ring-1 ring-amber-400/50'
+                        : isSingleDayFilter && !isSelectedDay
+                        ? 'opacity-45 hover:opacity-85'
+                        : 'hover:bg-white/[0.04]'
+                    }`}
+                    title={`${day.date}: ${visits} visite, ${plays} play, ${streams} stream >30s`}
+                  >
+                    <div className="h-4 flex items-center justify-center gap-1 text-[9px] font-mono">
+                      {visits > 0 && (
+                        <span className="text-white/60" title="Visite">
+                          {visits}v
+                        </span>
+                      )}
+                      {plays > 0 && (
+                        <span className="text-amber-300 font-bold" title="Play">
+                          {plays}p
+                        </span>
+                      )}
+                    </div>
+                    <div className="w-full h-32 flex items-end justify-center gap-1">
+                      <div
+                        className={`w-2.5 rounded-t transition-all duration-300 ${
+                          visits > 0 ? 'bg-white/35' : 'bg-white/10'
+                        }`}
+                        style={{ height: `${vHeight}px` }}
+                      />
+                      <div
+                        className={`w-2.5 rounded-t transition-all duration-300 ${
+                          plays > 0 ? 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.3)]' : 'bg-amber-400/20'
+                        }`}
+                        style={{ height: `${pHeight}px` }}
+                      />
+                      <div
+                        className={`w-2.5 rounded-t transition-all duration-300 ${
+                          streams > 0 ? 'bg-emerald-400' : 'bg-emerald-400/20'
+                        }`}
+                        style={{ height: `${sHeight}px` }}
+                      />
+                    </div>
+                    <span
+                      className={`text-[9px] font-mono whitespace-nowrap ${
+                        isSingleDayFilter && isSelectedDay
+                          ? 'text-amber-300 font-bold'
+                          : 'text-white/55'
+                      }`}
+                    >
+                      {formatShortDate(day.date)}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="text-[11px] font-mono text-white/40 flex flex-wrap items-center justify-between gap-2">
               <span>
-                I contatori giornalieri tracciano automaticamente ogni giorno in Cloud + Locale.
+                Clicca su una colonna del grafico per filtrare quel giorno specifico • Oggi: {todayStr}
               </span>
-              <span>Oggi: {todayStr}</span>
+              {isLoading && (
+                <span className="text-emerald-400 animate-pulse">
+                  Sincronizzazione contatori cloud...
+                </span>
+              )}
             </div>
           </div>
         </div>
